@@ -7,11 +7,12 @@ Created on Fri Feb  4 10:45:19 2022
 """
 
 import numpy as np
-import scipy as sp
+from scipy import stats
 import pandas as pd
 import matplotlib.pyplot as plt
 import copy 
 import pickle
+import xarray as xr
 
 #%%
 
@@ -31,8 +32,6 @@ def GetParams(Data,StimName='Stimulus',SubjName='subjectID'):
     """ Get stimulus and subject info of dataset """  
     Subjects=np.unique(Data[SubjName].to_numpy())
     Stimuli=np.unique(Data[StimName].to_numpy())
-    #print('Subjects',Subjects) 
-    #print('Stimuli',Stimuli) 
     return Subjects,Stimuli
 
 def InferSize(Data,Stimuli,StimName='Stimulus',SubjName='subjectID'):
@@ -46,7 +45,7 @@ def InferSize(Data,Stimuli,StimName='Stimulus',SubjName='subjectID'):
     return BoundsX,BoundsY
 
 
-def RunDescriptiveFix(Data,StimName='Stimulus',SubjName='subjectID',SizeX=0,SizeY=0):
+def RunDescriptiveFix(Data,StimName='Stimulus',SubjName='subjectID',Visual=0):
     ''' for a dataset, return number of fixation and static probability matrix, for given divisions'''
     Subjects,Stimuli=GetParams(Data,StimName=StimName,SubjName=SubjName)
     print('Data for ',len(Subjects),'observers and ', len(Stimuli),' stimuli.')
@@ -65,4 +64,12 @@ def RunDescriptiveFix(Data,StimName='Stimulus',SubjName='subjectID',SizeX=0,Size
                 MeanFixXY[cs,cp,:],SDFixXY[cs,cp,:]=np.NAN,np.NAN
     print('Mean fix Num: ',np.round(np.mean(NFixations),2),' +/- ',np.round(np.std(NFixations),2))
     print('Num of trials with zero fixations:', np.sum(NFixations==0) )
-    return NFixations,Stimuli,Subjects,MeanFixXY,SDFixXY
+    if Visual:
+        plt.figure(figsize=(NP/2,5))
+        plt.errorbar(np.arange(NP),np.mean(NFixations,0),stats.sem(NFixations,0)*2,linestyle='None',marker='o',color='darkred')
+        plt.xticks(np.arange(NP),Stimuli,fontsize=10,rotation=60)
+        plt.xlabel('Stimulus',fontsize=14)
+        plt.ylabel('Num fixations',fontsize=14)
+
+    NFix = xr.DataArray(NFixations, dims=(SubjName,StimName), coords={SubjName:Subjects,StimName: Stimuli})
+    return NFix,Stimuli,Subjects,MeanFixXY,SDFixXY
