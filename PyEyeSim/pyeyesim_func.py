@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Feb  4 10:45:19 2022
+Created on Mon Feb  7 16:44:02 2022
 
 @author: jarato
 """
@@ -15,6 +15,7 @@ import pickle
 import xarray as xr
 
 #%%
+
 
 def GetFixationData(s,p,Dat,StimName='Stimulus',SubjName='subjectID'):
     """get X,Y fixation sequence for a participant and stimulus"""
@@ -44,22 +45,25 @@ def InferSize(Data,Stimuli,StimName='Stimulus',SubjName='subjectID'):
         BoundsY[cp,:]=np.percentile(Data['mean_y'].to_numpy()[Idx],[.5,99.5])
     return BoundsX,BoundsY
 
-def MeanPlot(N,Y,yLab=0,xtickL=0):
+def MeanPlot(N,Y,yLab=0,xtickL=0,newfig=1):
     ''' expects data, row: subjects columbn: stimuli '''
-    plt.figure(figsize=(N/2,5))
+    if newfig:
+        plt.figure(figsize=(N/2,5))
     plt.errorbar(np.arange(N),np.mean(Y,0),stats.sem(Y,0)*2,linestyle='None',marker='o',color='darkred')
     if type(xtickL)!=int:
         plt.xticks(np.arange(N),xtickL,fontsize=10,rotation=60)
     plt.xlabel('Stimulus',fontsize=14)
     plt.ylabel(yLab,fontsize=14)
-    return
+    return None
 
-def HistPlot(Y,xtickL=0):
+def HistPlot(Y,xtickL=0,newfig=1):
     ''' expects data, row: subjects columbn: stimuli '''
-    plt.figure()#figsize=(N/2,5))
+    if newfig:
+       plt.figure()#figsize=(N/2,5))
     plt.hist(np.mean(Y,1),color='darkred')
     plt.xlabel(xtickL,fontsize=14)
-    return
+    plt.ylabel('Num observers',fontsize=13)
+    return None
 
 
 def RunDescriptiveFix(Data,StimName='Stimulus',SubjName='subjectID',Visual=0):
@@ -88,6 +92,14 @@ def RunDescriptiveFix(Data,StimName='Stimulus',SubjName='subjectID',Visual=0):
         HistPlot(NFixations,xtickL='Avergage Num Fixations')
     NFix = xr.DataArray(NFixations, dims=(SubjName,StimName), coords={SubjName:Subjects,StimName: Stimuli})
     return NFix,Stimuli,Subjects,MeanFixXY,SDFixXY
+
+def SaliencyPlot(SalMap,newfig=1):
+    ''' expects data, row: subjects columbn: stimuli '''
+    if newfig:
+        plt.figure()
+    plt.imshow(SalMap)
+    return None
+
 
 
 
@@ -122,6 +134,8 @@ def SaliencyMap(Dat,Stim,x_size,y_size,StimName='Stimulus',SubjName='subjectID',
         for cs,s in enumerate(Subjs):
             smap[cs,:,:]=SaliencyMapFilt(FixCountIndie[cs,:,:],SD=SD,Ind=1)               
     return smap
+
+
 
 
 
