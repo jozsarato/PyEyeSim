@@ -91,19 +91,37 @@ def RunDescriptiveFix(Data,StimName='Stimulus',SubjName='subjectID',Visual=0):
 
 
 
-def FixMapCalc(Dat,Stim,x_size,y_size,StimName='Stimulus',SubjName='subjectID',SD=25):
-    FixMap=np.zeros((y_size,x_size))
+def FixCountCalc(Dat,Stim,x_size,y_size,StimName='Stimulus',SubjName='subjectID'):
+    ''' Pixelwise fixation count for each participant, but for single stimulus  (Stim) '''
     Subjs,Stimuli=GetParams(Dat,StimName=StimName,SubjName=SubjName)
-    for s in Subjs:
+    FixCountInd=np.zeros(((len(Subjs),y_size,x_size)))
+    for cs,s in enumerate(Subjs):
         x,y=np.intp(GetFixationData(s,Stim,Dat))
         Valid=np.nonzero((x<x_size)&(y<y_size))[0]
         X,Y=x[Valid],y[Valid]
-        FixMap[Y,X]+=1
-    FixMap/=len(Subjs)
-    FixMap=ndimage.filters.gaussian_filter(FixMap,SD)
-    return FixMap
+        FixCountInd[cs,Y,X]+=1
+    return FixCountInd
 
 
+def SaliencyMapFilt(Fixies,SD=25,Ind=0):
+    ''' Gaussian filter of fixations counts, Ind=1 for individual, Ind=0 for group '''
+    if Ind==0:
+        Smap=ndimage.filters.gaussian_filter(np.mean(Fixies,0),SD)
+    else:
+        Smap=ndimage.filters.gaussian_filter(Fixies,SD)
+    return Smap
+
+def SaliencyMap(Dat,Stim,x_size,y_size,StimName='Stimulus',SubjName='subjectID',SD=25,Ind=0):
+    ''' Pipeline for saliency map calculation'''
+    FixCountIndie=FixCountCalc(Dat,Stim,x_size,y_size,StimName='Stimulus',SubjName='subjectID')
+    if Ind==0:
+        smap=SaliencyMapFilt(FixCountIndie,SD=SD,Ind=0)
+    else:
+        smap=np.zeros_like(FixCountIndie)
+        Subjs,Stimuli=GetParams(Dat,StimName=StimName,SubjName=SubjName)
+        for cs,s in enumerate(Subjs):
+            smap[cs,:,:]=SaliencyMapFilt(FixCountIndie[cs,:,:],SD=SD,Ind=1)               
+    return smap
 
 
 
