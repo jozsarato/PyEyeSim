@@ -108,7 +108,7 @@ def FixCountCalc(Dat,Stim,x_size,y_size,StimName='Stimulus',SubjName='subjectID'
     Subjs,Stimuli=GetParams(Dat,StimName=StimName,SubjName=SubjName)
     FixCountInd=np.zeros(((len(Subjs),y_size,x_size)))
     for cs,s in enumerate(Subjs):
-        x,y=np.intp(GetFixationData(s,Stim,Dat))
+        x,y=np.intp(GetFixationData(s,Stim,Dat,StimName=StimName))
         Valid=np.nonzero((x<x_size)&(y<y_size))[0]
         X,Y=x[Valid],y[Valid]
         FixCountInd[cs,Y,X]+=1
@@ -125,7 +125,7 @@ def SaliencyMapFilt(Fixies,SD=25,Ind=0):
 
 def SaliencyMap(Dat,Stim,x_size,y_size,StimName='Stimulus',SubjName='subjectID',SD=25,Ind=0):
     ''' Pipeline for saliency map calculation'''
-    FixCountIndie=FixCountCalc(Dat,Stim,x_size,y_size,StimName='Stimulus',SubjName='subjectID')
+    FixCountIndie=FixCountCalc(Dat,Stim,x_size,y_size,StimName=StimName,SubjName=SubjName)
     if Ind==0:
         smap=SaliencyMapFilt(FixCountIndie,SD=SD,Ind=0)
     else:
