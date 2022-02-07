@@ -7,7 +7,7 @@ Created on Fri Feb  4 10:45:19 2022
 """
 
 import numpy as np
-from scipy import stats
+from scipy import stats,ndimage
 import pandas as pd
 import matplotlib.pyplot as plt
 import copy 
@@ -45,12 +45,20 @@ def InferSize(Data,Stimuli,StimName='Stimulus',SubjName='subjectID'):
     return BoundsX,BoundsY
 
 def MeanPlot(N,Y,yLab=0,xtickL=0):
+    ''' expects data, row: subjects columbn: stimuli '''
     plt.figure(figsize=(N/2,5))
     plt.errorbar(np.arange(N),np.mean(Y,0),stats.sem(Y,0)*2,linestyle='None',marker='o',color='darkred')
     if type(xtickL)!=int:
         plt.xticks(np.arange(N),xtickL,fontsize=10,rotation=60)
     plt.xlabel('Stimulus',fontsize=14)
     plt.ylabel(yLab,fontsize=14)
+    return
+
+def HistPlot(Y,xtickL=0):
+    ''' expects data, row: subjects columbn: stimuli '''
+    plt.figure()#figsize=(N/2,5))
+    plt.hist(np.mean(Y,1),color='darkred')
+    plt.xlabel(xtickL,fontsize=14)
     return
 
 
@@ -73,10 +81,27 @@ def RunDescriptiveFix(Data,StimName='Stimulus',SubjName='subjectID',Visual=0):
                 MeanFixXY[cs,cp,:],SDFixXY[cs,cp,:]=np.NAN,np.NAN
     print('Mean fix Num: ',np.round(np.mean(NFixations),2),' +/- ',np.round(np.std(NFixations),2))
     print('Num of trials with zero fixations:', np.sum(NFixations==0) )
+    print('Num valid trials ',np.sum(NFixations>0))
+
     if Visual:
         MeanPlot(NP,NFixations,yLab='Num Fixations',xtickL=Stimuli)
+        HistPlot(NFixations,xtickL='Avergage Num Fixations')
     NFix = xr.DataArray(NFixations, dims=(SubjName,StimName), coords={SubjName:Subjects,StimName: Stimuli})
     return NFix,Stimuli,Subjects,MeanFixXY,SDFixXY
+
+
+
+def FixMapCalc(Dat,Stim,x_size,y_size,StimName='Stimulus',SubjName='subjectID',SD=25):
+    FixMap=np.zeros((y_size,x_size))
+    Subjs,Stimuli=GetParams(Dat,StimName=StimName,SubjName=SubjName)
+    for s in Subjs:
+        x,y=np.intp(GetFixationData(s,Stim,Dat))
+        Valid=np.nonzero((x<x_size)&(y<y_size))[0]
+        X,Y=x[Valid],y[Valid]
+        FixMap[Y,X]+=1
+    FixMap/=len(Subjs)
+    FixMap=ndimage.filters.gaussian_filter(FixMap,SD)
+    return FixMap
 
 
 
