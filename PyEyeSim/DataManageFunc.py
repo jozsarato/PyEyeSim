@@ -44,6 +44,15 @@ def InferSize(Data,Stimuli,StimName='Stimulus',SubjName='subjectID'):
         BoundsY[cp,:]=np.percentile(Data['mean_y'].to_numpy()[Idx],[.5,99.5])
     return BoundsX,BoundsY
 
+def MeanPlot(N,Y,yLab=0,xtickL=0):
+    plt.figure(figsize=(N/2,5))
+    plt.errorbar(np.arange(N),np.mean(Y,0),stats.sem(Y,0)*2,linestyle='None',marker='o',color='darkred')
+    if type(xtickL)!=int:
+        plt.xticks(np.arange(N),xtickL,fontsize=10,rotation=60)
+    plt.xlabel('Stimulus',fontsize=14)
+    plt.ylabel(yLab,fontsize=14)
+    return
+
 
 def RunDescriptiveFix(Data,StimName='Stimulus',SubjName='subjectID',Visual=0):
     ''' for a dataset, return number of fixation and static probability matrix, for given divisions'''
@@ -65,11 +74,12 @@ def RunDescriptiveFix(Data,StimName='Stimulus',SubjName='subjectID',Visual=0):
     print('Mean fix Num: ',np.round(np.mean(NFixations),2),' +/- ',np.round(np.std(NFixations),2))
     print('Num of trials with zero fixations:', np.sum(NFixations==0) )
     if Visual:
-        plt.figure(figsize=(NP/2,5))
-        plt.errorbar(np.arange(NP),np.mean(NFixations,0),stats.sem(NFixations,0)*2,linestyle='None',marker='o',color='darkred')
-        plt.xticks(np.arange(NP),Stimuli,fontsize=10,rotation=60)
-        plt.xlabel('Stimulus',fontsize=14)
-        plt.ylabel('Num fixations',fontsize=14)
-
+        MeanPlot(NP,NFixations,yLab='Num Fixations',xtickL=Stimuli)
     NFix = xr.DataArray(NFixations, dims=(SubjName,StimName), coords={SubjName:Subjects,StimName: Stimuli})
     return NFix,Stimuli,Subjects,MeanFixXY,SDFixXY
+
+
+
+
+
+
