@@ -144,5 +144,3 @@ def BinnedCount(Fixcounts,x_size,y_size,binS=50):
     return BinnedCount
 
 
-
-
