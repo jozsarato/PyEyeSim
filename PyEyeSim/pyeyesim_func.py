@@ -144,3 +144,12 @@ def BinnedCount(Fixcounts,x_size,y_size,binS=50):
     return BinnedCount
 
 
+def Entropy(BinnedCount,base=None):
+    ''' based on binned  2d fixation counts return entropy and '''
+    size=np.shape(BinnedCount)[0]*np.shape(BinnedCount)[1]
+    entrMax=stats.entropy(1/size*np.ones(size),base=base)
+    EntrBinned=stats.entropy(BinnedCount.flatten(),base=base)
+    return EntrBinned,EntrBinned/entrMax
+
+
+
