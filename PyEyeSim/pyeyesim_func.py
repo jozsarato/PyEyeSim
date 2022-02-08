@@ -135,7 +135,13 @@ def SaliencyMap(Dat,Stim,x_size,y_size,StimName='Stimulus',SubjName='subjectID',
             smap[cs,:,:]=SaliencyMapFilt(FixCountIndie[cs,:,:],SD=SD,Ind=1)               
     return smap
 
-
+def BinnedCount(Fixcounts,x_size,y_size,binS=50):
+    ''' makes a grid of binS*binS pixels, and counts the num of fixies for each'''
+    BinnedCount=np.zeros((int(y_size/binS),int(x_size/binS)))
+    for cx,x in enumerate(np.arange(binS,x_size,binS)):
+        for cy,y in enumerate(np.arange(binS,y_size,binS)):
+            BinnedCount[cy,cx]=np.sum(Fixcounts[0+(cy*binS):y,0+(cx*binS):x])
+    return BinnedCount
 
 
 
