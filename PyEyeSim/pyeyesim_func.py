@@ -67,7 +67,7 @@ def HistPlot(Y,xtickL=0,newfig=1):
 
 
 def RunDescriptiveFix(Data,StimName='Stimulus',SubjName='subjectID',Visual=0):
-    ''' for a dataset, return number of fixation and static probability matrix, for given divisions'''
+    ''' for a dataset, return number of fixation, inferred stim boundaries and mean and SD of fixation locatios '''
     Subjects,Stimuli=GetParams(Data,StimName=StimName,SubjName=SubjName)
     BoundsX,BoundsY=InferSize(Data,Stimuli,StimName=StimName,SubjName=SubjName,Interval=99)
     print('Data for ',len(Subjects),'observers and ', len(Stimuli),' stimuli.')
@@ -93,8 +93,16 @@ def RunDescriptiveFix(Data,StimName='Stimulus',SubjName='subjectID',Visual=0):
     if Visual:
         MeanPlot(NP,NFixations,yLab='Num Fixations',xtickL=Stimuli)
         HistPlot(NFixations,xtickL='Avergage Num Fixations')
+    Bounds=pd.DataFrame(columns=['Stimulus'],data=Stimuli)
+    Bounds['BoundX1']=BoundsX[:,0]
+    Bounds['BoundX2']=BoundsX[:,1]
+    Bounds['BoundY1']=BoundsY[:,0]
+    Bounds['BoundY2']=BoundsY[:,1]    
     NFix = xr.DataArray(NFixations, dims=(SubjName,StimName), coords={SubjName:Subjects,StimName: Stimuli})
-    return NFix,Stimuli,Subjects,MeanFixXY,SDFixXY,BoundsX,BoundsY
+    MeanFixXY = xr.DataArray(MeanFixXY, dims=(SubjName,StimName,'XY'), coords={SubjName:Subjects,StimName: Stimuli, 'XY':['X','Y']})
+    SDFixXY = xr.DataArray(SDFixXY, dims=(SubjName,StimName,'XY'), coords={SubjName:Subjects,StimName: Stimuli, 'XY':['X','Y']})
+
+    return NFix,Stimuli,Subjects,MeanFixXY,SDFixXY,Bounds
 
 def SaliencyPlot(SalMap,newfig=1):
     ''' expects data, row: subjects columbn: stimuli '''
