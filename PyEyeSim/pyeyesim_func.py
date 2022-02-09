@@ -35,14 +35,14 @@ def GetParams(Data,StimName='Stimulus',SubjName='subjectID'):
     Stimuli=np.unique(Data[StimName].to_numpy())
     return Subjects,Stimuli
 
-def InferSize(Data,Stimuli,StimName='Stimulus',SubjName='subjectID'):
-    ''' Infer stimulus size as 99% central fixations data'''
+def InferSize(Data,Stimuli,StimName='Stimulus',SubjName='subjectID',Interval=99):
+    ''' Infer stimulus size as central Interval % fixations data'''
     BoundsX=np.zeros((len(Stimuli),2))
     BoundsY=np.zeros((len(Stimuli),2))
     for cp,p in enumerate(Stimuli):
         Idx=np.nonzero(Data[StimName].to_numpy()==p)[0]
-        BoundsX[cp,:]=np.percentile(Data['mean_x'].to_numpy()[Idx],[.5,99.5])
-        BoundsY[cp,:]=np.percentile(Data['mean_y'].to_numpy()[Idx],[.5,99.5])
+        BoundsX[cp,:]=np.percentile(Data['mean_x'].to_numpy()[Idx],[(100-Interval)/2,Interval+(100-Interval)/2])
+        BoundsY[cp,:]=np.percentile(Data['mean_y'].to_numpy()[Idx],[(100-Interval)/2,Interval+(100-Interval)/2])
     return BoundsX,BoundsY
 
 def MeanPlot(N,Y,yLab=0,xtickL=0,newfig=1):
@@ -69,29 +69,32 @@ def HistPlot(Y,xtickL=0,newfig=1):
 def RunDescriptiveFix(Data,StimName='Stimulus',SubjName='subjectID',Visual=0):
     ''' for a dataset, return number of fixation and static probability matrix, for given divisions'''
     Subjects,Stimuli=GetParams(Data,StimName=StimName,SubjName=SubjName)
+    BoundsX,BoundsY=InferSize(Data,Stimuli,StimName=StimName,SubjName=SubjName,Interval=99)
     print('Data for ',len(Subjects),'observers and ', len(Stimuli),' stimuli.')
     NS,NP=len(Subjects),len(Stimuli)
     NFixations=np.zeros((NS,NP))
     MeanFixXY=np.zeros(((NS,NP,2)))
     SDFixXY=np.zeros(((NS,NP,2)))
+    
     for cs,s in enumerate(Subjects):
         for cp,p in enumerate(Stimuli):      
             FixTrialX,FixTrialY=GetFixationData(s,p,Data,StimName=StimName,SubjName=SubjName)
             if len(FixTrialX)>0:
                 NFixations[cs,cp]=len(FixTrialX)
                 MeanFixXY[cs,cp,0],MeanFixXY[cs,cp,1]=np.mean(FixTrialX),np.mean(FixTrialY)
-                SDFixXY[cs,cp,0],MeanFixXY[cs,cp,1]=np.std(FixTrialX),np.std(FixTrialY)
+                SDFixXY[cs,cp,0],SDFixXY[cs,cp,1]=np.std(FixTrialX),np.std(FixTrialY)
             else:
                 MeanFixXY[cs,cp,:],SDFixXY[cs,cp,:]=np.NAN,np.NAN
-    print('Mean fix Num: ',np.round(np.mean(NFixations),2),' +/- ',np.round(np.std(NFixations),2))
+    print('Mean fixation number: ',np.round(np.mean(np.mean(NFixations,1)),2),' +/- ',np.round(np.std(np.mean(NFixations,1)),2))
     print('Num of trials with zero fixations:', np.sum(NFixations==0) )
     print('Num valid trials ',np.sum(NFixations>0))
-
+    print('Mean X location: ',np.round(np.mean(np.nanmean(MeanFixXY[:,:,0],1)),2),' +/- ',np.round(np.std(np.nanmean(MeanFixXY[:,:,0],1)),2),' pixels')
+    print('Mean Y location: ',np.round(np.mean(np.nanmean(MeanFixXY[:,:,1],1)),2),' +/- ',np.round(np.std(np.nanmean(MeanFixXY[:,:,1],1)),2),' pixels')
     if Visual:
         MeanPlot(NP,NFixations,yLab='Num Fixations',xtickL=Stimuli)
         HistPlot(NFixations,xtickL='Avergage Num Fixations')
     NFix = xr.DataArray(NFixations, dims=(SubjName,StimName), coords={SubjName:Subjects,StimName: Stimuli})
-    return NFix,Stimuli,Subjects,MeanFixXY,SDFixXY
+    return NFix,Stimuli,Subjects,MeanFixXY,SDFixXY,BoundsX,BoundsY
 
 def SaliencyPlot(SalMap,newfig=1):
     ''' expects data, row: subjects columbn: stimuli '''
