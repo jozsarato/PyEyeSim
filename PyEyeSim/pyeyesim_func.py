@@ -58,6 +58,7 @@ def MeanPlot(N,Y,yLab=0,xtickL=0,newfig=1,color='darkred',label=None):
 
 def HistPlot(Y,xtickL=0,newfig=1):
     ''' expects data, row: subjects columbn: stimuli '''
+    assert len(np.shape(Y))==2, '2d data is expected: observer*stimulus'
     if newfig:
        plt.figure()
     plt.hist(np.mean(Y,1),color='darkred')
@@ -106,8 +107,11 @@ def RunDescriptiveFix(Data,StimName='Stimulus',SubjName='subjectID',Visual=0):
 
 
 def DescripitiveGroups(Data,cond,StimName='Stimulus',SubjName='subjectID'):
+    ''' expects a categorical column name in cond '''
     Conds=np.unique(Data[cond])
-    Cols=['salmon','darkgreen','b','orange','olive']
+    Cols=['salmon','darkgreen','b','orange','olive','r','m','c']
+    assert len(Conds)>1, 'you need more than 1 group'
+    assert len(Conds)<=len(Cols), 'too many groups, max is 8'
     plt.figure()
     for cc,c in enumerate(Conds):
         print('Group ',cc+1,c)
@@ -152,6 +156,9 @@ def SaliencyMapFilt(Fixies,SD=25,Ind=0):
 def SaliencyMap(Dat,Stim,x_size,y_size,StimName='Stimulus',SubjName='subjectID',SD=25,Ind=0,Vis=0):
     ''' Pipeline for saliency map calculation'''
     FixCountIndie=FixCountCalc(Dat,Stim,x_size,y_size,StimName=StimName,SubjName=SubjName)
+    assert np.sum(FixCountIndie)>0,'!!no fixations found'
+    if np.sum(FixCountIndie)<10:
+        print('WARNING NUM FIX FOUND: ',np.sum(FixCountIndie))
     if Ind==0:
         smap=SaliencyMapFilt(FixCountIndie,SD=SD,Ind=0)
     else:
@@ -176,6 +183,7 @@ def BinnedCount(Fixcounts,x_size,y_size,binS=50):
 
 def Entropy(BinnedCount,base=None):
     ''' based on binned  2d fixation counts return entropy and relative entropy, default natural log'''
+    assert len(np.shape(BinnedCount))==2,'2d data input expected'
     size=np.shape(BinnedCount)[0]*np.shape(BinnedCount)[1]
     entrMax=stats.entropy(1/size*np.ones(size),base=base)
     EntrBinned=stats.entropy(BinnedCount.flatten(),base=base)
