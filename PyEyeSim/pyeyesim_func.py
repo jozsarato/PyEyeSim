@@ -45,11 +45,11 @@ def InferSize(Data,Stimuli,StimName='Stimulus',SubjName='subjectID',Interval=99)
         BoundsY[cp,:]=np.percentile(Data['mean_y'].to_numpy()[Idx],[(100-Interval)/2,Interval+(100-Interval)/2])
     return BoundsX,BoundsY
 
-def MeanPlot(N,Y,yLab=0,xtickL=0,newfig=1):
+def MeanPlot(N,Y,yLab=0,xtickL=0,newfig=1,color='darkred',label=None):
     ''' expects data, row: subjects columbn: stimuli '''
     if newfig:
         plt.figure(figsize=(N/2,5))
-    plt.errorbar(np.arange(N),np.mean(Y,0),stats.sem(Y,0)*2,linestyle='None',marker='o',color='darkred')
+    plt.errorbar(np.arange(N),np.mean(Y,0),stats.sem(Y,0)*2,linestyle='None',marker='o',color=color,label=label)
     if type(xtickL)!=int:
         plt.xticks(np.arange(N),xtickL,fontsize=10,rotation=60)
     plt.xlabel('Stimulus',fontsize=14)
@@ -103,6 +103,21 @@ def RunDescriptiveFix(Data,StimName='Stimulus',SubjName='subjectID',Visual=0):
     SDFixXY = xr.DataArray(SDFixXY, dims=(SubjName,StimName,'XY'), coords={SubjName:Subjects,StimName: Stimuli, 'XY':['X','Y']})
 
     return NFix,Stimuli,Subjects,MeanFixXY,SDFixXY,Bounds
+
+
+def DescripitiveGroups(Data,cond,StimName='Stimulus',SubjName='subjectID'):
+    Conds=np.unique(Data[cond])
+    Cols=['salmon','darkgreen','b','orange','olive']
+    plt.figure()
+    for cc,c in enumerate(Conds):
+        print('Group ',cc+1,c)
+        Dat=Data[Data[cond]==c]
+        NFix,Stimuli,Subjects,MeanFixXY,SDFixXY,Bounds=RunDescriptiveFix(Dat,StimName=StimName,SubjName=SubjName,Visual=0)
+        NS,NP=len(Subjects),len(Stimuli)
+        MeanPlot(NP,NFix,yLab='Num Fixations',xtickL=Stimuli,color=Cols[cc],newfig=0,label=c)
+        print(' ')
+    plt.legend()
+    return None
 
 def SaliencyPlot(SalMap,newfig=1):
     ''' expects data, row: subjects columbn: stimuli '''
