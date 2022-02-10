@@ -59,7 +59,7 @@ def MeanPlot(N,Y,yLab=0,xtickL=0,newfig=1):
 def HistPlot(Y,xtickL=0,newfig=1):
     ''' expects data, row: subjects columbn: stimuli '''
     if newfig:
-       plt.figure()#figsize=(N/2,5))
+       plt.figure()
     plt.hist(np.mean(Y,1),color='darkred')
     plt.xlabel(xtickL,fontsize=14)
     plt.ylabel('Num observers',fontsize=13)
@@ -134,7 +134,7 @@ def SaliencyMapFilt(Fixies,SD=25,Ind=0):
         Smap=ndimage.filters.gaussian_filter(Fixies,SD)
     return Smap
 
-def SaliencyMap(Dat,Stim,x_size,y_size,StimName='Stimulus',SubjName='subjectID',SD=25,Ind=0):
+def SaliencyMap(Dat,Stim,x_size,y_size,StimName='Stimulus',SubjName='subjectID',SD=25,Ind=0,Vis=0):
     ''' Pipeline for saliency map calculation'''
     FixCountIndie=FixCountCalc(Dat,Stim,x_size,y_size,StimName=StimName,SubjName=SubjName)
     if Ind==0:
@@ -143,7 +143,11 @@ def SaliencyMap(Dat,Stim,x_size,y_size,StimName='Stimulus',SubjName='subjectID',
         smap=np.zeros_like(FixCountIndie)
         Subjs,Stimuli=GetParams(Dat,StimName=StimName,SubjName=SubjName)
         for cs,s in enumerate(Subjs):
-            smap[cs,:,:]=SaliencyMapFilt(FixCountIndie[cs,:,:],SD=SD,Ind=1)               
+            smap[cs,:,:]=SaliencyMapFilt(FixCountIndie[cs,:,:],SD=SD,Ind=1)       
+    if Vis:
+        plt.imshow(smap)
+        plt.xticks([])
+        plt.yticks([])
     return smap
 
 def BinnedCount(Fixcounts,x_size,y_size,binS=50):
@@ -156,7 +160,7 @@ def BinnedCount(Fixcounts,x_size,y_size,binS=50):
 
 
 def Entropy(BinnedCount,base=None):
-    ''' based on binned  2d fixation counts return entropy and '''
+    ''' based on binned  2d fixation counts return entropy and relative entropy, default natural log'''
     size=np.shape(BinnedCount)[0]*np.shape(BinnedCount)[1]
     entrMax=stats.entropy(1/size*np.ones(size),base=base)
     EntrBinned=stats.entropy(BinnedCount.flatten(),base=base)
