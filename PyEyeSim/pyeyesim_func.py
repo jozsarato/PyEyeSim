@@ -17,30 +17,36 @@ import xarray as xr
 #%%
 
 
-def GetFixationData(s,p,Dat,StimName='Stimulus',SubjName='subjectID'):
+def ProcessDat(Data,StimName='Stimulus',SubjName='subjectID',mean_x='mean_x',mean_y='mean_y'):
+    ''' the library expects column names Stimulus, subjectID, mean_x and mean_y, if you data is not in this format, this function will rename your columns accordingly  '''
+    DataN=Data.rename(columns={StimName:'Stimulus',SubjName:'subjectID',mean_x: 'mean_x',mean_y: 'mean_y'})
+    return DataN
+
+def GetFixationData(s,p,Dat):
     """get X,Y fixation sequence for a participant and stimulus"""
-    SubjIdx=np.nonzero(Dat[SubjName].to_numpy()==s)  #idx for subject
-    TrialSubIdx=np.intersect1d(np.nonzero(Dat[StimName].to_numpy()==p),SubjIdx) # idx for subject and painting
+    SubjIdx=np.nonzero(Dat['subjectID'].to_numpy()==s)  #idx for subject
+    TrialSubIdx=np.intersect1d(np.nonzero(Dat['Stimulus'].to_numpy()==p),SubjIdx) # idx for subject and painting
     FixTrialX=np.array(Dat['mean_x'].iloc[TrialSubIdx]) # get x data for trial
     FixTrialY=np.array(Dat['mean_y'].iloc[TrialSubIdx]) # get y data for trial
     return FixTrialX,FixTrialY
 
 
-def AOIbounds(starts,end,nDiv):  
-    return np.linspace(starts,end,nDiv+1)  
 
-def GetParams(Data,StimName='Stimulus',SubjName='subjectID'):
+def AOIbounds(start,end,nDiv):  
+    return np.linspace(start,end,nDiv+1)  
+
+def GetParams(Data):
     """ Get stimulus and subject info of dataset """  
-    Subjects=np.unique(Data[SubjName].to_numpy())
-    Stimuli=np.unique(Data[StimName].to_numpy())
+    Subjects=np.unique(Data['subjectID'].to_numpy())
+    Stimuli=np.unique(Data['Stimulus'].to_numpy())
     return Subjects,Stimuli
 
-def InferSize(Data,Stimuli,StimName='Stimulus',SubjName='subjectID',Interval=99):
+def InferSize(Data,Stimuli,Interval=99):
     ''' Infer stimulus size as central Interval % fixations data'''
     BoundsX=np.zeros((len(Stimuli),2))
     BoundsY=np.zeros((len(Stimuli),2))
     for cp,p in enumerate(Stimuli):
-        Idx=np.nonzero(Data[StimName].to_numpy()==p)[0]
+        Idx=np.nonzero(Data['Stimulus'].to_numpy()==p)[0]
         BoundsX[cp,:]=np.percentile(Data['mean_x'].to_numpy()[Idx],[(100-Interval)/2,Interval+(100-Interval)/2])
         BoundsY[cp,:]=np.percentile(Data['mean_y'].to_numpy()[Idx],[(100-Interval)/2,Interval+(100-Interval)/2])
     return BoundsX,BoundsY
@@ -67,10 +73,13 @@ def HistPlot(Y,xtickL=0,newfig=1):
     return None
 
 
-def RunDescriptiveFix(Data,StimName='Stimulus',SubjName='subjectID',Visual=0):
+def RunDescriptiveFix(Data,Visual=0):
     ''' for a dataset, return number of fixation, inferred stim boundaries and mean and SD of fixation locatios '''
-    Subjects,Stimuli=GetParams(Data,StimName=StimName,SubjName=SubjName)
-    BoundsX,BoundsY=InferSize(Data,Stimuli,StimName=StimName,SubjName=SubjName,Interval=99)
+    
+    Subjects,Stimuli=GetParams(Data)
+    #Subjects,Stimuli=GetParams(Data,StimName=StimName,SubjName=SubjName)
+
+    BoundsX,BoundsY=InferSize(Data,Stimuli,Interval=99)
     print('Data for ',len(Subjects),'observers and ', len(Stimuli),' stimuli.')
     NS,NP=len(Subjects),len(Stimuli)
     NFixations=np.zeros((NS,NP))
@@ -79,7 +88,7 @@ def RunDescriptiveFix(Data,StimName='Stimulus',SubjName='subjectID',Visual=0):
     
     for cs,s in enumerate(Subjects):
         for cp,p in enumerate(Stimuli):      
-            FixTrialX,FixTrialY=GetFixationData(s,p,Data,StimName=StimName,SubjName=SubjName)
+            FixTrialX,FixTrialY=GetFixationData(s,p,Data)
             if len(FixTrialX)>0:
                 NFixations[cs,cp]=len(FixTrialX)
                 MeanFixXY[cs,cp,0],MeanFixXY[cs,cp,1]=np.mean(FixTrialX),np.mean(FixTrialY)
@@ -99,14 +108,14 @@ def RunDescriptiveFix(Data,StimName='Stimulus',SubjName='subjectID',Visual=0):
     Bounds['BoundX2']=BoundsX[:,1]
     Bounds['BoundY1']=BoundsY[:,0]
     Bounds['BoundY2']=BoundsY[:,1]    
-    NFix = xr.DataArray(NFixations, dims=(SubjName,StimName), coords={SubjName:Subjects,StimName: Stimuli})
-    MeanFixXY = xr.DataArray(MeanFixXY, dims=(SubjName,StimName,'XY'), coords={SubjName:Subjects,StimName: Stimuli, 'XY':['X','Y']})
-    SDFixXY = xr.DataArray(SDFixXY, dims=(SubjName,StimName,'XY'), coords={SubjName:Subjects,StimName: Stimuli, 'XY':['X','Y']})
+    NFix = xr.DataArray(NFixations, dims=('subjectID','Stimulus'), coords={'subjectID':Subjects,'Stimulus': Stimuli})
+    MeanFixXY = xr.DataArray(MeanFixXY, dims=('subjectID','Stimulus','XY'), coords={'subjectID':Subjects,'Stimulus': Stimuli, 'XY':['X','Y']})
+    SDFixXY = xr.DataArray(SDFixXY, dims=('subjectID','Stimulus','XY'), coords={'subjectID':Subjects,'Stimulus': Stimuli, 'XY':['X','Y']})
 
     return NFix,Stimuli,Subjects,MeanFixXY,SDFixXY,Bounds
 
 
-def DescripitiveGroups(Data,cond,StimName='Stimulus',SubjName='subjectID'):
+def DescripitiveGroups(Data,cond):
     ''' expects a categorical column name in cond '''
     Conds=np.unique(Data[cond])
     Cols=['salmon','darkgreen','b','orange','olive','r','m','c']
@@ -116,7 +125,7 @@ def DescripitiveGroups(Data,cond,StimName='Stimulus',SubjName='subjectID'):
     for cc,c in enumerate(Conds):
         print('Group ',cc+1,c)
         Dat=Data[Data[cond]==c]
-        NFix,Stimuli,Subjects,MeanFixXY,SDFixXY,Bounds=RunDescriptiveFix(Dat,StimName=StimName,SubjName=SubjName,Visual=0)
+        NFix,Stimuli,Subjects,MeanFixXY,SDFixXY,Bounds=RunDescriptiveFix(Dat,Visual=0)
         NS,NP=len(Subjects),len(Stimuli)
         MeanPlot(NP,NFix,yLab='Num Fixations',xtickL=Stimuli,color=Cols[cc],newfig=0,label=c)
         print(' ')
@@ -133,13 +142,13 @@ def SaliencyPlot(SalMap,newfig=1):
 
 
 
-def FixCountCalc(Dat,Stim,x_size,y_size,StimName='Stimulus',SubjName='subjectID'):
+def FixCountCalc(Dat,Stim,x_size,y_size):
     ''' Pixelwise fixation count for each participant, but for single stimulus  (Stim) '''
-    assert np.sum(Dat[StimName]==Stim)>0, 'stimulus not found'
-    Subjs,Stimuli=GetParams(Dat,StimName=StimName,SubjName=SubjName)
+    assert np.sum(Dat['Stimulus']==Stim)>0, 'stimulus not found'
+    Subjs,Stimuli=GetParams(Dat)
     FixCountInd=np.zeros(((len(Subjs),y_size,x_size)))
     for cs,s in enumerate(Subjs):
-        x,y=np.intp(GetFixationData(s,Stim,Dat,StimName=StimName))
+        x,y=np.intp(GetFixationData(s,Stim,Dat))
         Valid=np.nonzero((x<x_size)&(y<y_size))[0]
         X,Y=x[Valid],y[Valid]
         FixCountInd[cs,Y,X]+=1
@@ -154,9 +163,9 @@ def SaliencyMapFilt(Fixies,SD=25,Ind=0):
         Smap=ndimage.filters.gaussian_filter(Fixies,SD)
     return Smap
 
-def SaliencyMap(Dat,Stim,x_size,y_size,StimName='Stimulus',SubjName='subjectID',SD=25,Ind=0,Vis=0):
+def SaliencyMap(Dat,Stim,x_size,y_size,SD=25,Ind=0,Vis=0):
     ''' Pipeline for saliency map calculation'''
-    FixCountIndie=FixCountCalc(Dat,Stim,x_size,y_size,StimName=StimName,SubjName=SubjName)
+    FixCountIndie=FixCountCalc(Dat,Stim,x_size,y_size)
     assert np.sum(FixCountIndie)>0,'!!no fixations found'
     if np.sum(FixCountIndie)<10:
         print('WARNING NUM FIX FOUND: ',np.sum(FixCountIndie))
@@ -164,7 +173,7 @@ def SaliencyMap(Dat,Stim,x_size,y_size,StimName='Stimulus',SubjName='subjectID',
         smap=SaliencyMapFilt(FixCountIndie,SD=SD,Ind=0)
     else:
         smap=np.zeros_like(FixCountIndie)
-        Subjs,Stimuli=GetParams(Dat,StimName=StimName,SubjName=SubjName)
+        Subjs,Stimuli=GetParams(Dat)
         for cs,s in enumerate(Subjs):
             smap[cs,:,:]=SaliencyMapFilt(FixCountIndie[cs,:,:],SD=SD,Ind=1)       
     if Vis:
