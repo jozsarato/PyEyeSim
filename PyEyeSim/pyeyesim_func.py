@@ -135,6 +135,7 @@ def SaliencyPlot(SalMap,newfig=1):
 
 def FixCountCalc(Dat,Stim,x_size,y_size,StimName='Stimulus',SubjName='subjectID'):
     ''' Pixelwise fixation count for each participant, but for single stimulus  (Stim) '''
+    assert np.sum(Dat[StimName]==Stim)>0, 'stimulus not found'
     Subjs,Stimuli=GetParams(Dat,StimName=StimName,SubjName=SubjName)
     FixCountInd=np.zeros(((len(Subjs),y_size,x_size)))
     for cs,s in enumerate(Subjs):
@@ -172,12 +173,20 @@ def SaliencyMap(Dat,Stim,x_size,y_size,StimName='Stimulus',SubjName='subjectID',
         plt.yticks([])
     return smap
 
-def BinnedCount(Fixcounts,x_size,y_size,binS=50):
+
+def BinnedCount(Fixcounts,x_size,y_size,binsize_h=50,binsize_v=None):
     ''' makes a grid of binS*binS pixels, and counts the num of fixies for each'''
-    BinnedCount=np.zeros((int(y_size/binS),int(x_size/binS)))
-    for cx,x in enumerate(np.arange(binS,x_size,binS)):
-        for cy,y in enumerate(np.arange(binS,y_size,binS)):
-            BinnedCount[cy,cx]=np.sum(Fixcounts[0+(cy*binS):y,0+(cx*binS):x])
+    assert len(np.shape(Fixcounts))==2, '2d input expected'
+    if binsize_v==None:
+        binsize_v=binsize_h
+    BinsH=np.arange(binsize_h,x_size,binsize_h) 
+    BinsV=np.arange(binsize_v,y_size,binsize_v) 
+    print(BinsH)
+    print(BinsV)
+    BinnedCount=np.zeros((len(BinsV),len(BinsH)))
+    for cx,x in enumerate(BinsH):
+        for cy,y in enumerate(BinsV):
+            BinnedCount[cy,cx]=np.sum(Fixcounts[0+(cy*binsize_v):y,0+(cx*binsize_h):x])
     return BinnedCount
 
 
