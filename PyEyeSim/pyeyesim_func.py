@@ -175,14 +175,19 @@ def SaliencyMap(Dat,Stim,x_size,y_size,StimName='Stimulus',SubjName='subjectID',
 
 
 def BinnedCount(Fixcounts,x_size,y_size,binsize_h=50,binsize_v=None):
-    ''' makes a grid of binS*binS pixels, and counts the num of fixies for each'''
+    ''' makes a grid of binsize_h*binsize_v pixels, and counts the num of fixies for each'''
     assert len(np.shape(Fixcounts))==2, '2d input expected'
     if binsize_v==None:
         binsize_v=binsize_h
+    assert binsize_h>=2,'binsize_h must be at least 2'
+    assert binsize_v>=2,'binsize_v must be at least 2'
+    assert binsize_h<x_size/2,'too large horizontal bin, must be below screen widht/2'
+    assert binsize_v<y_size/2,'too large vertical bin, must be below screen height/2'
+    
+    
     BinsH=np.arange(binsize_h,x_size,binsize_h) 
     BinsV=np.arange(binsize_v,y_size,binsize_v) 
-    print(BinsH)
-    print(BinsV)
+    
     BinnedCount=np.zeros((len(BinsV),len(BinsH)))
     for cx,x in enumerate(BinsH):
         for cy,y in enumerate(BinsV):
