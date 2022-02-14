@@ -183,24 +183,23 @@ def SaliencyMap(Dat,Stim,x_size,y_size,SD=25,Ind=0,Vis=0):
     return smap
 
 
-def BinnedCount(Fixcounts,x_size,y_size,binsize_h=50,binsize_v=None):
+def BinnedCount(Fixcounts,x_size,y_size,x_size_start=0,y_size_start=0,binsize_h=50,binsize_v=None):
     ''' makes a grid of binsize_h*binsize_v pixels, and counts the num of fixies for each'''
     assert len(np.shape(Fixcounts))==2, '2d input expected'
     if binsize_v==None:
         binsize_v=binsize_h
     assert binsize_h>=2,'binsize_h must be at least 2'
     assert binsize_v>=2,'binsize_v must be at least 2'
-    assert binsize_h<x_size/2,'too large horizontal bin, must be below screen widht/2'
-    assert binsize_v<y_size/2,'too large vertical bin, must be below screen height/2'
+    assert binsize_h<(x_size-x_size_start)/2,'too large horizontal bin, must be below screen widht/2'
+    assert binsize_v<(y_size-y_size_start)/2,'too large vertical bin, must be below screen height/2'
     
-    
-    BinsH=np.arange(binsize_h,x_size,binsize_h) 
-    BinsV=np.arange(binsize_v,y_size,binsize_v) 
+    BinsH=np.arange(binsize_h+x_size_start,x_size,binsize_h) 
+    BinsV=np.arange(binsize_v+y_size_start,y_size,binsize_v) 
     
     BinnedCount=np.zeros((len(BinsV),len(BinsH)))
     for cx,x in enumerate(BinsH):
         for cy,y in enumerate(BinsV):
-            BinnedCount[cy,cx]=np.sum(Fixcounts[0+(cy*binsize_v):y,0+(cx*binsize_h):x])
+            BinnedCount[cy,cx]=np.sum(Fixcounts[y_size_start+(cy*binsize_v):y,x_size_start+(cx*binsize_h):x])
     return BinnedCount
 
 
