@@ -17,9 +17,15 @@ import xarray as xr
 #%%
 
 
-def ProcessDat(Data,StimName='Stimulus',SubjName='subjectID',mean_x='mean_x',mean_y='mean_y'):
-    ''' the library expects column names Stimulus, subjectID, mean_x and mean_y, if you data is not in this format, this function will rename your columns accordingly  '''
-    DataN=Data.rename(columns={StimName:'Stimulus',SubjName:'subjectID',mean_x: 'mean_x',mean_y: 'mean_y'})
+def ProcessDat(Data,StimName='Stimulus',SubjName='subjectID',mean_x='mean_x',mean_y='mean_y',FixDuration=0):
+    ''' the library expects column names Stimulus, subjectID, mean_x and mean_y, if you data is not in this format, this function will rename your columns accordingly 
+     optionally, with FixDuration you can name your column of fixations lengths, which will be called duration afterwards'''
+   # print(type(FixDuration))
+    if type(FixDuration)!='int':
+        DataN=Data.rename(columns={StimName:'Stimulus',SubjName:'subjectID',mean_x: 'mean_x',mean_y: 'mean_y',FixDuration: 'duration'})
+    else:
+        DataN=Data.rename(columns={StimName:'Stimulus',SubjName:'subjectID',mean_x: 'mean_x',mean_y: 'mean_y'})
+
     return DataN
 
 def GetFixationData(s,p,Dat):
@@ -30,6 +36,13 @@ def GetFixationData(s,p,Dat):
     FixTrialY=np.array(Dat['mean_y'].iloc[TrialSubIdx]) # get y data for trial
     return FixTrialX,FixTrialY
 
+def GetDurations(s,p,Dat):
+    """get X,Y fixation sequence for a participant and stimulus"""
+    SubjIdx=np.nonzero(Dat['subjectID'].to_numpy()==s)  #idx for subject
+    TrialSubIdx=np.intersect1d(np.nonzero(Dat['Stimulus'].to_numpy()==p),SubjIdx) # idx for subject and painting
+     # get x data for trial
+    durations=np.array(Dat['duration'].iloc[TrialSubIdx]) # get y data for trial
+    return durations
 
 
 def AOIbounds(start,end,nDiv):  
@@ -73,7 +86,7 @@ def HistPlot(Y,xtickL=0,newfig=1):
     return None
 
 
-def RunDescriptiveFix(Data,Visual=0):
+def RunDescriptiveFix(Data,Visual=0,duration=0):
     ''' for a dataset, return number of fixation, inferred stim boundaries and mean and SD of fixation locatios '''
     
     Subjects,Stimuli=GetParams(Data)
@@ -85,7 +98,9 @@ def RunDescriptiveFix(Data,Visual=0):
     NFixations=np.zeros((NS,NP))
     MeanFixXY=np.zeros(((NS,NP,2)))
     SDFixXY=np.zeros(((NS,NP,2)))
-    
+    if duration:
+        Durations=np.zeros((NS,NP))
+        
     for cs,s in enumerate(Subjects):
         for cp,p in enumerate(Stimuli):      
             FixTrialX,FixTrialY=GetFixationData(s,p,Data)
@@ -93,13 +108,17 @@ def RunDescriptiveFix(Data,Visual=0):
                 NFixations[cs,cp]=len(FixTrialX)
                 MeanFixXY[cs,cp,0],MeanFixXY[cs,cp,1]=np.mean(FixTrialX),np.mean(FixTrialY)
                 SDFixXY[cs,cp,0],SDFixXY[cs,cp,1]=np.std(FixTrialX),np.std(FixTrialY)
+                Durations[cs,cp]=np.mean(GetDurations(s,p,Data))
             else:
-                MeanFixXY[cs,cp,:],SDFixXY[cs,cp,:]=np.NAN,np.NAN
+                MeanFixXY[cs,cp,:],SDFixXY[cs,cp,:], Durations[cs,cp]=np.NAN,np.NAN,np.NAN
     print('Mean fixation number: ',np.round(np.mean(np.mean(NFixations,1)),2),' +/- ',np.round(np.std(np.mean(NFixations,1)),2))
+    print('Mean fixation duration: ',np.round(np.mean(np.mean(Durations,1)),1),' +/- ',np.round(np.std(np.mean(Durations,1)),1),'msec')
+    
     print('Num of trials with zero fixations:', np.sum(NFixations==0) )
     print('Num valid trials ',np.sum(NFixations>0))
-    print('Mean X location: ',np.round(np.mean(np.nanmean(MeanFixXY[:,:,0],1)),2),' +/- ',np.round(np.std(np.nanmean(MeanFixXY[:,:,0],1)),2),' pixels')
-    print('Mean Y location: ',np.round(np.mean(np.nanmean(MeanFixXY[:,:,1],1)),2),' +/- ',np.round(np.std(np.nanmean(MeanFixXY[:,:,1],1)),2),' pixels')
+    print('Mean X location: ',np.round(np.mean(np.nanmean(MeanFixXY[:,:,0],1)),1),' +/- ',np.round(np.std(np.nanmean(MeanFixXY[:,:,0],1)),1),' pixels')
+    print('Mean Y location: ',np.round(np.mean(np.nanmean(MeanFixXY[:,:,1],1)),1),' +/- ',np.round(np.std(np.nanmean(MeanFixXY[:,:,1],1)),1),' pixels')
+    
     if Visual:
         MeanPlot(NP,NFixations,yLab='Num Fixations',xtickL=Stimuli)
         HistPlot(NFixations,xtickL='Avergage Num Fixations')
