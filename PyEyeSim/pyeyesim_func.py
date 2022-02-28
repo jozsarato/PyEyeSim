@@ -151,7 +151,7 @@ def DescripitiveGroups(Data,cond):
     plt.legend()
     return None
 
-def SaliencyPlot(SalMap,newfig=1):
+def HeatmapPlot(SalMap,newfig=1):
     ''' expects data, row: subjects columbn: stimuli '''
     if newfig:
         plt.figure()
@@ -182,7 +182,7 @@ def SaliencyMapFilt(Fixies,SD=25,Ind=0):
         Smap=ndimage.filters.gaussian_filter(Fixies,SD)
     return Smap
 
-def SaliencyMap(Dat,Stim,x_size,y_size,SD=25,Ind=0,Vis=0):
+def Heatmap(Dat,Stim,x_size,y_size,SD=25,Ind=0,Vis=0):
     ''' Pipeline for saliency map calculation'''
     FixCountIndie=FixCountCalc(Dat,Stim,x_size,y_size)
     assert np.sum(FixCountIndie)>0,'!!no fixations found'
