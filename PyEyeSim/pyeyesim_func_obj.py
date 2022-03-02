@@ -16,10 +16,12 @@ import xarray as xr
 
 
 class EyeData:
-    def __init__(self, name, design,data):
+    def __init__(self, name, design,data,x_size,y_size):
         self.name = name
         self.design = design
         self.data=data
+        self.x_size=x_size
+        self.y_size=y_size
 
     def info(self):
         return self.name,self.design
@@ -122,7 +124,39 @@ class EyeData:
         self.SDFixXY = xr.DataArray(SDFixXY, dims=('subjectID','Stimulus','XY'), coords={'subjectID':Subjects,'Stimulus': Stimuli, 'XY':['X','Y']})
         self.Bounds=Bounds
         return Stimuli,Subjects
-
+    
+    
+    def FixCountCalc(self,Stim):
+        ''' Pixelwise fixation count for each participant, but for single stimulus  (Stim) '''
+        assert np.sum(self.data['Stimulus']==Stim)>0, 'stimulus not found'
+       
+        FixCountInd=np.zeros(((self.NS,self.y_size,self.x_size)))
+        for cs,s in enumerate(self.subjects):
+            x,y=np.intp(self.GetFixationData(s,Stim))
+            Valid=np.nonzero((x<self.x_size)&(y<self.y_size))[0]
+            X,Y=x[Valid],y[Valid]
+            FixCountInd[cs,Y,X]+=1
+        return FixCountInd
+    
+        
+    
+    def Heatmap(self,Stim,SD=25,Ind=0,Vis=0):
+        ''' Pipeline for saliency map calculation'''
+        FixCountIndie=self.FixCountCalc(Stim)
+        assert np.sum(FixCountIndie)>0,'!!no fixations found'
+        if np.sum(FixCountIndie)<10:
+            print('WARNING NUM FIX FOUND: ',np.sum(FixCountIndie))
+        if Ind==0:
+            smap=SaliencyMapFilt(FixCountIndie,SD=SD,Ind=0)
+        else:
+            smap=np.zeros_like(FixCountIndie)
+            for cs,s in enumerate(self.subjects):
+                smap[cs,:,:]=SaliencyMapFilt(FixCountIndie[cs,:,:],SD=SD,Ind=1)       
+        if Vis:
+            plt.imshow(smap)
+            plt.xticks([])
+            plt.yticks([])
+        return smap
     
     pass
     
@@ -152,3 +186,20 @@ def HistPlot(Y,xtickL=0,newfig=1):
 
 def AOIbounds(start,end,nDiv):  
     return np.linspace(start,end,nDiv+1)  
+
+
+def HeatmapPlot(SalMap,newfig=1):
+    ''' expects data, row: subjects columbn: stimuli '''
+    if newfig:
+        plt.figure()
+    plt.imshow(SalMap)
+    return None
+
+def SaliencyMapFilt(Fixies,SD=25,Ind=0):
+    ''' Gaussian filter of fixations counts, Ind=1 for individual, Ind=0 for group '''
+    if Ind==0:
+        Smap=ndimage.filters.gaussian_filter(np.mean(Fixies,0),SD)
+    else:
+        Smap=ndimage.filters.gaussian_filter(Fixies,SD)
+    return Smap
+    
