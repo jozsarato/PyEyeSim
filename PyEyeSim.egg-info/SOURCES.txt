@@ -1,7 +1,7 @@
 README.md
 setup.py
-PyEyeSim/DataManageFunc.py
 PyEyeSim/__init__.py
+PyEyeSim/pyeyesim_func.py
 PyEyeSim.egg-info/PKG-INFO
 PyEyeSim.egg-info/SOURCES.txt
 PyEyeSim.egg-info/dependency_links.txt
