@@ -22,6 +22,10 @@ class EyeData:
         self.data=data
         self.x_size=x_size
         self.y_size=y_size
+        print('Fixation dataset',self.name)
+        print('dataset size: ',np.shape(self.data))
+        print('study design: ',self.design)
+        print('presentation size:  x=',self.x_size,'pixels y=',self.y_size,' pixels')
 
     def info(self):
         return self.name,self.design
@@ -130,13 +134,13 @@ class EyeData:
         ''' Pixelwise fixation count for each participant, but for single stimulus  (Stim) '''
         assert np.sum(self.data['Stimulus']==Stim)>0, 'stimulus not found'
        
-        FixCountInd=np.zeros(((self.NS,self.y_size,self.x_size)))
+        self.FixCountInd=np.zeros(((self.NS,self.y_size,self.x_size)))
         for cs,s in enumerate(self.subjects):
             x,y=np.intp(self.GetFixationData(s,Stim))
             Valid=np.nonzero((x<self.x_size)&(y<self.y_size))[0]
             X,Y=x[Valid],y[Valid]
-            FixCountInd[cs,Y,X]+=1
-        return FixCountInd
+            self.FixCountInd[cs,Y,X]+=1
+        return self.FixCountInd
     
         
     
@@ -158,7 +162,71 @@ class EyeData:
             plt.yticks([])
         return smap
     
+  
+    
+    def BinnedCount(self,Fixcounts,Stim,fixs=1,binsize_h=50,binsize_v=None):
+        ''' makes a grid of binsize_h*binsize_v pixels, and counts the num of fixies for each
+        fixs==1 : used the full screen size   
+        fixs==0, use infered bounds '''
+        
+        assert len(np.shape(Fixcounts))==2, '2d input expected'
+        if binsize_v==None:
+            binsize_v=binsize_h
+            
+        if fixs==1:
+            x_size=self.x_size
+            y_size=self.y_size
+            x_size_start=0
+            y_size_start=0
+        else: 
+            x_size_start=np.intp(self.Bounds['BoundX1'][self.Bounds['Stimulus']==Stim])
+            x_size=np.intp(self.Bounds['BoundX2'][self.Bounds['Stimulus']==Stim])
+            y_size_start=np.intp(self.Bounds['BoundY1'][self.Bounds['Stimulus']==Stim])
+            y_size=np.intp(self.Bounds['BoundY2'][self.Bounds['Stimulus']==Stim])
+
+        assert binsize_h>=2,'binsize_h must be at least 2'
+        assert binsize_v>=2,'binsize_v must be at least 2'
+        assert binsize_h<(x_size-x_size_start)/2,'too large horizontal bin, must be below screen widht/2'
+        assert binsize_v<(y_size-y_size_start)/2,'too large vertical bin, must be below screen height/2'
+    
+        BinsH=np.arange(binsize_h+x_size_start,x_size,binsize_h) 
+        BinsV=np.arange(binsize_v+y_size_start,y_size,binsize_v) 
+        
+        BinnedCount=np.zeros((len(BinsV),len(BinsH)))
+        for cx,x in enumerate(BinsH):
+            for cy,y in enumerate(BinsV):
+                BinnedCount[cy,cx]=np.sum(Fixcounts[int(y_size_start+cy*binsize_v):int(y),int(x_size_start+cx*binsize_h):int(x)])
+        return BinnedCount
+    
+    
+    def Entropy(self,BinnedCount,base=None):
+        ''' based on binned  2d fixation counts return entropy and relative entropy, default natural log'''
+        assert len(np.shape(BinnedCount))==2,'2d data input expected'
+        size=np.shape(BinnedCount)[0]*np.shape(BinnedCount)[1]
+        entrMax=stats.entropy(1/size*np.ones(size),base=base)
+        EntrBinned=stats.entropy(BinnedCount.flatten(),base=base)
+        return EntrBinned,entrMax
+    
+    
+    def GetEntropies(self,fixsize=0,binsize_h=50):
+        ''' calcualte grid based entropy for all stimuli 
+        if fixsize=0, bounds are inferred from range of fixations'''
+        Entropies=np.zeros(self.NP)
+        EntropMax=np.zeros(self.NP)
+        EntropiesInd=np.zeros((self.NS,self.NP))
+
+        for cp,p in enumerate(self.stimuli):
+            FixCountInd=self.FixCountCalc(p)
+            binnedcount=self.BinnedCount(np.sum(FixCountInd,0),p,fixs=fixsize,binsize_h=binsize_h)
+            Entropies[cp],EntropMax[cp]=self.Entropy(binnedcount)
+            for cs,s in enumerate(self.subjects):
+                binnedc_ind=self.BinnedCount(FixCountInd[cs,:,:],p,fixs=fixsize)
+                EntropiesInd[cs,cp],EntroMax=self.Entropy(binnedc_ind)
+                
+            print(cp,p,np.round(Entropies[cp],2),'maximum entropy',np.round(EntropMax[cp],2))
+        return Entropies,EntropMax,EntropiesInd
     pass
+
     
 
   
@@ -187,13 +255,6 @@ def HistPlot(Y,xtickL=0,newfig=1):
 def AOIbounds(start,end,nDiv):  
     return np.linspace(start,end,nDiv+1)  
 
-
-def HeatmapPlot(SalMap,newfig=1):
-    ''' expects data, row: subjects columbn: stimuli '''
-    if newfig:
-        plt.figure()
-    plt.imshow(SalMap)
-    return None
 
 def SaliencyMapFilt(Fixies,SD=25,Ind=0):
     ''' Gaussian filter of fixations counts, Ind=1 for individual, Ind=0 for group '''
