@@ -234,33 +234,44 @@ class EyeData:
                 
             print(cp,p,np.round(Entropies[cp],2),'maximum entropy',np.round(EntropMax[cp],2))
         return Entropies,EntropMax,EntropiesInd
-    pass
+    
 
-    def CompareGroups(self,betwcond):
+    def GetGroups(self,betwcond):
         ''' Between group comparison- 2 groups expected'''
-        Conds=np.unique(self.data[betwcond])
-        print('Conditions',Conds)
-        Cols=['salmon','darkgreen']
-        assert len(Conds)>1, 'you need more than 1 group'
-        assert len(Conds)<=len(Cols), 'too many groups, max is 2'
+        self.Conds=np.unique(self.data[betwcond])
+        print('Conditions',self.Conds)
+       
+        assert len(self.Conds)==2, 'you need 2 groups'
         WhichC=np.zeros(self.NS)
         WhichCN=[]
         for cs,s in enumerate(self.subjects):
-            for cc,c in enumerate(Conds):
+            for cc,c in enumerate(self.Conds):
                 PPc=np.unique(self.data[betwcond][self.data['subjectID']==s])
                 assert len(PPc)==1,'participant condition mapping not unique'
-                if PPc==Conds[cc]:
+                if PPc==self.Conds[cc]:
                     WhichC[cs]=cc
                     WhichCN.append(c)
         return WhichC,np.array(WhichCN)
 
-
+    def CompareGroups(self,betwcond):
+        WhichC,WhichCN=self.GetGroups(betwcond)
+        Cols=['salmon','darkgreen']
+        plt.figure()
+        for cc,c in enumerate(self.Conds):
+            Idx=np.nonzero(WhichC==cc)[0]
+            FixGr=np.array(self.NFix[Idx,:])
+            print(cc,c,'Num fix= ',np.round(np.mean(np.nanmean(FixGr,1)),2),np.round(np.std(np.nanmean(FixGr,1)),2))
+            MeanPlot(self.NP,FixGr,yLab='Num Fixations',xtickL=self.stimuli,newfig=0,label=c,color=Cols[cc])
+        plt.legend()
+        return 
+        
+    pass
   
 def MeanPlot(N,Y,yLab=0,xtickL=0,newfig=1,color='darkred',label=None):
     ''' expects data, row: subjects columbn: stimuli '''
     if newfig:
         plt.figure(figsize=(N/2,5))
-    plt.errorbar(np.arange(N),np.mean(Y,0),stats.sem(Y,0)*2,linestyle='None',marker='o',color=color,label=label)
+    plt.errorbar(np.arange(N),np.nanmean(Y,0),stats.sem(Y,0,nan_policy="omit")*2,linestyle='None',marker='o',color=color,label=label)
     if type(xtickL)!=int:
         plt.xticks(np.arange(N),xtickL,fontsize=10,rotation=60)
     plt.xlabel('Stimulus',fontsize=14)
