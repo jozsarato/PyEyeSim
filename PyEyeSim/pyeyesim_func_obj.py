@@ -26,6 +26,15 @@ class EyeData:
         print('dataset size: ',np.shape(self.data))
         print('study design: ',self.design)
         print('presentation size:  x=',self.x_size,'pixels y=',self.y_size,' pixels')
+        print('presentation size:  x=',self.x_size,'pixels y=',self.y_size,' pixels')
+        DefColumns={'StimName':'Stimulus','SubjName':'subjectID','mean_x':'mean_x','mean_y':'mean_y'}
+        for df in DefColumns:
+            try:
+                data[DefColumns[df]]
+                print('column found: ', df,' default: ',DefColumns[df])
+            except:
+                print('!! provide column name for ', df,' default: ',DefColumns[df])
+        
 
     def info(self):
         return self.name,self.design
