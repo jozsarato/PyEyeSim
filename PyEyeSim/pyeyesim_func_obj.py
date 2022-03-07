@@ -33,7 +33,7 @@ class EyeData:
                 data[DefColumns[df]]
                 print('column found: ', df,' default: ',DefColumns[df])
             except:
-                print('!! provide column name for ', df,' default: ',DefColumns[df])
+                print(df," not found !!, provide column as .columnNames(StimName='YourColumn') default",DefColumns[df])
         
 
     def info(self):
@@ -236,7 +236,24 @@ class EyeData:
         return Entropies,EntropMax,EntropiesInd
     pass
 
-    
+    def CompareGroups(self,betwcond):
+        ''' Between group comparison- 2 groups expected'''
+        Conds=np.unique(self.data[betwcond])
+        print('Conditions',Conds)
+        Cols=['salmon','darkgreen']
+        assert len(Conds)>1, 'you need more than 1 group'
+        assert len(Conds)<=len(Cols), 'too many groups, max is 2'
+        WhichC=np.zeros(self.NS)
+        WhichCN=[]
+        for cs,s in enumerate(self.subjects):
+            for cc,c in enumerate(Conds):
+                PPc=np.unique(self.data[betwcond][self.data['subjectID']==s])
+                assert len(PPc)==1,'participant condition mapping not unique'
+                if PPc==Conds[cc]:
+                    WhichC[cs]=cc
+                    WhichCN.append(c)
+        return WhichC,np.array(WhichCN)
+
 
   
 def MeanPlot(N,Y,yLab=0,xtickL=0,newfig=1,color='darkred',label=None):
