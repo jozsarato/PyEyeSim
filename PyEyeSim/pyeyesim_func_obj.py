@@ -267,7 +267,6 @@ class EyeData:
             EntrGr=self.EntropiesInd[Idx,:]
             print(cc,c,'Num fix= ',np.round(np.mean(np.nanmean(FixGr,1)),2),'+/-',np.round(np.std(np.nanmean(FixGr,1)),2))
             print(cc,c,'Entropy= ',np.round(np.mean(np.nanmean(EntrGr,1)),2),'+/-',np.round(np.std(np.nanmean(EntrGr,1)),2))
-
             plt.subplot(1,2,1)
             MeanPlot(self.NP,FixGr,yLab='Num Fixations',xtickL=self.stimuli,newfig=0,label=c,color=Cols[cc])
             plt.subplot(1,2,2)
