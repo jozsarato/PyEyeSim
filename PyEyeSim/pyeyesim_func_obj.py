@@ -259,7 +259,7 @@ class EyeData:
         if hasattr(self,'Entropies')==False:   # check if entropy has already been calculated
             print('Calculating entropy')
             Entropies,self.EntropMax,self.EntropiesInd=self.GetEntropies()
-        Cols=['salmon','darkgreen']
+        Cols=['darked','cornflowerblue']
         plt.figure(figsize=(10,5))
         for cc,c in enumerate(self.Conds):
             Idx=np.nonzero(WhichC==cc)[0]
