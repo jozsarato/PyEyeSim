@@ -157,21 +157,23 @@ class EyeData:
     
         
     
-    def Heatmap(self,Stim,SD=25,Ind=0,Vis=0):
-        ''' Pipeline for saliency map calculation'''
+    def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,Idx=0,FixCounts=0):
+        ''' Pipeline for saliency map calculation, FixCounts are calculated for stimulus, or passed pre-calcualted as optional parameter'''
       #  if hasattr(self,'fixcounts'):
        #     FixCountIndie=self.fixcounts['Stim']
         #else:    
-        FixCountIndie=self.FixCountCalc(Stim)
-        assert np.sum(FixCountIndie)>0,'!!no fixations found'
-        if np.sum(FixCountIndie)<10:
-            print('WARNING NUM FIX FOUND: ',np.sum(FixCountIndie))
+        if type(FixCounts)==int:
+            FixCounts=self.FixCountCalc(Stim)
+            
+        assert np.sum(FixCounts)>0,'!!no fixations found'
+        if np.sum(FixCounts)<10:
+            print('WARNING NUM FIX FOUND: ',np.sum(FixCounts))
         if Ind==0:
-            smap=SaliencyMapFilt(FixCountIndie,SD=SD,Ind=0)
+            smap=SaliencyMapFilt(FixCounts,SD=SD,Ind=0)
         else:
-            smap=np.zeros_like(FixCountIndie)
+            smap=np.zeros_like(FixCounts)
             for cs,s in enumerate(self.subjects):
-                smap[cs,:,:]=SaliencyMapFilt(FixCountIndie[cs,:,:],SD=SD,Ind=1)       
+                smap[cs,:,:]=SaliencyMapFilt(FixCounts[cs,:,:],SD=SD,Ind=1)       
         if Vis:
             plt.imshow(smap)
             plt.xticks([])
@@ -285,6 +287,40 @@ class EyeData:
         plt.legend()
         plt.tight_layout()
         return 
+    
+    
+    def CompareGroupsHeatMap(self,Stim,betwcond):
+        ''' visualize group heatmap, along with heatmap difference '''
+        WhichC,WhichCN=self.GetGroups(betwcond)
+        #Cols=['darkred','cornflowerblue']
+        plt.figure(figsize=(10,5))
+        FixCounts=self.FixCountCalc(Stim)
+        hmaps=[]
+        for cc,c in enumerate(self.Conds):
+            Idx=np.nonzero(WhichC==cc)[0]
+            plt.subplot(2,2,cc+1)
+            hmap=self.Heatmap(Stim,SD=25,Ind=0,Vis=1,FixCounts=FixCounts[Idx,:,:])
+            plt.title(c)
+            plt.colorbar()
+
+            hmaps.append(hmap)
+        plt.subplot(2,2,3)
+        plt.imshow(hmaps[0]-hmaps[1])
+        plt.xticks([])
+        plt.yticks([])
+        plt.title(str(self.Conds[0])+' - '+str(self.Conds[1]))
+        plt.colorbar()
+
+        plt.subplot(2,2,4)
+        plt.imshow(np.abs(hmaps[0]-hmaps[1]))
+        plt.xticks([])
+        plt.yticks([])
+        plt.colorbar()
+        plt.title('Absolute difference')
+        plt.tight_layout()
+        return 
+    
+    
         
     pass
   
