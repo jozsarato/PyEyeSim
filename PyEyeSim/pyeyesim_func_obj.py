@@ -52,6 +52,10 @@ class EyeData:
             self.data=self.data.rename(columns={StimName:'Stimulus',SubjName:'subjectID',mean_x: 'mean_x',mean_y: 'mean_y'})
         pass
     
+    class stimulus:
+        def __init__(self,Stim):
+            self.stim=Stim
+        
         
         
     def GetFixationData(self,s,p):
@@ -143,18 +147,21 @@ class EyeData:
         ''' Pixelwise fixation count for each participant, but for single stimulus  (Stim) '''
         assert np.sum(self.data['Stimulus']==Stim)>0, 'stimulus not found'
        
-        self.FixCountInd=np.zeros(((self.NS,self.y_size,self.x_size)))
+        FixCountInd=np.zeros(((self.NS,self.y_size,self.x_size)))
         for cs,s in enumerate(self.subjects):
             x,y=np.intp(self.GetFixationData(s,Stim))
             Valid=np.nonzero((x<self.x_size)&(y<self.y_size))[0]
             X,Y=x[Valid],y[Valid]
-            self.FixCountInd[cs,Y,X]+=1
-        return self.FixCountInd
+            FixCountInd[cs,Y,X]+=1
+        return FixCountInd
     
         
     
     def Heatmap(self,Stim,SD=25,Ind=0,Vis=0):
         ''' Pipeline for saliency map calculation'''
+      #  if hasattr(self,'fixcounts'):
+       #     FixCountIndie=self.fixcounts['Stim']
+        #else:    
         FixCountIndie=self.FixCountCalc(Stim)
         assert np.sum(FixCountIndie)>0,'!!no fixations found'
         if np.sum(FixCountIndie)<10:
@@ -223,15 +230,19 @@ class EyeData:
         self.Entropies=np.zeros(self.NP)
         self.EntropMax=np.zeros(self.NP)
         self.EntropiesInd=np.zeros((self.NS,self.NP))
-
+        # self.fixcounts={}
+        # for ci,i in enumerate(self.stimuli):
+        #     self.fixcounts[i]=[]
+        
         for cp,p in enumerate(self.stimuli):
             FixCountInd=self.FixCountCalc(p)
+           # self.fixcounts[p]=FixCountInd
             binnedcount=self.BinnedCount(np.sum(FixCountInd,0),p,fixs=fixsize,binsize_h=binsize_h)
             self.Entropies[cp],self.EntropMax[cp]=self.Entropy(binnedcount)
             for cs,s in enumerate(self.subjects):
                 binnedc_ind=self.BinnedCount(FixCountInd[cs,:,:],p,fixs=fixsize)
                 self.EntropiesInd[cs,cp],EntroMax=self.Entropy(binnedc_ind)
-                
+            
             print(cp,p,np.round(self.Entropies[cp],2),'maximum entropy',np.round(self.EntropMax[cp],2))
         return self.Entropies,self.EntropMax,self.EntropiesInd
     
@@ -259,7 +270,7 @@ class EyeData:
         if hasattr(self,'Entropies')==False:   # check if entropy has already been calculated
             print('Calculating entropy')
             Entropies,self.EntropMax,self.EntropiesInd=self.GetEntropies()
-        Cols=['darked','cornflowerblue']
+        Cols=['darkred','cornflowerblue']
         plt.figure(figsize=(10,5))
         for cc,c in enumerate(self.Conds):
             Idx=np.nonzero(WhichC==cc)[0]
