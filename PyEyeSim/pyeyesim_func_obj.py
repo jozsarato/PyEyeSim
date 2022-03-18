@@ -42,7 +42,7 @@ class EyeData:
     def data(self):
         return self.data
     
-    def columnNames(self,StimName='Stimulus',SubjName='subjectID',mean_x='mean_x',mean_y='mean_y',FixDuration=0):
+    def DataInfo(self,StimName='Stimulus',SubjName='subjectID',mean_x='mean_x',mean_y='mean_y',FixDuration=0,StimPath=0,StimExt='.jpg'):
         ''' the library expects column names Stimulus, subjectID, mean_x and mean_y, if you data is not in this format, this function will rename your columns accordingly 
          optionally, with FixDuration you can name your column of fixations lengths, which will be called duration afterwards'''
        # print(type(FixDuration))
@@ -50,13 +50,33 @@ class EyeData:
             self.data=self.data.rename(columns={StimName:'Stimulus',SubjName:'subjectID',mean_x: 'mean_x',mean_y: 'mean_y',FixDuration: 'duration'})
         else:
             self.data=self.data.rename(columns={StimName:'Stimulus',SubjName:'subjectID',mean_x: 'mean_x',mean_y: 'mean_y'})
+        
+        try:
+            subjs,stims=self.GetParams()
+            print('info found for '+ str(len(subjs))+' subjects, and '+str(len(stims))+' stimuli')
+            
+        except:
+            print('stimulus and subject info not found')
+            
+        if StimPath==0:
+            print('Stim path not provided')
+        else:
+            try: 
+                self.GetStimuli(StimPath,StimExt)
+                print('stimuli loaded succesfully')
+            except:
+                
+                print('stimuli not found')
         pass
+  
     
-    class stimulus:
-        def __init__(self,Stim):
-            self.stim=Stim
-        
-        
+    def GetStimuli(self,path,extension):
+        ''' load stimuulus files from path'''
+        self.Stims={}
+        for cs,s in enumerate(self.stimuli):
+            Stim=plt.imread(path+s+extension)
+            self.Stims[s]=Stim
+        pass 
         
     def GetFixationData(self,s,p):
         """get X,Y fixation sequence for a participant and stimulus"""
@@ -175,7 +195,9 @@ class EyeData:
             for cs,s in enumerate(self.subjects):
                 smap[cs,:,:]=SaliencyMapFilt(FixCounts[cs,:,:],SD=SD,Ind=1)       
         if Vis:
-            plt.imshow(smap)
+            smap[smap<np.median(smap)]=np.NAN
+            plt.imshow( self.Stims[Stim])
+            plt.imshow(smap,alpha=.5)
             plt.xticks([])
             plt.yticks([])
         return smap
@@ -289,9 +311,11 @@ class EyeData:
         return 
     
     
-    def CompareGroupsHeatMap(self,Stim,betwcond):
-        ''' visualize group heatmap, along with heatmap difference '''
+    def CompareGroupsHeatMap(self,Stim,betwcond,StimPath='',SD=25):
+        ''' visualize group heatmap, along with heatmap difference 
+        SD optional parameter of heatmap smoothness, in pixels!'''
         WhichC,WhichCN=self.GetGroups(betwcond)
+        
         #Cols=['darkred','cornflowerblue']
         plt.figure(figsize=(10,5))
         FixCounts=self.FixCountCalc(Stim)
@@ -299,20 +323,32 @@ class EyeData:
         for cc,c in enumerate(self.Conds):
             Idx=np.nonzero(WhichC==cc)[0]
             plt.subplot(2,2,cc+1)
-            hmap=self.Heatmap(Stim,SD=25,Ind=0,Vis=1,FixCounts=FixCounts[Idx,:,:])
+            if hasattr(self,'Stims'):
+                plt.imshow( self.Stims[Stim])
+
+            hmap=self.Heatmap(Stim,SD=SD,Ind=0,Vis=1,FixCounts=FixCounts[Idx,:,:])
             plt.title(c)
             plt.colorbar()
 
             hmaps.append(hmap)
         plt.subplot(2,2,3)
-        plt.imshow(hmaps[0]-hmaps[1])
+        if hasattr(self,'Stims'):
+            plt.imshow( self.Stims[Stim])
+
+        Diff=hmaps[0]-hmaps[1]
+        plt.imshow(Diff,cmap='RdBu', vmin=-np.max(np.abs(Diff)), vmax=np.max(np.abs(Diff)),alpha=.5)
         plt.xticks([])
         plt.yticks([])
         plt.title(str(self.Conds[0])+' - '+str(self.Conds[1]))
-        plt.colorbar()
-
+        cbar=plt.colorbar()
+        cbar.ax.get_yaxis().set_ticks([])
+        cbar.ax.get_yaxis().labelpad = 15
+        cbar.ax.set_ylabel(str(self.Conds[0])+'<---->'+str(self.Conds[1]), rotation=270)
         plt.subplot(2,2,4)
-        plt.imshow(np.abs(hmaps[0]-hmaps[1]))
+        if hasattr(self,'Stims'):
+            plt.imshow( self.Stims[Stim])
+
+        plt.imshow(np.abs(hmaps[0]-hmaps[1]),alpha=.5)
         plt.xticks([])
         plt.yticks([])
         plt.colorbar()
@@ -320,7 +356,7 @@ class EyeData:
         plt.tight_layout()
         return 
     
-    
+
         
     pass
   
