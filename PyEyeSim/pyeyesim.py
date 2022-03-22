@@ -118,8 +118,8 @@ class EyeData:
         
         Subjects,Stimuli=self.GetParams()
         print('Data for ',len(self.subjects),'observers and ', len(self.stimuli),' stimuli.')
-        self.BoundsX,self.BoundsY=self.InferSize(Interval=99)
-        self.NFixations=np.zeros((self.ns,self.np))
+        self.boundsX,self.boundsY=self.InferSize(Interval=99)
+        self.nfixations=np.zeros((self.ns,self.np))
         MeanFixXY=np.zeros(((self.ns,self.np,2)))
         SDFixXY=np.zeros(((self.ns,self.np,2)))
         if duration:
@@ -129,7 +129,7 @@ class EyeData:
             for cp,p in enumerate(self.stimuli):      
                 FixTrialX,FixTrialY=self.GetFixationData(s,p)
                 if len(FixTrialX)>0:
-                    self.NFixations[cs,cp]=len(FixTrialX)
+                    self.nfixations[cs,cp]=len(FixTrialX)
                     MeanFixXY[cs,cp,0],MeanFixXY[cs,cp,1]=np.mean(FixTrialX),np.mean(FixTrialY)
                     SDFixXY[cs,cp,0],SDFixXY[cs,cp,1]=np.std(FixTrialX),np.std(FixTrialY)
                     if duration:
@@ -138,28 +138,28 @@ class EyeData:
                     MeanFixXY[cs,cp,:],SDFixXY[cs,cp,:]=np.NAN,np.NAN
                     if duration:
                         Durations[cs,cp]=np.NAN
-        print('Mean fixation number: ',np.round(np.mean(np.mean(self.NFixations,1)),2),' +/- ',np.round(np.std(np.mean(self.NFixations,1)),2))
+        print('Mean fixation number: ',np.round(np.mean(np.mean(self.nfixations,1)),2),' +/- ',np.round(np.std(np.mean(self.nfixations,1)),2))
         if duration:
             print('Mean fixation duration: ',np.round(np.mean(np.mean(Durations,1)),1),' +/- ',np.round(np.std(np.mean(Durations,1)),1),'msec')
         else:
             print('fixation duration not asked for')
-        print('Num of trials with zero fixations:', np.sum(self.NFixations==0) )
-        print('Num valid trials ',np.sum(self.NFixations>0))
+        print('Num of trials with zero fixations:', np.sum(self.nfixations==0) )
+        print('Num valid trials ',np.sum(self.nfixations>0))
         print('Mean X location: ',np.round(np.mean(np.nanmean(MeanFixXY[:,:,0],1)),1),' +/- ',np.round(np.std(np.nanmean(MeanFixXY[:,:,0],1)),1),' pixels')
         print('Mean Y location: ',np.round(np.mean(np.nanmean(MeanFixXY[:,:,1],1)),1),' +/- ',np.round(np.std(np.nanmean(MeanFixXY[:,:,1],1)),1),' pixels')
         
         if Visual:
-            MeanPlot(self.np,self.NFixations,yLab='Num Fixations',xtickL=Stimuli)
-            HistPlot(self.NFixations,xtickL='Avergage Num Fixations')
+            MeanPlot(self.np,self.nfixations,yLab='Num Fixations',xtickL=Stimuli)
+            HistPlot(self.nfixations,xtickL='Avergage Num Fixations')
         Bounds=pd.DataFrame(columns=['Stimulus'],data=Stimuli)
-        Bounds['BoundX1']=self.BoundsX[:,0]
-        Bounds['BoundX2']=self.BoundsX[:,1]
-        Bounds['BoundY1']=self.BoundsY[:,0]
-        Bounds['BoundY2']=self.BoundsY[:,1]    
-        self.NFix = xr.DataArray(self.NFixations, dims=('subjectID','Stimulus'), coords={'subjectID':Subjects,'Stimulus': Stimuli})
-        self.MeanFixXY = xr.DataArray(MeanFixXY, dims=('subjectID','Stimulus','XY'), coords={'subjectID':Subjects,'Stimulus': Stimuli, 'XY':['X','Y']})
-        self.SDFixXY = xr.DataArray(SDFixXY, dims=('subjectID','Stimulus','XY'), coords={'subjectID':Subjects,'Stimulus': Stimuli, 'XY':['X','Y']})
-        self.Bounds=Bounds
+        Bounds['BoundX1']=self.boundsX[:,0]
+        Bounds['BoundX2']=self.boundsX[:,1]
+        Bounds['BoundY1']=self.boundsY[:,0]
+        Bounds['BoundY2']=self.boundsY[:,1]    
+        self.nfix = xr.DataArray(self.nfixations, dims=('subjectID','Stimulus'), coords={'subjectID':Subjects,'Stimulus': Stimuli})
+        self.meanfix_xy = xr.DataArray(MeanFixXY, dims=('subjectID','Stimulus','XY'), coords={'subjectID':Subjects,'Stimulus': Stimuli, 'XY':['X','Y']})
+        self.sdfix_xy = xr.DataArray(SDFixXY, dims=('subjectID','Stimulus','XY'), coords={'subjectID':Subjects,'Stimulus': Stimuli, 'XY':['X','Y']})
+        self.bounds=Bounds
         return Stimuli,Subjects
     
     
@@ -219,10 +219,10 @@ class EyeData:
             x_size_start=0
             y_size_start=0
         else: 
-            x_size_start=np.intp(self.Bounds['BoundX1'][self.Bounds['Stimulus']==Stim])
-            x_size=np.intp(self.Bounds['BoundX2'][self.Bounds['Stimulus']==Stim])
-            y_size_start=np.intp(self.Bounds['BoundY1'][self.Bounds['Stimulus']==Stim])
-            y_size=np.intp(self.Bounds['BoundY2'][self.Bounds['Stimulus']==Stim])
+            x_size_start=np.intp(self.bounds['BoundX1'][self.bounds['Stimulus']==Stim])
+            x_size=np.intp(self.bounds['BoundX2'][self.bounds['Stimulus']==Stim])
+            y_size_start=np.intp(self.bounds['BoundY1'][self.bounds['Stimulus']==Stim])
+            y_size=np.intp(self.bounds['BoundY2'][self.bounds['Stimulus']==Stim])
 
         assert binsize_h>=2,'binsize_h must be at least 2'
         assert binsize_v>=2,'binsize_v must be at least 2'
@@ -251,9 +251,9 @@ class EyeData:
     def GetEntropies(self,fixsize=0,binsize_h=50):
         ''' calcualte grid based entropy for all stimuli 
         if fixsize=0, bounds are inferred from range of fixations'''
-        self.Entropies=np.zeros(self.np)
-        self.EntropMax=np.zeros(self.np)
-        self.EntropiesInd=np.zeros((self.ns,self.np))
+        self.entropies=np.zeros(self.np)
+        self.entropmax=np.zeros(self.np)
+        self.entropies_ind=np.zeros((self.ns,self.np))
         # self.fixcounts={}
         # for ci,i in enumerate(self.stimuli):
         #     self.fixcounts[i]=[]
@@ -262,13 +262,13 @@ class EyeData:
             FixCountInd=self.FixCountCalc(p)
            # self.fixcounts[p]=FixCountInd
             binnedcount=self.BinnedCount(np.sum(FixCountInd,0),p,fixs=fixsize,binsize_h=binsize_h)
-            self.Entropies[cp],self.EntropMax[cp]=self.Entropy(binnedcount)
+            self.entropies[cp],self.entropmax[cp]=self.Entropy(binnedcount)
             for cs,s in enumerate(self.subjects):
                 binnedc_ind=self.BinnedCount(FixCountInd[cs,:,:],p,fixs=fixsize)
-                self.EntropiesInd[cs,cp],EntroMax=self.Entropy(binnedc_ind)
+                self.entropies_ind[cs,cp],EntroMax=self.Entropy(binnedc_ind)
             
-            print(cp,p,np.round(self.Entropies[cp],2),'maximum entropy',np.round(self.EntropMax[cp],2))
-        return self.Entropies,self.EntropMax,self.EntropiesInd
+            print(cp,p,np.round(self.entropies[cp],2),'maximum entropy',np.round(self.entropmax[cp],2))
+        return self.entropies,self.entropmax,self.entropies_ind
     
 
     def GetGroups(self,betwcond):
@@ -293,13 +293,13 @@ class EyeData:
 
         if hasattr(self,'Entropies')==False:   # check if entropy has already been calculated
             print('Calculating entropy')
-            Entropies,self.EntropMax,self.EntropiesInd=self.GetEntropies()
+            Entropies,self.entropmax,self.entropies_ind=self.GetEntropies()
         Cols=['darkred','cornflowerblue']
         plt.figure(figsize=(10,5))
         for cc,c in enumerate(self.Conds):
             Idx=np.nonzero(WhichC==cc)[0]
-            FixGr=np.array(self.NFix[Idx,:])
-            EntrGr=self.EntropiesInd[Idx,:]
+            FixGr=np.array(self.nfix[Idx,:])
+            EntrGr=self.entropies_ind[Idx,:]
             print(cc,c,'Num fix= ',np.round(np.mean(np.nanmean(FixGr,1)),2),'+/-',np.round(np.std(np.nanmean(FixGr,1)),2))
             print(cc,c,'Entropy= ',np.round(np.mean(np.nanmean(EntrGr,1)),2),'+/-',np.round(np.std(np.nanmean(EntrGr,1)),2))
             plt.subplot(1,2,1)
