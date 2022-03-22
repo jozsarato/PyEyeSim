@@ -71,7 +71,7 @@ class EyeData:
         else:
             try: 
                 self.GetStimuli(StimPath,StimExt)
-                print('stimuli loaded succesfully')
+                print('stimuli loaded succesfully, access as self.images')
             except:
                 
                 print('stimuli not found')
@@ -80,10 +80,10 @@ class EyeData:
     
     def GetStimuli(self,path,extension):
         ''' load stimuulus files from path'''
-        self.Stims={}
+        self.images={}
         for cs,s in enumerate(self.stimuli):
             Stim=plt.imread(path+s+extension)
-            self.Stims[s]=Stim
+            self.images[s]=Stim
         pass 
         
     def GetFixationData(self,s,p):
@@ -196,7 +196,7 @@ class EyeData:
                 smap[cs,:,:]=SaliencyMapFilt(FixCounts[cs,:,:],SD=SD,Ind=1)       
         if Vis:
             smap[smap<np.median(smap)]=np.NAN
-            plt.imshow( self.Stims[Stim])
+            plt.imshow( self.images[Stim])
             plt.imshow(smap,alpha=.5)
             plt.xticks([])
             plt.yticks([])
@@ -325,7 +325,7 @@ class EyeData:
             Idx=np.nonzero(WhichC==cc)[0]
             plt.subplot(2,2,cc+1)
             if hasattr(self,'Stims'):
-                plt.imshow( self.Stims[Stim])
+                plt.imshow( self.images[Stim])
 
             hmap=self.Heatmap(Stim,SD=SD,Ind=0,Vis=1,FixCounts=FixCounts[Idx,:,:])
             plt.title(c)
@@ -334,7 +334,7 @@ class EyeData:
             hmaps.append(hmap)
         plt.subplot(2,2,3)
         if hasattr(self,'Stims'):
-            plt.imshow( self.Stims[Stim])
+            plt.imshow( self.images[Stim])
 
         Diff=hmaps[0]-hmaps[1]
         plt.imshow(Diff,cmap='RdBu',alpha=.5)
@@ -349,7 +349,7 @@ class EyeData:
         cbar.ax.set_ylabel(str(self.Conds[0])+'<---->'+str(self.Conds[1]), rotation=270)
         plt.subplot(2,2,4)
         if hasattr(self,'Stims'):
-            plt.imshow( self.Stims[Stim])
+            plt.imshow( self.images[Stim])
 
         plt.imshow(np.abs(hmaps[0]-hmaps[1]),alpha=.5)
         plt.xticks([])
