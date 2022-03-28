@@ -33,7 +33,7 @@ class EyeData:
                 data[DefColumns[df]]
                 print('column found: ', df,' default: ',DefColumns[df])
             except:
-                print(df," not found !!, provide column as .columnNames(StimName='YourColumn') default",DefColumns[df])
+                print(df," not found !!, provide column as .DataInfo(StimName='YourColumn') default",DefColumns[df])
         
 
     def info(self):
