@@ -112,6 +112,8 @@ class EyeData:
             BoundsX[cp,:]=np.percentile(self.data['mean_x'].to_numpy()[Idx],[(100-Interval)/2,Interval+(100-Interval)/2])
             BoundsY[cp,:]=np.percentile(self.data['mean_y'].to_numpy()[Idx],[(100-Interval)/2,Interval+(100-Interval)/2])
         return BoundsX,BoundsY
+    
+    
 
     def RunDescriptiveFix(self,Visual=0,duration=0):
         ''' for a dataset, return number of fixation, inferred stim boundaries and mean and SD of fixation locatios '''
@@ -123,7 +125,8 @@ class EyeData:
         MeanFixXY=np.zeros(((self.ns,self.np,2)))
         SDFixXY=np.zeros(((self.ns,self.np,2)))
         if duration:
-            Durations=np.zeros((self.ns,self.np))
+            self.durations=np.zeros((self.ns,self.np))
+         
             
         for cs,s in enumerate(self.subjects):
             for cp,p in enumerate(self.stimuli):      
@@ -133,14 +136,15 @@ class EyeData:
                     MeanFixXY[cs,cp,0],MeanFixXY[cs,cp,1]=np.mean(FixTrialX),np.mean(FixTrialY)
                     SDFixXY[cs,cp,0],SDFixXY[cs,cp,1]=np.std(FixTrialX),np.std(FixTrialY)
                     if duration:
-                        Durations[cs,cp]=np.mean(self.GetDurations(s,p))
+                        self.durations[cs,cp]=np.mean(self.GetDurations(s,p))     
                 else:
                     MeanFixXY[cs,cp,:],SDFixXY[cs,cp,:]=np.NAN,np.NAN
                     if duration:
-                        Durations[cs,cp]=np.NAN
+                        self.durations[cs,cp]=np.NAN
+                        
         print('Mean fixation number: ',np.round(np.mean(np.mean(self.nfixations,1)),2),' +/- ',np.round(np.std(np.mean(self.nfixations,1)),2))
         if duration:
-            print('Mean fixation duration: ',np.round(np.mean(np.mean(Durations,1)),1),' +/- ',np.round(np.std(np.mean(Durations,1)),1),'msec')
+            print('Mean fixation duration: ',np.round(np.nanmean(np.nanmean(self.durations,1)),1),' +/- ',np.round(np.nanstd(np.nanmean(self.durations,1)),1),'msec')
         else:
             print('fixation duration not asked for')
         print('Num of trials with zero fixations:', np.sum(self.nfixations==0) )
@@ -175,7 +179,43 @@ class EyeData:
             FixCountInd[cs,Y,X]+=1
         return FixCountInd
     
-        
+    def FixDurProg(self,nfixmax=10,Stim=0):
+        ''' within trial fixation duration progression
+        nfixmax controls the first n fixations to compare'''
+        self.durprog=np.zeros((self.ns,self.np,nfixmax))
+        self.durprog[:]=np.NAN
+        for cs,s in enumerate(self.subjects):
+            for cp,p in enumerate(self.stimuli):      
+                Durs=self.GetDurations(s,p)
+                if len(Durs)<nfixmax:
+                    self.durprog[cs,cp,0:len(Durs)]=Durs
+                else:
+                    self.durprog[cs,cp,:]=Durs[0:nfixmax]
+      
+        if Stim==0:
+            Y=np.nanmean(np.nanmean(self.durprog,1),0)
+            Err=stats.sem(np.nanmean(self.durprog,1),axis=0,nan_policy='omit')
+            plt.figure()
+            plt.fill_between(np.arange(nfixmax),Y-Err,Y+Err,alpha=.5)
+            plt.plot(np.arange(nfixmax),Y,color='k')
+            plt.xlabel('Fixation number')
+            plt.ylabel('Fixation duration')
+            plt.title('All stimuli')
+            
+        else:
+            Y=np.nanmean(self.durprog[:,self.stimuli==Stim,:],0).flatten()
+           # print(np.shape(Y))
+            Err=stats.sem(self.durprog[:,self.stimuli==Stim,:],axis=0,nan_policy='omit').flatten()
+           # print(np.shape(Err))
+           # print(Y+Err)
+            plt.figure()
+            plt.fill_between(np.arange(nfixmax),Y-Err,Y+Err,alpha=.5)
+            plt.plot(np.arange(nfixmax),Y,color='k')
+            plt.xlabel('Fixation number')
+            plt.ylabel('Fixation duration')
+            plt.title(Stim)
+            
+        return None
     
     def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,Idx=0,FixCounts=0):
         ''' Pipeline for saliency map calculation, FixCounts are calculated for stimulus, or passed pre-calcualted as optional parameter'''
