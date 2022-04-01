@@ -364,7 +364,7 @@ class EyeData:
         for cc,c in enumerate(self.Conds):
             Idx=np.nonzero(WhichC==cc)[0]
             plt.subplot(2,2,cc+1)
-            if hasattr(self,'Stims'):
+            if hasattr(self,'images'):
                 plt.imshow( self.images[Stim])
 
             hmap=self.Heatmap(Stim,SD=SD,Ind=0,Vis=1,FixCounts=FixCounts[Idx,:,:])
@@ -373,7 +373,7 @@ class EyeData:
 
             hmaps.append(hmap)
         plt.subplot(2,2,3)
-        if hasattr(self,'Stims'):
+        if hasattr(self,'images'):
             plt.imshow( self.images[Stim])
 
         Diff=hmaps[0]-hmaps[1]
@@ -388,7 +388,7 @@ class EyeData:
         cbar.ax.get_yaxis().labelpad = 15
         cbar.ax.set_ylabel(str(self.Conds[0])+'<---->'+str(self.Conds[1]), rotation=270)
         plt.subplot(2,2,4)
-        if hasattr(self,'Stims'):
+        if hasattr(self,'images'):
             plt.imshow( self.images[Stim])
 
         plt.imshow(np.abs(hmaps[0]-hmaps[1]),alpha=.5)
