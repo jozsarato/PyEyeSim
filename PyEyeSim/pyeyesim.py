@@ -144,6 +144,7 @@ class EyeData:
                         self.durations[cs,cp]=np.mean(self.GetDurations(s,p))     
                 else:
                     MeanFixXY[cs,cp,:],SDFixXY[cs,cp,:]=np.NAN,np.NAN
+                    self.sacc_ampl[cs,cp],self.len_scanpath[cs,cp]=np.NAN,np.NAN
                     if duration:
                         self.durations[cs,cp]=np.NAN
                         
@@ -340,7 +341,7 @@ class EyeData:
     def CompareGroupsFix(self,betwcond):
         WhichC,WhichCN=self.GetGroups(betwcond)
 
-        if hasattr(self,'Entropies')==False:   # check if entropy has already been calculated
+        if hasattr(self,'entropies')==False:   # check if entropy has already been calculated
             print('Calculating entropy')
             Entropies,self.entropmax,self.entropies_ind=self.GetEntropies()
         Cols=['darkred','cornflowerblue']
@@ -378,12 +379,12 @@ class EyeData:
         t,p=stats.ttest_ind(Entrs[0],Entrs[1])
         print(' ')
         print('Overall group differences: ')
-        print('Entropy t=',np.round(t,4),' p ',np.round(p,4))
+        print('Entropy t=',np.round(t,4),' p=',np.round(p,4))
         #if pglib:
          #   pg.ttest(Fixies[0],Fixies[1],paired=False)
         #else:
         t,p=stats.ttest_ind(Fixies[0],Fixies[1])
-        print('Num Fix t=',np.round(t,4),' p ',np.round(p,4))
+        print('Num Fix t=',np.round(t,4),' p= ',np.round(p,4))
         t,p=stats.ttest_ind(ScanpLs[0],ScanpLs[1])
         
 
