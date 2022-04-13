@@ -363,8 +363,8 @@ class EyeData:
             
             print(cc,c,'Num fix= ',np.round(np.mean(np.nanmean(FixGr,1)),2),'+/-',np.round(np.std(np.nanmean(FixGr,1)),2))
             print(cc,c,'Entropy= ',np.round(np.mean(np.nanmean(EntrGr,1)),2),'+/-',np.round(np.std(np.nanmean(EntrGr,1)),2))
-            print(cc,c,'tot scanpath len = ',np.round(np.mean(np.nanmean(self.len_scanpath[Idx,:],1)),2),'+/-',np.round(np.std(np.nanmean(self.len_scanpath[Idx,:],1)),2))
-            print(cc,c,'saccade amplitude = ',np.round(np.mean(np.nanmean(self.sacc_ampl[Idx,:],1)),2),'+/-',np.round(np.std(np.nanmean(self.sacc_ampl[Idx,:],1)),2))
+            print(cc,c,'tot scanpath len = ',np.round(np.mean(np.nanmean(self.len_scanpath[Idx,:],1)),2),'+/-',np.round(np.std(np.nanmean(self.len_scanpath[Idx,:],1)),2),'pix')
+            print(cc,c,'saccade amplitude = ',np.round(np.mean(np.nanmean(self.sacc_ampl[Idx,:],1)),2),'+/-',np.round(np.std(np.nanmean(self.sacc_ampl[Idx,:],1)),2),'pix')
 
             plt.subplot(2,2,1)
             MeanPlot(self.np,FixGr,yLab='Num Fixations',xtickL=self.stimuli,newfig=0,label=c,color=Cols[cc])
@@ -379,19 +379,19 @@ class EyeData:
         t,p=stats.ttest_ind(Entrs[0],Entrs[1])
         print(' ')
         print('Overall group differences: ')
-        print('Entropy t=',np.round(t,4),' p=',np.round(p,4))
+        print('Entropy t=',np.round(t,4),', p=',np.round(p,4))
         #if pglib:
          #   pg.ttest(Fixies[0],Fixies[1],paired=False)
         #else:
         t,p=stats.ttest_ind(Fixies[0],Fixies[1])
-        print('Num Fix t=',np.round(t,4),' p= ',np.round(p,4))
+        print('Num Fix t=',np.round(t,4),', p= ',np.round(p,4))
         t,p=stats.ttest_ind(ScanpLs[0],ScanpLs[1])
         
 
-        print('Scanpath lengths t=',np.round(t,4),' p=',np.round(p,4))
+        print('Scanpath lengths t=',np.round(t,4),', p=',np.round(p,4))
         t,p=stats.ttest_ind(SaccAmpls[0],SaccAmpls[1])
 
-        print('Saccade amplitudes t=',np.round(t,4),' p=',np.round(p,4))
+        print('Saccade amplitudes t=',np.round(t,4),', p=',np.round(p,4))
 
         
         ScanpLs
