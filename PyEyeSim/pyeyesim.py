@@ -122,6 +122,9 @@ class EyeData:
         print('Data for ',len(self.subjects),'observers and ', len(self.stimuli),' stimuli.')
         self.boundsX,self.boundsY=self.InferSize(Interval=99)
         self.nfixations=np.zeros((self.ns,self.np))
+        self.sacc_ampl=np.zeros((self.ns,self.np))
+        self.len_scanpath=np.zeros((self.ns,self.np))
+
         MeanFixXY=np.zeros(((self.ns,self.np,2)))
         SDFixXY=np.zeros(((self.ns,self.np,2)))
         if duration:
@@ -131,8 +134,10 @@ class EyeData:
         for cs,s in enumerate(self.subjects):
             for cp,p in enumerate(self.stimuli):      
                 FixTrialX,FixTrialY=self.GetFixationData(s,p)
+               
                 if len(FixTrialX)>0:
                     self.nfixations[cs,cp]=len(FixTrialX)
+                    self.sacc_ampl[cs,cp],self.len_scanpath[cs,cp]=ScanpathL(FixTrialX,FixTrialY)
                     MeanFixXY[cs,cp,0],MeanFixXY[cs,cp,1]=np.mean(FixTrialX),np.mean(FixTrialY)
                     SDFixXY[cs,cp,0],SDFixXY[cs,cp,1]=np.std(FixTrialX),np.std(FixTrialY)
                     if duration:
@@ -151,10 +156,14 @@ class EyeData:
         print('Num valid trials ',np.sum(self.nfixations>0))
         print('Mean X location: ',np.round(np.mean(np.nanmean(MeanFixXY[:,:,0],1)),1),' +/- ',np.round(np.std(np.nanmean(MeanFixXY[:,:,0],1)),1),' pixels')
         print('Mean Y location: ',np.round(np.mean(np.nanmean(MeanFixXY[:,:,1],1)),1),' +/- ',np.round(np.std(np.nanmean(MeanFixXY[:,:,1],1)),1),' pixels')
-        
+        print('Mean saccade  amplitude: ',np.round(np.mean(np.nanmean(self.sacc_ampl,1)),1),' +/- ',np.round(np.std(np.nanmean(self.sacc_ampl,1)),1),' pixels')
+        print('Mean scanpath  length: ',np.round(np.mean(np.nanmean(self.len_scanpath,1)),1),' +/- ',np.round(np.std(np.nanmean(self.len_scanpath,1)),1),' pixels')
+
         if Visual:
-            MeanPlot(self.np,self.nfixations,yLab='Num Fixations',xtickL=Stimuli)
-            HistPlot(self.nfixations,xtickL='Avergage Num Fixations')
+            MeanPlot(self.np,self.nfixations,yLab='num fixations',xtickL=Stimuli)
+            MeanPlot(self.np,self.len_scanpath,yLab='scanpath length',xtickL=Stimuli)
+
+            HistPlot(self.nfixations,xtickL='Average Num Fixations')
         Bounds=pd.DataFrame(columns=['Stimulus'],data=Stimuli)
         Bounds['BoundX1']=self.boundsX[:,0]
         Bounds['BoundX2']=self.boundsX[:,1]
@@ -336,16 +345,29 @@ class EyeData:
             Entropies,self.entropmax,self.entropies_ind=self.GetEntropies()
         Cols=['darkred','cornflowerblue']
         plt.figure(figsize=(10,5))
+        
+        Entrs=[]
+        Fixies=[]
         for cc,c in enumerate(self.Conds):
             Idx=np.nonzero(WhichC==cc)[0]
             FixGr=np.array(self.nfix[Idx,:])
             EntrGr=self.entropies_ind[Idx,:]
+            Entrs.append(np.nanmean(EntrGr,1))
+            Fixies.append(np.nanmean(FixGr,1))
+            
             print(cc,c,'Num fix= ',np.round(np.mean(np.nanmean(FixGr,1)),2),'+/-',np.round(np.std(np.nanmean(FixGr,1)),2))
             print(cc,c,'Entropy= ',np.round(np.mean(np.nanmean(EntrGr,1)),2),'+/-',np.round(np.std(np.nanmean(EntrGr,1)),2))
             plt.subplot(1,2,1)
             MeanPlot(self.np,FixGr,yLab='Num Fixations',xtickL=self.stimuli,newfig=0,label=c,color=Cols[cc])
             plt.subplot(1,2,2)
             MeanPlot(self.np,EntrGr,yLab='Entropy',xtickL=self.stimuli,newfig=0,label=c,color=Cols[cc])
+            
+        t,p=stats.ttest_ind(Entrs[0],Entrs[1])
+        print('Overall group differences: ')
+        print('Entropy t=',np.round(t,4),' p ',np.round(p,4))
+        t,p=stats.ttest_ind(Fixies[0],Fixies[1])
+        print('Num Fix t=',np.round(t,4),' p ',np.round(p,4))
+
         plt.legend()
         plt.tight_layout()
         return 
@@ -437,3 +459,10 @@ def SaliencyMapFilt(Fixies,SD=25,Ind=0):
         Smap=ndimage.filters.gaussian_filter(Fixies,SD)
     return Smap
     
+def ScanpathL(x,y):
+    x1=x[0:-1]
+    x2=x[1:]
+    y1=y[0:-1]
+    y2=y[1:] 
+    lengths=np.sqrt((x2-x1)**2+(y2-y1)**2)
+    return np.mean(lengths),np.sum(lengths)
