@@ -161,7 +161,7 @@ class EyeData:
 
         if Visual:
             MeanPlot(self.np,self.nfixations,yLab='num fixations',xtickL=Stimuli)
-            MeanPlot(self.np,self.len_scanpath,yLab='scanpath length',xtickL=Stimuli)
+            MeanPlot(self.np,self.len_scanpath,yLab=' total scanpath length (pixels)',xtickL=Stimuli)
 
             HistPlot(self.nfixations,xtickL='Average Num Fixations')
         Bounds=pd.DataFrame(columns=['Stimulus'],data=Stimuli)
@@ -344,29 +344,56 @@ class EyeData:
             print('Calculating entropy')
             Entropies,self.entropmax,self.entropies_ind=self.GetEntropies()
         Cols=['darkred','cornflowerblue']
-        plt.figure(figsize=(10,5))
+        plt.figure(figsize=(8,8))
         
         Entrs=[]
         Fixies=[]
+        ScanpLs=[]
+        SaccAmpls=[] 
         for cc,c in enumerate(self.Conds):
             Idx=np.nonzero(WhichC==cc)[0]
             FixGr=np.array(self.nfix[Idx,:])
             EntrGr=self.entropies_ind[Idx,:]
             Entrs.append(np.nanmean(EntrGr,1))
             Fixies.append(np.nanmean(FixGr,1))
+            ScanpLs.append(np.nanmean(self.len_scanpath[Idx,:],1))
+            SaccAmpls.append(np.nanmean(self.sacc_ampl[Idx,:],1))
+         
             
             print(cc,c,'Num fix= ',np.round(np.mean(np.nanmean(FixGr,1)),2),'+/-',np.round(np.std(np.nanmean(FixGr,1)),2))
             print(cc,c,'Entropy= ',np.round(np.mean(np.nanmean(EntrGr,1)),2),'+/-',np.round(np.std(np.nanmean(EntrGr,1)),2))
-            plt.subplot(1,2,1)
+            print(cc,c,'tot scanpath len = ',np.round(np.mean(np.nanmean(self.len_scanpath[Idx,:],1)),2),'+/-',np.round(np.std(np.nanmean(self.len_scanpath[Idx,:],1)),2))
+            print(cc,c,'saccade amplitude = ',np.round(np.mean(np.nanmean(self.sacc_ampl[Idx,:],1)),2),'+/-',np.round(np.std(np.nanmean(self.sacc_ampl[Idx,:],1)),2))
+
+            plt.subplot(2,2,1)
             MeanPlot(self.np,FixGr,yLab='Num Fixations',xtickL=self.stimuli,newfig=0,label=c,color=Cols[cc])
-            plt.subplot(1,2,2)
+            plt.subplot(2,2,2)
             MeanPlot(self.np,EntrGr,yLab='Entropy',xtickL=self.stimuli,newfig=0,label=c,color=Cols[cc])
+            plt.subplot(2,2,3)
+            MeanPlot(self.np,self.len_scanpath[Idx,:],yLab='tot scanpath len (pix)',xtickL=self.stimuli,newfig=0,label=c,color=Cols[cc])
+            plt.subplot(2,2,4)
+            MeanPlot(self.np,self.sacc_ampl[Idx,:],yLab='saccade amplitude (pix)',xtickL=self.stimuli,newfig=0,label=c,color=Cols[cc])
+            
             
         t,p=stats.ttest_ind(Entrs[0],Entrs[1])
+        print(' ')
         print('Overall group differences: ')
         print('Entropy t=',np.round(t,4),' p ',np.round(p,4))
+        #if pglib:
+         #   pg.ttest(Fixies[0],Fixies[1],paired=False)
+        #else:
         t,p=stats.ttest_ind(Fixies[0],Fixies[1])
         print('Num Fix t=',np.round(t,4),' p ',np.round(p,4))
+        t,p=stats.ttest_ind(ScanpLs[0],ScanpLs[1])
+        
+
+        print('Scanpath lengths t=',np.round(t,4),' p=',np.round(p,4))
+        t,p=stats.ttest_ind(SaccAmpls[0],SaccAmpls[1])
+
+        print('Saccade amplitudes t=',np.round(t,4),' p=',np.round(p,4))
+
+        
+        ScanpLs
 
         plt.legend()
         plt.tight_layout()
@@ -431,7 +458,7 @@ def MeanPlot(N,Y,yLab=0,xtickL=0,newfig=1,color='darkred',label=None):
         plt.figure(figsize=(N/2,5))
     plt.errorbar(np.arange(N),np.nanmean(Y,0),stats.sem(Y,0,nan_policy="omit")*2,linestyle='None',marker='o',color=color,label=label)
     if type(xtickL)!=int:
-        plt.xticks(np.arange(N),xtickL,fontsize=10,rotation=60)
+        plt.xticks(np.arange(N),xtickL,fontsize=9,rotation=60)
     plt.xlabel('Stimulus',fontsize=14)
     plt.ylabel(yLab,fontsize=14)
     return None
@@ -460,6 +487,9 @@ def SaliencyMapFilt(Fixies,SD=25,Ind=0):
     return Smap
     
 def ScanpathL(x,y):
+    ''' input 2 arrays for x and y ordered fixations
+    output 1 average length of  saccacdes
+    output 2 total  length of scanpath'''
     x1=x[0:-1]
     x2=x[1:]
     y1=y[0:-1]
