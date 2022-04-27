@@ -87,7 +87,9 @@ class EyeData:
         pass 
         
     def GetFixationData(self,s,p):
-        """get X,Y fixation sequence for a participant and stimulus"""
+        """get X,Y fixation sequence for a participant and stimulus
+        output 1: array of pixel x for sequence of fixations
+        output 2: array of pixel y for sequence of fixations"""
         SubjIdx=np.nonzero(self.data['subjectID'].to_numpy()==s)  #idx for subject
         TrialSubIdx=np.intersect1d(np.nonzero(self.data['Stimulus'].to_numpy()==p),SubjIdx) # idx for subject and painting
         FixTrialX=np.array(self.data['mean_x'].iloc[TrialSubIdx]) # get x data for trial
@@ -95,7 +97,8 @@ class EyeData:
         return FixTrialX,FixTrialY
     
     def GetDurations(self,s,p):
-        """get X,Y fixation sequence for a participant and stimulus"""
+        """get fixations durations for a trials
+        output: array of fixation durations """
         SubjIdx=np.nonzero(self.data['subjectID'].to_numpy()==s)  #idx for subject
         TrialSubIdx=np.intersect1d(np.nonzero(self.data['Stimulus'].to_numpy()==p),SubjIdx) # idx for subject and painting
          # get x data for trial
@@ -178,7 +181,8 @@ class EyeData:
     
     
     def FixCountCalc(self,Stim):
-        ''' Pixelwise fixation count for each participant, but for single stimulus  (Stim) '''
+        ''' Pixelwise fixation count for each participant, but for single stimulus  (Stim) 
+        output: subjects*y*x --> num of fixaiton for each pixel'''
         assert np.sum(self.data['Stimulus']==Stim)>0, 'stimulus not found'
        
         FixCountInd=np.zeros(((self.ns,self.y_size,self.x_size)))
@@ -228,13 +232,13 @@ class EyeData:
         return None
     
     def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,Idx=0,FixCounts=0):
-        ''' Pipeline for saliency map calculation, FixCounts are calculated for stimulus, or passed pre-calcualted as optional parameter'''
+        ''' Pipeline for  heatmap calculation, FixCounts are calculated for stimulus, or passed pre-calcualted as optional parameter
+        output: heatmap for a stimulus'''
       #  if hasattr(self,'fixcounts'):
        #     FixCountIndie=self.fixcounts['Stim']
         #else:    
         if type(FixCounts)==int:
-            FixCounts=self.FixCountCalc(Stim)
-            
+            FixCounts=self.FixCountCalc(Stim) 
         assert np.sum(FixCounts)>0,'!!no fixations found'
         if np.sum(FixCounts)<10:
             print('WARNING NUM FIX FOUND: ',np.sum(FixCounts))
@@ -290,7 +294,10 @@ class EyeData:
     
     
     def Entropy(self,BinnedCount,base=None):
-        ''' based on binned  2d fixation counts return entropy and relative entropy, default natural log'''
+        ''' from binned 2d fixation counts calculate entropy,  
+        default natural log based calculation, this can be changed by base= optional arguments
+        output 1: entorpy
+        output 2: maximum possibe entropy for number of bins -- from uniform probability distribution'''
         assert len(np.shape(BinnedCount))==2,'2d data input expected'
         size=np.shape(BinnedCount)[0]*np.shape(BinnedCount)[1]
         entrMax=stats.entropy(1/size*np.ones(size),base=base)
@@ -300,7 +307,12 @@ class EyeData:
     
     def GetEntropies(self,fixsize=0,binsize_h=50):
         ''' calcualte grid based entropy for all stimuli 
-        if fixsize=0, bounds are inferred from range of fixations'''
+        if fixsize=0, bounds are inferred from range of fixations
+        output 1: entropy for stimulus across partcipants
+        output 2: max possible entropy for each stimulus-- assuming different stimulus sizes
+        output 3: individual entropies for each stimlus (2d array: subjects*stimuli)
+        
+        '''
         self.entropies=np.zeros(self.np)
         self.entropmax=np.zeros(self.np)
         self.entropies_ind=np.zeros((self.ns,self.np))
@@ -322,7 +334,8 @@ class EyeData:
     
 
     def GetGroups(self,betwcond):
-        ''' Between group comparison- 2 groups expected'''
+        ''' Between group comparison- 2 groups expected
+        get conditions from between group column, check if mapping of participants to conditions is unique'''
         self.Conds=np.unique(self.data[betwcond])
         print('Conditions',self.Conds)
        
@@ -339,6 +352,7 @@ class EyeData:
         return WhichC,np.array(WhichCN)
 
     def CompareGroupsFix(self,betwcond):
+        '''run set of between group fixation comparisons, makes plots and prints descriptive stats'''
         WhichC,WhichCN=self.GetGroups(betwcond)
 
         if hasattr(self,'entropies')==False:   # check if entropy has already been calculated
@@ -476,6 +490,7 @@ def HistPlot(Y,xtickL=0,newfig=1):
 
 
 def AOIbounds(start,end,nDiv):  
+    ''' calcuale AOI bounds, linearly spaced from: start to: end, for nDiv number of divisions'''
     return np.linspace(start,end,nDiv+1)  
 
 
@@ -489,8 +504,8 @@ def SaliencyMapFilt(Fixies,SD=25,Ind=0):
     
 def ScanpathL(x,y):
     ''' input 2 arrays for x and y ordered fixations
-    output 1 average length of  saccacdes
-    output 2 total  length of scanpath'''
+    output 1: average amplitude of  saccacdes
+    output 2: total  length of scanpath'''
     x1=x[0:-1]
     x2=x[1:]
     y1=y[0:-1]
