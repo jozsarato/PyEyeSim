@@ -282,9 +282,7 @@ class EyeData:
         if Ind==0:
             smap=SaliencyMapFilt(FixCounts,SD=SD,Ind=0)
             smapall=np.zeros((self.y_size,self.x_size))
-            print(np.shape(smap))
-            print(np.shape(smapall))
-            print(self.boundsY[stimn,0],self.boundsY[stimn,1],self.boundsX[stimn,0],self.boundsX[stimn,1])
+           
             smapall[int(self.boundsY[stimn,0]):int(self.boundsY[stimn,1]),int(self.boundsX[stimn,0]):int(self.boundsX[stimn,1])]=smap
         else:
             smap=np.zeros_like(FixCounts)
