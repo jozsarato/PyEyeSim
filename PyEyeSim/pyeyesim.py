@@ -33,7 +33,7 @@ class EyeData:
                 data[DefColumns[df]]
                 print('column found: ', df,' default: ',DefColumns[df])
             except:
-                print(df," not found !!, provide column as .DataInfo(StimName='YourColumn') default",DefColumns[df])
+                print(df," not found !!, provide column as", df,"=YourColumn default",DefColumns[df])
         
 
     def info(self):
@@ -231,7 +231,7 @@ class EyeData:
             
         return None
     
-    def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,Idx=0,FixCounts=0):
+    def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0):
         ''' Pipeline for  heatmap calculation, FixCounts are calculated for stimulus, or passed pre-calcualted as optional parameter
         output: heatmap for a stimulus'''
       #  if hasattr(self,'fixcounts'):
