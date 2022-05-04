@@ -281,16 +281,23 @@ class EyeData:
             print('WARNING NUM FIX FOUND: ',np.sum(FixCounts))
         if Ind==0:
             smap=SaliencyMapFilt(FixCounts,SD=SD,Ind=0)
-            smapall=np.zeros((self.size_y,self.size_x))
-            smapall[self.boundsY[stimn,0]:self.boundsY[stimn,1],self.boundsX[stimn,0]:self.boundsX[stimn,1]]
+            smapall=np.zeros((self.y_size,self.x_size))
+            print(np.shape(smap))
+            print(np.shape(smapall))
+            print(self.boundsY[stimn,0],self.boundsY[stimn,1],self.boundsX[stimn,0],self.boundsX[stimn,1])
+            smapall[int(self.boundsY[stimn,0]):int(self.boundsY[stimn,1]),int(self.boundsX[stimn,0]):int(self.boundsX[stimn,1])]=smap
         else:
             smap=np.zeros_like(FixCounts)
             for cs,s in enumerate(self.subjects):
                 smap[cs,:,:]=SaliencyMapFilt(FixCounts[cs,:,:],SD=SD,Ind=1)       
         if Vis:
-            smap[smap<np.median(smap)]=np.NAN
+            smapall[smapall<np.median(smap)]=np.NAN
+            
             plt.imshow( self.images[Stim])
-            plt.imshow(smap,alpha=.5)
+          #  plt.imshow(smap,alpha=.5)
+            plt.imshow(smapall,alpha=.5)
+            
+            
             plt.xticks([])
             plt.yticks([])
         return smap
