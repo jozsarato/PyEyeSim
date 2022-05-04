@@ -85,10 +85,11 @@ class EyeData:
             print(path+s+extension)
             Stim=plt.imread(path+s+extension)
             Res=np.shape(Stim)
-            if Res[0]!=self.y_size or Res[1]!=self.x_size:
-                print(cs,s,'!!stimulus size inconsisteny warning')
-                print('provided stim size= ', self.y_size, self.x_size)
-                print('image resolution',Res)
+            if Res[0] != self.y_size:
+                print("!y size incosistency warning expected",self.y_size,'vs actual', Res)
+            if Res[1] != self.x_size:
+                print("!x size incosistency warning, expected",self.x_size,'vs actual', Res)
+            
             self.images[s]=Stim
         pass 
         
