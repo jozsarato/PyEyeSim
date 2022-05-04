@@ -134,7 +134,8 @@ class EyeData:
             if BoundsY[cp,1]>self.y_size:
                 BoundsY[cp,1]=self.y_size
                 print(p,' Bound over y_size found indicating out of stimulus area fixations-replaced with',self.y_size)    
-     
+        BoundsX=np.intp(np.round(BoundsX))
+        BoundsY=np.intp(np.round(BoundsY))
         return BoundsX,BoundsY
     
     
@@ -203,17 +204,28 @@ class EyeData:
         return Stimuli,Subjects
     
     
-    def FixCountCalc(self,Stim):
+    def FixCountCalc(self,Stim,CutAct=1):
         ''' Pixelwise fixation count for each participant, but for single stimulus  (Stim) 
-        output: subjects*y*x --> num of fixaiton for each pixel'''
+        output: subjects*y*x --> num of fixaiton for each pixel
+        if CutAct==1 in the end, only the within bounds areas is returned for further calculations'''
         assert np.sum(self.data['Stimulus']==Stim)>0, 'stimulus not found'
        
+        stimn=np.nonzero(self.stimuli==Stim)[0]
         FixCountInd=np.zeros(((self.ns,self.y_size,self.x_size)))
+       # sizy=round(self.boundsY[stimn,1]-self.boundsY[stimn,0])
+       # sizx=round(self.boundsX[stimn,1]-self.boundsX[stimn,0])
+
+       # FixCountInd=np.zeros(((self.ns,sizy,sizx)))
+        
         for cs,s in enumerate(self.subjects):
             x,y=np.intp(self.GetFixationData(s,Stim))
-            Valid=np.nonzero((x<self.x_size)&(y<self.y_size))[0]
+            Valid=np.nonzero((x<self.boundsX[stimn,1])&(x>self.boundsX[stimn,0])&(y>self.boundsY[stimn,0])&(y<self.boundsY[stimn,1]))[0]
             X,Y=x[Valid],y[Valid]
             FixCountInd[cs,Y,X]+=1
+       # self.boundsX[stimn,0]:self.boundsX[stimn,1]
+        if CutAct:
+            FixCountInd=FixCountInd[:,:,int(np.round(self.boundsX[stimn,0])):int(np.round(self.boundsX[stimn,1]))]  # cut X
+            FixCountInd=FixCountInd[:,int(np.round(self.boundsY[stimn,0])):int(np.round(self.boundsY[stimn,1])),:] # cut Y
         return FixCountInd
     
     def FixDurProg(self,nfixmax=10,Stim=0):
@@ -260,6 +272,8 @@ class EyeData:
       #  if hasattr(self,'fixcounts'):
        #     FixCountIndie=self.fixcounts['Stim']
         #else:    
+        stimn=np.nonzero(self.stimuli==Stim)[0]
+
         if type(FixCounts)==int:
             FixCounts=self.FixCountCalc(Stim) 
         assert np.sum(FixCounts)>0,'!!no fixations found'
@@ -267,14 +281,21 @@ class EyeData:
             print('WARNING NUM FIX FOUND: ',np.sum(FixCounts))
         if Ind==0:
             smap=SaliencyMapFilt(FixCounts,SD=SD,Ind=0)
+            smapall=np.zeros((self.y_size,self.x_size))
+           
+            smapall[int(self.boundsY[stimn,0]):int(self.boundsY[stimn,1]),int(self.boundsX[stimn,0]):int(self.boundsX[stimn,1])]=smap
         else:
             smap=np.zeros_like(FixCounts)
             for cs,s in enumerate(self.subjects):
                 smap[cs,:,:]=SaliencyMapFilt(FixCounts[cs,:,:],SD=SD,Ind=1)       
         if Vis:
-            smap[smap<np.median(smap)]=np.NAN
+            smapall[smapall<np.median(smap)]=np.NAN
+            
             plt.imshow( self.images[Stim])
-            plt.imshow(smap,alpha=.5)
+          #  plt.imshow(smap,alpha=.5)
+            plt.imshow(smapall,alpha=.5)
+            
+            
             plt.xticks([])
             plt.yticks([])
         return smap
