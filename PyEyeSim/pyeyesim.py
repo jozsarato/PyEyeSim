@@ -266,31 +266,43 @@ class EyeData:
             
         return None
     
-    def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0):
+    def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0):
         ''' Pipeline for  heatmap calculation, FixCounts are calculated for stimulus, or passed pre-calcualted as optional parameter
-        output: heatmap for a stimulus'''
+        output: heatmap for a stimulus
+        cutarea option: 1 only use active area (99% percentile of fixations), 0- use all of the area 
+        cutoff=median: median cutoff, otherwise percetile of values to replace with nans, goal--> clear visualization'''
       #  if hasattr(self,'fixcounts'):
        #     FixCountIndie=self.fixcounts['Stim']
         #else:    
         stimn=np.nonzero(self.stimuli==Stim)[0]
 
         if type(FixCounts)==int:
-            FixCounts=self.FixCountCalc(Stim) 
+            if CutArea:
+                FixCounts=self.FixCountCalc(Stim,CutAct=1) 
+            else:
+                FixCounts=self.FixCountCalc(Stim,CutAct=0) 
         assert np.sum(FixCounts)>0,'!!no fixations found'
         if np.sum(FixCounts)<10:
             print('WARNING NUM FIX FOUND: ',np.sum(FixCounts))
         if Ind==0:
             smap=SaliencyMapFilt(FixCounts,SD=SD,Ind=0)
+            if cutoff=='median':
+                 cutThr=np.median(smap)
+            elif cutoff>0:
+                 cutThr=np.percentile(smap,cutoff) 
+            else:
+                cutThr=0
             smapall=np.zeros((self.y_size,self.x_size))
-           
-            smapall[int(self.boundsY[stimn,0]):int(self.boundsY[stimn,1]),int(self.boundsX[stimn,0]):int(self.boundsX[stimn,1])]=smap
+            if CutArea:
+                smapall[int(self.boundsY[stimn,0]):int(self.boundsY[stimn,1]),int(self.boundsX[stimn,0]):int(self.boundsX[stimn,1])]=smap
+            else:
+                smapall=np.copy(smap)
         else:
             smap=np.zeros_like(FixCounts)
             for cs,s in enumerate(self.subjects):
                 smap[cs,:,:]=SaliencyMapFilt(FixCounts[cs,:,:],SD=SD,Ind=1)       
         if Vis:
-            smapall[smapall<np.median(smap)]=np.NAN
-            
+            smapall[smapall<cutThr]=np.NAN  # replacing below threshold with NAN
             plt.imshow( self.images[Stim])
           #  plt.imshow(smap,alpha=.5)
             plt.imshow(smapall,alpha=.5)
