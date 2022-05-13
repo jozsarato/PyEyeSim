@@ -266,7 +266,7 @@ class EyeData:
             
         return None
     
-    def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0):
+    def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,Idx=0):
         ''' Pipeline for  heatmap calculation, FixCounts are calculated for stimulus, or passed pre-calcualted as optional parameter
         output: heatmap for a stimulus
         cutarea option: 1 only use active area (99% percentile of fixations), 0- use all of the area 
@@ -282,6 +282,8 @@ class EyeData:
             else:
                 FixCounts=self.FixCountCalc(Stim,CutAct=0) 
         assert np.sum(FixCounts)>0,'!!no fixations found'
+        if type(Idx)!=int:
+            FixCounts=FixCounts[Idx,:,:]
         if np.sum(FixCounts)<10:
             print('WARNING NUM FIX FOUND: ',np.sum(FixCounts))
         if Ind==0:
@@ -310,7 +312,7 @@ class EyeData:
             
             plt.xticks([])
             plt.yticks([])
-        return smap
+        return smapall
     
   
     
@@ -471,7 +473,7 @@ class EyeData:
         return 
     
     
-    def CompareGroupsHeatMap(self,Stim,betwcond,StimPath='',SD=25):
+    def CompareGroupsHeatMap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0):
         ''' visualize group heatmap, along with heatmap difference 
         SD optional parameter of heatmap smoothness, in pixels!'''
         WhichC,WhichCN=self.GetGroups(betwcond)
@@ -479,15 +481,16 @@ class EyeData:
             self.GetParams()    
         #Cols=['darkred','cornflowerblue']
         plt.figure(figsize=(10,5))
-        FixCounts=self.FixCountCalc(Stim)
+       # FixCounts=self.FixCountCalc(Stim)
         hmaps=[]
         for cc,c in enumerate(self.Conds):
             Idx=np.nonzero(WhichC==cc)[0]
             plt.subplot(2,2,cc+1)
-            if hasattr(self,'images'):
-                plt.imshow( self.images[Stim])
+            #if hasattr(self,'images'):
+                #plt.imshow(self.images[Stim])
 
-            hmap=self.Heatmap(Stim,SD=SD,Ind=0,Vis=1,FixCounts=FixCounts[Idx,:,:])
+#            hmap=self.Heatmap(Stim,SD=SD,Ind=0,Vis=1,FixCounts=FixCounts[Idx,:,:],CutArea=CutArea)
+            hmap=self.Heatmap(Stim,SD=SD,Ind=0,Vis=1,FixCounts=0,CutArea=CutArea,Idx=Idx)
             plt.title(c)
             plt.colorbar()
 
@@ -497,25 +500,25 @@ class EyeData:
             plt.imshow( self.images[Stim])
 
         Diff=hmaps[0]-hmaps[1]
-        plt.imshow(Diff,cmap='RdBu',alpha=.5)
+        #plt.imshow(Diff,cmap='RdBu',alpha=.5)
 
-       # plt.imshow(Diff,cmap='RdBu', vmin=-np.max(np.abs(Diff)), vmax=np.max(np.abs(Diff)),alpha=.5)
+        plt.imshow(Diff,cmap='RdBu', vmin=-np.nanmax(np.abs(Diff)), vmax=np.nanmax(np.abs(Diff)),alpha=.5)
         plt.xticks([])
         plt.yticks([])
         plt.title(str(self.Conds[0])+' - '+str(self.Conds[1]))
         cbar=plt.colorbar()
-        cbar.ax.get_yaxis().set_ticks([])
-        cbar.ax.get_yaxis().labelpad = 15
-        cbar.ax.set_ylabel(str(self.Conds[0])+'<---->'+str(self.Conds[1]), rotation=270)
+       # cbar.ax.get_yaxis().set_ticks([])
+       # cbar.ax.get_yaxis().labelpad = 15
+       # cbar.ax.set_ylabel(str(self.Conds[0])+'<---->'+str(self.Conds[1]), rotation=270)
         plt.subplot(2,2,4)
         if hasattr(self,'images'):
             plt.imshow( self.images[Stim])
+        plt.imshow(np.abs(Diff), vmin=0, vmax=np.nanmax(np.abs(Diff)),alpha=.5)
 
-        plt.imshow(np.abs(hmaps[0]-hmaps[1]),alpha=.5)
         plt.xticks([])
         plt.yticks([])
         plt.colorbar()
-        plt.title('Absolute difference')
+        plt.title('Absolute diff: '+str(np.round(np.nansum(np.abs(Diff)),3)))
         plt.tight_layout()
         return 
     
