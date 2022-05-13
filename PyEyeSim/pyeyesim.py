@@ -514,7 +514,7 @@ class EyeData:
         if hasattr(self,'images'):
             plt.imshow( self.images[Stim])
         plt.imshow(np.abs(Diff), vmin=0, vmax=np.nanmax(np.abs(Diff)),alpha=.5)
-
+        
         plt.xticks([])
         plt.yticks([])
         plt.colorbar()
