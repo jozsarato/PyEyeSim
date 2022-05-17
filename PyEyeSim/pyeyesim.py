@@ -266,7 +266,7 @@ class EyeData:
             
         return None
     
-    def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,Idx=0):
+    def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0):
         ''' Pipeline for  heatmap calculation, FixCounts are calculated for stimulus, or passed pre-calcualted as optional parameter
         output: heatmap for a stimulus
         cutarea option: 1 only use active area (99% percentile of fixations), 0- use all of the area 
@@ -282,8 +282,7 @@ class EyeData:
             else:
                 FixCounts=self.FixCountCalc(Stim,CutAct=0) 
         assert np.sum(FixCounts)>0,'!!no fixations found'
-        if type(Idx)!=int:
-            FixCounts=FixCounts[Idx,:,:]
+ 
         if np.sum(FixCounts)<10:
             print('WARNING NUM FIX FOUND: ',np.sum(FixCounts))
         if Ind==0:
@@ -294,8 +293,8 @@ class EyeData:
                  cutThr=np.percentile(smap,cutoff) 
             else:
                 cutThr=0
-            smapall=np.zeros((self.y_size,self.x_size))
             if CutArea:
+                smapall=np.zeros((self.y_size,self.x_size))
                 smapall[int(self.boundsY[stimn,0]):int(self.boundsY[stimn,1]),int(self.boundsX[stimn,0]):int(self.boundsX[stimn,1])]=smap
             else:
                 smapall=np.copy(smap)
@@ -482,15 +481,22 @@ class EyeData:
         #Cols=['darkred','cornflowerblue']
         plt.figure(figsize=(10,5))
        # FixCounts=self.FixCountCalc(Stim)
+        
+        if CutArea:
+            FixCounts=self.FixCountCalc(Stim,CutAct=1) 
+        else:
+            FixCounts=self.FixCountCalc(Stim,CutAct=0) 
+        assert np.sum(FixCounts)>0,'!!no fixations found'
         hmaps=[]
         for cc,c in enumerate(self.Conds):
             Idx=np.nonzero(WhichC==cc)[0]
+            
+          
+            FixCountGroup=FixCounts[Idx,:,:]
+            
             plt.subplot(2,2,cc+1)
-            #if hasattr(self,'images'):
-                #plt.imshow(self.images[Stim])
-
-#            hmap=self.Heatmap(Stim,SD=SD,Ind=0,Vis=1,FixCounts=FixCounts[Idx,:,:],CutArea=CutArea)
-            hmap=self.Heatmap(Stim,SD=SD,Ind=0,Vis=1,FixCounts=0,CutArea=CutArea,Idx=Idx)
+       
+            hmap=self.Heatmap(Stim,SD=SD,Ind=0,Vis=1,FixCounts=FixCountGroup,CutArea=CutArea)
             plt.title(c)
             plt.colorbar()
 
