@@ -474,7 +474,10 @@ class EyeData:
     
     def CompareGroupsHeatMap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0):
         ''' visualize group heatmap, along with heatmap difference 
-        SD optional parameter of heatmap smoothness, in pixels!'''
+        SD optional parameter of heatmap smoothness, in pixels!
+        CutArea==1: use central area only with 99% of fixations
+        Conds==0: use automatically detected conditions conditions, as provided in betweencond column
+        othewise Conds=['MyCond1' MyCond2'], if we want to specify the order of access for betweencond column '''
         WhichC,WhichCN=self.GetGroups(betwcond)
         if hasattr(self,'subjects')==0:
             self.GetParams()    
