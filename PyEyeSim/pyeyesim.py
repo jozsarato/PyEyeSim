@@ -266,31 +266,44 @@ class EyeData:
             
         return None
     
-    def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0):
+    def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0):
         ''' Pipeline for  heatmap calculation, FixCounts are calculated for stimulus, or passed pre-calcualted as optional parameter
-        output: heatmap for a stimulus'''
+        output: heatmap for a stimulus
+        cutarea option: 1 only use active area (99% percentile of fixations), 0- use all of the area 
+        cutoff=median: median cutoff, otherwise percetile of values to replace with nans, goal--> clear visualization'''
       #  if hasattr(self,'fixcounts'):
        #     FixCountIndie=self.fixcounts['Stim']
         #else:    
         stimn=np.nonzero(self.stimuli==Stim)[0]
 
         if type(FixCounts)==int:
-            FixCounts=self.FixCountCalc(Stim) 
+            if CutArea:
+                FixCounts=self.FixCountCalc(Stim,CutAct=1) 
+            else:
+                FixCounts=self.FixCountCalc(Stim,CutAct=0) 
         assert np.sum(FixCounts)>0,'!!no fixations found'
+ 
         if np.sum(FixCounts)<10:
             print('WARNING NUM FIX FOUND: ',np.sum(FixCounts))
         if Ind==0:
             smap=SaliencyMapFilt(FixCounts,SD=SD,Ind=0)
-            smapall=np.zeros((self.y_size,self.x_size))
-           
-            smapall[int(self.boundsY[stimn,0]):int(self.boundsY[stimn,1]),int(self.boundsX[stimn,0]):int(self.boundsX[stimn,1])]=smap
+            if cutoff=='median':
+                 cutThr=np.median(smap)
+            elif cutoff>0:
+                 cutThr=np.percentile(smap,cutoff) 
+            else:
+                cutThr=0
+            if CutArea:
+                smapall=np.zeros((self.y_size,self.x_size))
+                smapall[int(self.boundsY[stimn,0]):int(self.boundsY[stimn,1]),int(self.boundsX[stimn,0]):int(self.boundsX[stimn,1])]=smap
+            else:
+                smapall=np.copy(smap)
         else:
             smap=np.zeros_like(FixCounts)
             for cs,s in enumerate(self.subjects):
                 smap[cs,:,:]=SaliencyMapFilt(FixCounts[cs,:,:],SD=SD,Ind=1)       
         if Vis:
-            smapall[smapall<np.median(smap)]=np.NAN
-            
+            smapall[smapall<cutThr]=np.NAN  # replacing below threshold with NAN
             plt.imshow( self.images[Stim])
           #  plt.imshow(smap,alpha=.5)
             plt.imshow(smapall,alpha=.5)
@@ -298,7 +311,7 @@ class EyeData:
             
             plt.xticks([])
             plt.yticks([])
-        return smap
+        return smapall
     
   
     
@@ -459,51 +472,62 @@ class EyeData:
         return 
     
     
-    def CompareGroupsHeatMap(self,Stim,betwcond,StimPath='',SD=25):
+    def CompareGroupsHeatMap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0):
         ''' visualize group heatmap, along with heatmap difference 
-        SD optional parameter of heatmap smoothness, in pixels!'''
+        SD optional parameter of heatmap smoothness, in pixels!
+        CutArea==1: use central area only with 99% of fixations
+        Conds==0: use automatically detected conditions conditions, as provided in betweencond column
+        othewise Conds=['MyCond1' MyCond2'], if we want to specify the order of access for betweencond column '''
         WhichC,WhichCN=self.GetGroups(betwcond)
         if hasattr(self,'subjects')==0:
             self.GetParams()    
         #Cols=['darkred','cornflowerblue']
         plt.figure(figsize=(10,5))
-        FixCounts=self.FixCountCalc(Stim)
+       # FixCounts=self.FixCountCalc(Stim)
+        
+        if CutArea:
+            FixCounts=self.FixCountCalc(Stim,CutAct=1) 
+        else:
+            FixCounts=self.FixCountCalc(Stim,CutAct=0) 
+        assert np.sum(FixCounts)>0,'!!no fixations found'
         hmaps=[]
-        for cc,c in enumerate(self.Conds):
-            Idx=np.nonzero(WhichC==cc)[0]
+        
+        if type(Conds)==int:    
+            Conditions=np.copy(self.Conds)
+        else:
+            print('use provided conditions: ' ,Conds)
+            Conditions=np.copy(Conds)
+        for cc,c in enumerate(Conditions):
+            Idx=np.nonzero(WhichCN==c)[0]   
             plt.subplot(2,2,cc+1)
-            if hasattr(self,'images'):
-                plt.imshow( self.images[Stim])
-
-            hmap=self.Heatmap(Stim,SD=SD,Ind=0,Vis=1,FixCounts=FixCounts[Idx,:,:])
+            hmap=self.Heatmap(Stim,SD=SD,Ind=0,Vis=1,FixCounts=FixCounts[Idx,:,:],CutArea=CutArea)
             plt.title(c)
             plt.colorbar()
-
             hmaps.append(hmap)
         plt.subplot(2,2,3)
         if hasattr(self,'images'):
             plt.imshow( self.images[Stim])
 
         Diff=hmaps[0]-hmaps[1]
-        plt.imshow(Diff,cmap='RdBu',alpha=.5)
+        #plt.imshow(Diff,cmap='RdBu',alpha=.5)
 
-       # plt.imshow(Diff,cmap='RdBu', vmin=-np.max(np.abs(Diff)), vmax=np.max(np.abs(Diff)),alpha=.5)
+        plt.imshow(Diff,cmap='RdBu', vmin=-np.nanmax(np.abs(Diff)), vmax=np.nanmax(np.abs(Diff)),alpha=.5)
         plt.xticks([])
         plt.yticks([])
-        plt.title(str(self.Conds[0])+' - '+str(self.Conds[1]))
+        plt.title(str(Conditions[0])+' - '+str(Conditions[1]))
         cbar=plt.colorbar()
         cbar.ax.get_yaxis().set_ticks([])
         cbar.ax.get_yaxis().labelpad = 15
-        cbar.ax.set_ylabel(str(self.Conds[0])+'<---->'+str(self.Conds[1]), rotation=270)
+        cbar.ax.set_ylabel(str(Conditions[0])+'<---->'+str(Conditions[1]), rotation=270)
         plt.subplot(2,2,4)
         if hasattr(self,'images'):
             plt.imshow( self.images[Stim])
-
-        plt.imshow(np.abs(hmaps[0]-hmaps[1]),alpha=.5)
+        plt.imshow(np.abs(Diff), vmin=0, vmax=np.nanmax(np.abs(Diff)),alpha=.5)
+        
         plt.xticks([])
         plt.yticks([])
         plt.colorbar()
-        plt.title('Absolute difference')
+        plt.title('Absolute diff: '+str(np.round(np.nansum(np.abs(Diff)),3)))
         plt.tight_layout()
         return 
     
