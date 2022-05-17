@@ -472,7 +472,7 @@ class EyeData:
         return 
     
     
-    def CompareGroupsHeatMap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0):
+    def CompareGroupsHeatMap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0):
         ''' visualize group heatmap, along with heatmap difference 
         SD optional parameter of heatmap smoothness, in pixels!'''
         WhichC,WhichCN=self.GetGroups(betwcond)
@@ -488,18 +488,18 @@ class EyeData:
             FixCounts=self.FixCountCalc(Stim,CutAct=0) 
         assert np.sum(FixCounts)>0,'!!no fixations found'
         hmaps=[]
-        for cc,c in enumerate(self.Conds):
-            Idx=np.nonzero(WhichC==cc)[0]
-            
-          
-            FixCountGroup=FixCounts[Idx,:,:]
-            
+        
+        if type(Conds)==int:    
+            Conditions=np.copy(self.Conds)
+        else:
+            print('use provided conditions: ' ,Conds)
+            Conditions=np.copy(Conds)
+        for cc,c in enumerate(Conditions):
+            Idx=np.nonzero(WhichCN==c)[0]   
             plt.subplot(2,2,cc+1)
-       
-            hmap=self.Heatmap(Stim,SD=SD,Ind=0,Vis=1,FixCounts=FixCountGroup,CutArea=CutArea)
+            hmap=self.Heatmap(Stim,SD=SD,Ind=0,Vis=1,FixCounts=FixCounts[Idx,:,:],CutArea=CutArea)
             plt.title(c)
             plt.colorbar()
-
             hmaps.append(hmap)
         plt.subplot(2,2,3)
         if hasattr(self,'images'):
@@ -511,11 +511,11 @@ class EyeData:
         plt.imshow(Diff,cmap='RdBu', vmin=-np.nanmax(np.abs(Diff)), vmax=np.nanmax(np.abs(Diff)),alpha=.5)
         plt.xticks([])
         plt.yticks([])
-        plt.title(str(self.Conds[0])+' - '+str(self.Conds[1]))
+        plt.title(str(Conditions[0])+' - '+str(Conditions[1]))
         cbar=plt.colorbar()
-       # cbar.ax.get_yaxis().set_ticks([])
-       # cbar.ax.get_yaxis().labelpad = 15
-       # cbar.ax.set_ylabel(str(self.Conds[0])+'<---->'+str(self.Conds[1]), rotation=270)
+        cbar.ax.get_yaxis().set_ticks([])
+        cbar.ax.get_yaxis().labelpad = 15
+        cbar.ax.set_ylabel(str(Conditions[0])+'<---->'+str(Conditions[1]), rotation=270)
         plt.subplot(2,2,4)
         if hasattr(self,'images'):
             plt.imshow( self.images[Stim])
