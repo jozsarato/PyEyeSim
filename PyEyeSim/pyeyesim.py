@@ -146,7 +146,9 @@ class EyeData:
         Subjects,Stimuli=self.GetParams()
         print('Data for ',len(self.subjects),'observers and ', len(self.stimuli),' stimuli.')
         self.boundsX,self.boundsY=self.InferSize(Interval=99)
+        self.actsize=(self.boundsX[:,1]-self.boundsX[:,0])*(self.boundsY[:,1]-self.boundsY[:,0])
         self.nfixations=np.zeros((self.ns,self.np))
+        
         self.sacc_ampl=np.zeros((self.ns,self.np))
         self.len_scanpath=np.zeros((self.ns,self.np))
 
@@ -531,8 +533,76 @@ class EyeData:
         plt.tight_layout()
         return 
     
-
+    
+    def AOIFix(self,p,FixTrialX,FixTrialY,nDivH,nDivV,InferS=1):
+        """ given a sequence of X,Y fixation data and AOI divisions, calculate static N and p matrix) """ 
+        nAOI=nDivH*nDivV
+        AOInums=np.arange(nAOI).reshape(nDivV,nDivH)
+        NFix=len(FixTrialX)  # num of data points
+        # set AOI bounds
+       # print(p,SizeGendX)
+        if InferS==0:
+            AOIboundsH=AOIbounds(0, self.x_size,nDivH)       
+            AOIboundsV=AOIbounds(0, self.y_size,nDivV)  
+        else:
+            AOIboundsH=AOIbounds(self.boundsX[p,0], self.boundsX[p,1],nDivH)       
+            AOIboundsV=AOIbounds(self.boundsY[p,0], self.boundsY[p,1],nDivV)   
+       
+        # set parameters & arrays to store data
+        StatPtrial=np.zeros(nAOI) # static probabilities.
+        StatNtrial=np.zeros(nAOI) # static counts.
+    
+       
+        WhichAOIH=np.zeros(NFix)
+        WhichAOIV=np.zeros(NFix)
+        for x in range(NFix):
+            WhichAOIH[x]=CheckCor(AOIboundsH,FixTrialX[x]) # store which horizontal AOI each fixation is
+            WhichAOIV[x]=CheckCor(AOIboundsV,FixTrialY[x]) # store which vertical AOI each fixation is
+    
+        WhichAOI=np.zeros(NFix)
+        WhichAOI[:]=np.NAN
+        for x in range(NFix):
+            if WhichAOIV[x]>-1 and WhichAOIH[x]>-1:   # only use valid idx
+                WhichAOI[x]=AOInums[np.intp(WhichAOIV[x]),np.intp(WhichAOIH[x])]  # get combined vertival and horizontal
+        for st in range(nAOI): # gaze transition start
+            StatNtrial[st]=np.sum(WhichAOI==st)  # get count in AOI
+            StatPtrial[st]=np.sum(WhichAOI==st)/np.sum(np.isfinite(WhichAOI)) # calculate stationary P for each AOI    
+        return NFix,StatPtrial,StatNtrial
+    
+    
+    def CalcStatPs(self,nHor,nVer,MinFix=20,InferS=1):
+        ''' for a dataset, return number of fixation and static probability matrix, for given divisions
+        returns StatPMat: nsubject*nstimulus*nvertical*nhorizontal '''
+       
+        statPMat=np.zeros((((self.ns,self.np,nVer,nHor))))
+        statEntropyMat=np.zeros((self.ns,self.np,))
         
+        for cs,s in enumerate(self.subjects):
+            for cp,p in enumerate(self.stimuli):      
+                FixTrialX,FixTrialY=self.GetFixationData(s,p)  
+                
+                if self.nfixations[cs,cp]>MinFix:
+                    NFixy,StatPtrial,StatNtrial=self.AOIFix(cp,FixTrialX,FixTrialY,nHor,nVer,InferS=InferS)
+                    statPMat[cs,cp,:,:]=StatPtrial.reshape(nVer,nHor)
+                    statEntropyMat[cs,cp]=StatEntropy(statPMat[cs,cp,:,:].reshape(-1,1))
+                else:
+                    statEntropyMat[cs,cp]=np.NAN
+                    statPMat[cs,cp,:,:]=np.NAN
+                
+        return statPMat,statEntropyMat
+    
+    def StatPDiffInd(self,statPMat):
+        StatIndDiff=np.zeros(((self.np,self.ns,self.ns)))
+        for cp,p in enumerate(self.stimuli):   
+            for cs1,s1 in enumerate(self.subjects):
+                for cs2,s2 in enumerate(self.subjects):
+                     StatIndDiff[cp,cs1,cs2]=np.nansum((statPMat[cs1,cp,:,:]-statPMat[cs2,cp,:,:])**2)
+        return StatIndDiff
+                    
+        
+        
+
+
     pass
   
 def MeanPlot(N,Y,yLab=0,xtickL=0,newfig=1,color='darkred',label=None):
@@ -580,3 +650,25 @@ def ScanpathL(x,y):
     y2=y[1:] 
     lengths=np.sqrt((x2-x1)**2+(y2-y1)**2)
     return np.mean(lengths),np.sum(lengths)
+
+    
+def CheckCor(AOIs,FixLoc):
+    """ to check if fixation coordinates are within AOI """  
+    for coor in range(len(AOIs)-1):
+        if FixLoc>AOIs[coor] and FixLoc<=AOIs[coor+1]:
+            AOI=coor
+            break
+        else: # if gaze out of screen
+            AOI=np.NAN                      
+    return AOI 
+
+
+def AOIbounds(starts,end,nDiv):  
+    return np.linspace(starts,end,nDiv+1)  
+
+
+def StatEntropy(StatP): 
+    """Calculate entropy of probability distribution """
+    LogP=np.log2(StatP)   
+    LogP[np.isfinite(LogP)==0]=0   # replace nans with zeros    
+    return -np.sum(StatP*LogP)
