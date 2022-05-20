@@ -146,7 +146,9 @@ class EyeData:
         Subjects,Stimuli=self.GetParams()
         print('Data for ',len(self.subjects),'observers and ', len(self.stimuli),' stimuli.')
         self.boundsX,self.boundsY=self.InferSize(Interval=99)
+        self.actsize=(self.boundsX[:,1]-self.boundsX[:,0])*(self.boundsY[:,1]-self.boundsY[:,0])
         self.nfixations=np.zeros((self.ns,self.np))
+        
         self.sacc_ampl=np.zeros((self.ns,self.np))
         self.len_scanpath=np.zeros((self.ns,self.np))
 
@@ -572,8 +574,8 @@ class EyeData:
         ''' for a dataset, return number of fixation and static probability matrix, for given divisions
         returns StatPMat: nsubject*nstimulus*nvertical*nhorizontal '''
        
-        StatPMat=np.zeros((((self.ns,self.np,nVer,nHor))))
-        StatEntropyMat=np.zeros((self.ns,self.np,))
+        statPMat=np.zeros((((self.ns,self.np,nVer,nHor))))
+        statEntropyMat=np.zeros((self.ns,self.np,))
         
         for cs,s in enumerate(self.subjects):
             for cp,p in enumerate(self.stimuli):      
@@ -581,16 +583,26 @@ class EyeData:
                 
                 if self.nfixations[cs,cp]>MinFix:
                     NFixy,StatPtrial,StatNtrial=self.AOIFix(cp,FixTrialX,FixTrialY,nHor,nVer,InferS=InferS)
-                    StatPMat[cs,cp,:,:]=StatPtrial.reshape(nVer,nHor)
-                    StatEntropyMat[cs,cp]=StatEntropy(StatPMat[cs,cp,:,:].reshape(-1,1))
+                    statPMat[cs,cp,:,:]=StatPtrial.reshape(nVer,nHor)
+                    statEntropyMat[cs,cp]=StatEntropy(statPMat[cs,cp,:,:].reshape(-1,1))
                 else:
-                    StatEntropyMat[cs,cp]=np.NAN
-                    StatPMat[cs,cp,:,:]=np.NAN
+                    statEntropyMat[cs,cp]=np.NAN
+                    statPMat[cs,cp,:,:]=np.NAN
                 
-        return StatPMat,StatEntropyMat
+        return statPMat,statEntropyMat
     
-
+    def StatPDiffInd(self,statPMat):
+        StatIndDiff=np.zeros(((self.np,self.ns,self.ns)))
+        for cp,p in enumerate(self.stimuli):   
+            for cs1,s1 in enumerate(self.subjects):
+                for cs2,s2 in enumerate(self.subjects):
+                     StatIndDiff[cp,cs1,cs2]=np.nansum((statPMat[cs1,cp,:,:]-statPMat[cs2,cp,:,:])**2)
+        return StatIndDiff
+                    
         
+        
+
+
     pass
   
 def MeanPlot(N,Y,yLab=0,xtickL=0,newfig=1,color='darkred',label=None):
