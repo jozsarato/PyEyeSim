@@ -568,8 +568,9 @@ class EyeData:
         return NFix,StatPtrial,StatNtrial
     
     
-    def CalcStatPs(self,nHor,nVer,MinFix=20,SizeX=0,SizeY=0):
-        ''' for a dataset, return number of fixation and static probability matrix, for given divisions'''
+    def CalcStatPs(self,nHor,nVer,MinFix=20,InferS=1):
+        ''' for a dataset, return number of fixation and static probability matrix, for given divisions
+        returns StatPMat: nsubject*nstimulus*nvertical*nhorizontal '''
        
         StatPMat=np.zeros((((self.ns,self.np,nVer,nHor))))
         StatEntropyMat=np.zeros((self.ns,self.np,))
@@ -579,7 +580,7 @@ class EyeData:
                 FixTrialX,FixTrialY=self.GetFixationData(s,p)  
                 
                 if self.nfixations[cs,cp]>MinFix:
-                    NFixy,StatPtrial,StatNtrial=self.AOIFix(cp,FixTrialX,FixTrialY,SizeX,SizeY,nHor,nVer)
+                    NFixy,StatPtrial,StatNtrial=self.AOIFix(cp,FixTrialX,FixTrialY,nHor,nVer,InferS=InferS)
                     StatPMat[cs,cp,:,:]=StatPtrial.reshape(nVer,nHor)
                     StatEntropyMat[cs,cp]=StatEntropy(StatPMat[cs,cp,:,:].reshape(-1,1))
                 else:
