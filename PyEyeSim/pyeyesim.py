@@ -598,10 +598,40 @@ class EyeData:
                 for cs2,s2 in enumerate(self.subjects):
                      StatIndDiff[cp,cs1,cs2]=np.nansum((statPMat[cs1,cp,:,:]-statPMat[cs2,cp,:,:])**2)
         return StatIndDiff
-                    
-        
-        
+    
+    def GetInddiff(self,nHor,nVer,Vis=0):
+        ''' calculate individual similarity between all pairs of participants for all stimuli, for a given division'''
+        statPMat,statEntropyMat=self.CalcStatPs(nHor,nVer)
+        Inddiff=self.StatPDiffInd(statPMat)
+        Indmean=np.nanmean(Inddiff,2)
+        SD=np.nanstd(Indmean,1)
+        Indmean=np.nanmean(Indmean,1)
+        if Vis:
+            #plt.errorbar(np.arange(self.np),Indmean,SD,marker='o',linestyle='none')
+            plt.scatter(np.arange(self.np),Indmean,marker='o')
+            plt.xticks(np.arange(self.np),self.stimuli,rotation=80,fontsize=12)
+            plt.xlabel('Stimuli',fontsize=14)
+            plt.ylabel('fixation map difference',fontsize=14)
+        return Indmean
+      
 
+
+    def GetBinnedStimFixS(self,size=50,fixs=1):
+        ''' fixs=1: use full stimulus area
+        fixs=0: use active area with 99% fixations '''
+        for cp,p in enumerate(self.stimuli):
+            if fixs==0:
+                Fixcounts=self.FixCountCalc(p,CutAct=1)
+            elif fixs==1:
+                Fixcounts=self.FixCountCalc(p,CutAct=0)
+             
+            print(p,np.shape(Fixcounts))
+            for cs1,s1 in enumerate(self.subjects):
+                bincInd=self.BinnedCount(Fixcounts[cs1],p,fixs=fixs,binsize_h=size)
+                if cs1==1:
+                    print(p,s1)
+                    print(np.shape(bincInd))
+        return 
 
     pass
   
