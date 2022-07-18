@@ -607,21 +607,26 @@ class EyeData:
         return StatIndDiff
     
     
-    def GetInddiff(self,nHor,nVer,Vis=0):
+    def GetInddiff(self,nHor,nVer,Vis=0,zscore=0,InferS=1):
         ''' calculate individual similarity between all pairs of participants for all stimuli, for a given division'''
-        statPMat,statEntropyMat=self.CalcStatPs(nHor,nVer)
-        
-        
+        statPMat,statEntropyMat=self.CalcStatPs(nHor,nVer,InferS=InferS)
+     
         Inddiff=self.StatPDiffInd1(statPMat)
         Indmean=np.nanmean(Inddiff,2)
         SD=np.nanstd(Indmean,1)
         Indmean=np.nanmean(Indmean,1)
         if Vis:
             #plt.errorbar(np.arange(self.np),Indmean,SD,marker='o',linestyle='none')
-            plt.scatter(np.arange(self.np),Indmean,marker='o')
+            if zscore:
+                plt.scatter(np.arange(self.np),(Indmean-np.mean(Indmean))/np.std(Indmean),marker='o')
+            else:
+                plt.scatter(np.arange(self.np),Indmean,marker='o')
             plt.xticks(np.arange(self.np),self.stimuli,rotation=80,fontsize=12)
             plt.xlabel('Stimuli',fontsize=14)
-            plt.ylabel('fixation map difference',fontsize=14)
+            if zscore==1:
+                plt.ylabel('fixation map relative difference',fontsize=14)
+            else:
+                plt.ylabel('fixation map difference',fontsize=14)
         return Indmean
       
     
@@ -656,7 +661,19 @@ class EyeData:
                 BindAll[cp][cs,:,:]=self.BinnedCount(Fixcounts[cs],p,fixs=fixs,binsize_h=size)    
                 BindAll[cp][cs,:,:]/=np.sum(BindAll[cp][cs,:,:])
         return BindAll
-
+    
+    
+    def RunDiffDivs(self,mindiv,maxdiv,Vis=1):
+        if Vis:
+            plt.figure()
+        DiffsRaw=np.zeros((self.np,maxdiv-mindiv))
+        DiffsZscore=np.zeros((self.np,maxdiv-mindiv))
+        for cdiv,divs in enumerate(np.arange(mindiv,maxdiv)):
+            DiffsRaw[:,cdiv]=self.GetInddiff(divs,divs,Vis=Vis,zscore=1)
+            DiffsZscore[:,cdiv]=(DiffsRaw[:,cdiv]-np.mean(DiffsRaw[:,cdiv]))/np.std(DiffsRaw[:,cdiv])
+        if Vis:
+            plt.errorbar(np.arange(self.np),np.mean(DiffsZscore,1),np.std(DiffsZscore,1),linestyle='none',color='k',marker='o',markersize=5)
+        return DiffsZscore,DiffsRaw
     pass
   
 def MeanPlot(N,Y,yLab=0,xtickL=0,newfig=1,color='darkred',label=None):
