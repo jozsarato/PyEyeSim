@@ -290,7 +290,9 @@ class EyeData:
 
     def CompareGroupsFix(self,betwcond):
         WhichC,WhichCN=self.GetGroups(betwcond)
-
+        self.whichC=WhichC
+        self.whichCN=WhichCN
+        
         if hasattr(self,'Entropies')==False:   # check if entropy has already been calculated
             print('Calculating entropy')
             Entropies,self.EntropMax,self.EntropiesInd=self.GetEntropies()
