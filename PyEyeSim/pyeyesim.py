@@ -230,7 +230,7 @@ class EyeData:
             FixCountInd=FixCountInd[:,int(np.round(self.boundsY[stimn,0])):int(np.round(self.boundsY[stimn,1])),:] # cut Y
         return FixCountInd
     
-    def FixDurProg(self,nfixmax=10,Stim=0):
+    def FixDurProg(self,nfixmax=10,Stim=0,Vis=1):
         ''' within trial fixation duration progression
         nfixmax controls the first n fixations to compare'''
         self.durprog=np.zeros((self.ns,self.np,nfixmax))
@@ -246,12 +246,12 @@ class EyeData:
         if Stim==0:
             Y=np.nanmean(np.nanmean(self.durprog,1),0)
             Err=stats.sem(np.nanmean(self.durprog,1),axis=0,nan_policy='omit')
-            plt.figure()
-            plt.fill_between(np.arange(nfixmax),Y-Err,Y+Err,alpha=.5)
-            plt.plot(np.arange(nfixmax),Y,color='k')
-            plt.xlabel('Fixation number')
-            plt.ylabel('Fixation duration')
-            plt.title('All stimuli')
+            if Vis:
+                plt.fill_between(np.arange(nfixmax),Y-Err,Y+Err,alpha=.5)
+                plt.plot(np.arange(nfixmax),Y,color='k')
+                plt.xlabel('Fixation number')
+                plt.ylabel('Fixation duration')
+                plt.title('All stimuli')
             
         else:
             Y=np.nanmean(self.durprog[:,self.stimuli==Stim,:],0).flatten()
@@ -259,12 +259,12 @@ class EyeData:
             Err=stats.sem(self.durprog[:,self.stimuli==Stim,:],axis=0,nan_policy='omit').flatten()
            # print(np.shape(Err))
            # print(Y+Err)
-            plt.figure()
-            plt.fill_between(np.arange(nfixmax),Y-Err,Y+Err,alpha=.5)
-            plt.plot(np.arange(nfixmax),Y,color='k')
-            plt.xlabel('Fixation number')
-            plt.ylabel('Fixation duration')
-            plt.title(Stim)
+            if Vis: 
+                plt.fill_between(np.arange(nfixmax),Y-Err,Y+Err,alpha=.5)
+                plt.plot(np.arange(nfixmax),Y,color='k')
+                plt.xlabel('Fixation number')
+                plt.ylabel('Fixation duration')
+                plt.title(Stim)
             
         return None
     
@@ -409,10 +409,25 @@ class EyeData:
                     WhichCN.append(c)
         return WhichC,np.array(WhichCN)
 
+    def GetCats(self,condColumn):
+        ''' Between group comparison- 2 groups expected
+        get conditions from between group column, check if mapping of participants to conditions is unique'''
+        self.WithinConds=np.unique(self.data[condColumn])
+        print('Conditions',self.WithinConds)
+        WhichCat=np.zeros(self.np)
+
+        for cp,p in enumerate(self.stimuli):
+            AssignCat=np.unique(self.data[condColumn][self.data['Stimulus']==p])
+            assert len(AssignCat)==1, ' category mapping not unique for a stimulus'
+            WhichCat[cp]=AssignCat
+        return WhichCat
+    
+
+
     def CompareGroupsFix(self,betwcond):
         '''run set of between group fixation comparisons, makes plots and prints descriptive stats'''
+        
         WhichC,WhichCN=self.GetGroups(betwcond)
-
         if hasattr(self,'entropies')==False:   # check if entropy has already been calculated
             print('Calculating entropy')
             Entropies,self.entropmax,self.entropies_ind=self.GetEntropies()
@@ -465,8 +480,6 @@ class EyeData:
 
         print('Saccade amplitudes t=',np.round(t,4),', p=',np.round(p,4))
 
-        
-        ScanpLs
 
         plt.legend()
         plt.tight_layout()
@@ -532,6 +545,57 @@ class EyeData:
         plt.tight_layout()
         return 
     
+    
+    
+    def CompareWithinGroupsFix(self,withinColName):
+        '''run set of between group fixation comparisons, makes plots and prints descriptive stats'''
+        
+        WhichC=self.GetCats(withinColName)
+
+        if hasattr(self,'entropies')==False:   # check if entropy has already been calculated
+            print('Calculating entropy')
+            Entropies,self.entropmax,self.entropies_ind=self.GetEntropies()
+        Cols=['darkred','cornflowerblue']
+        plt.figure(figsize=(8,8))
+        
+        Entrs=[]
+        Fixies=[]
+        ScanpLs=[]
+        SaccAmpls=[] 
+        for cc,c in enumerate(self.WithinConds):
+            print(cc,'Category',c)
+            Idx=np.nonzero(WhichC==c)[0]
+            FixGr=np.array(self.nfix[:,Idx])
+            EntrGr=self.entropies_ind[:,Idx]
+            Entrs.append(np.nanmean(EntrGr,1))
+            Fixies.append(np.nanmean(FixGr,1))
+            ScanpLs.append(np.nanmean(self.len_scanpath[:,Idx],1))
+            SaccAmpls.append(np.nanmean(self.sacc_ampl[:,Idx],1))
+         
+            
+            print(cc,c,'Num fix= ',np.round(np.mean(np.nanmean(FixGr,1)),2),'+/-',np.round(np.std(np.nanmean(FixGr,1)),2))
+            print(cc,c,'Entropy= ',np.round(np.mean(np.nanmean(EntrGr,1)),2),'+/-',np.round(np.std(np.nanmean(EntrGr,1)),2))
+            print(cc,c,'tot scanpath len = ',np.round(np.mean(np.nanmean(self.len_scanpath[:,Idx],1)),2),'+/-',np.round(np.std(np.nanmean(self.len_scanpath[:,Idx],1)),2),'pix')
+            print(cc,c,'saccade amplitude = ',np.round(np.mean(np.nanmean(self.sacc_ampl[:,Idx],1)),2),'+/-',np.round(np.std(np.nanmean(self.sacc_ampl[:,Idx],1)),2),'pix')
+            print('')
+        return
+    
+    def FixDurProgGroups(self,withinColName,nfixmax=10):
+        
+        self.FixDurProg(nfixmax=nfixmax,Stim=0,Vis=0)
+        WhichC=self.GetCats(withinColName)
+        plt.figure()
+        for cc,c in enumerate(self.WithinConds):
+            Idx=np.nonzero(WhichC==c)[0]
+            Y=np.nanmean(np.nanmean(self.durprog[:,Idx],1),0)
+            Err=stats.sem(np.nanmean(self.durprog[:,Idx],1),axis=0,nan_policy='omit')
+            plt.fill_between(np.arange(nfixmax),Y-Err,Y+Err,alpha=.5)
+            plt.plot(np.arange(nfixmax),Y,label=c)
+        plt.xlabel('Fixation number',fontsize=14)
+        plt.ylabel('Fixation duration',fontsize=14)
+        plt.legend()
+            
+
     
     def AOIFix(self,p,FixTrialX,FixTrialY,nDivH,nDivV,InferS=1):
         """ given a sequence of X,Y fixation data and AOI divisions, calculate static N and p matrix) """ 
