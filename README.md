@@ -2,7 +2,7 @@
 
 this is a library for eye-movement comparison
 
-it is intended for comparing fixations and scanpath.
+it is intended for comparing fixation statistics and scanpaths.
 
 three main functionalities:
 
