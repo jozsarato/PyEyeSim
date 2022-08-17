@@ -198,7 +198,7 @@ class EyeData:
         Bounds['BoundY1']=self.boundsY[:,0]
         Bounds['BoundY2']=self.boundsY[:,1] 
         
-        
+        self.durs=xr.DataArray(self.durations, dims=('subjectID','Stimulus'), coords={'subjectID':Subjects,'Stimulus': Stimuli})
         self.nfix = xr.DataArray(self.nfixations, dims=('subjectID','Stimulus'), coords={'subjectID':Subjects,'Stimulus': Stimuli})
         self.meanfix_xy = xr.DataArray(MeanFixXY, dims=('subjectID','Stimulus','XY'), coords={'subjectID':Subjects,'Stimulus': Stimuli, 'XY':['X','Y']})
         self.sdfix_xy = xr.DataArray(SDFixXY, dims=('subjectID','Stimulus','XY'), coords={'subjectID':Subjects,'Stimulus': Stimuli, 'XY':['X','Y']})
@@ -581,7 +581,6 @@ class EyeData:
         return
     
     def FixDurProgGroups(self,withinColName,nfixmax=10):
-        
         self.FixDurProg(nfixmax=nfixmax,Stim=0,Vis=0)
         WhichC=self.GetCats(withinColName)
         plt.figure()
