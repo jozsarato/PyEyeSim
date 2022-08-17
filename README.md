@@ -2,7 +2,12 @@
 
 this is a library for eye-movement comparison
 
-it is intended for comparing fixation statistics and scanpaths.
+
+The ultimate goal of the library is to make advanced fixation map statistics (eg: entropy) and scanpath comparison  accesible.
+
+The library also provides general descripitve statistics about eye-movements. It is intended to work with ordered fixation data. (a row for each fixation), that is accessable in a pandas dataframe.   
+Additionaly, visualizations about the statistics and heatmaps are also provided.
+
 
 three main functionalities:
 
