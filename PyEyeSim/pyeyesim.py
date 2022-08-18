@@ -414,12 +414,15 @@ class EyeData:
         get conditions from between group column, check if mapping of participants to conditions is unique'''
         self.WithinConds=np.unique(self.data[condColumn])
         print('Conditions',self.WithinConds)
-        WhichCat=np.zeros(self.np)
+        WhichCat=[]# np.zeros(self.np)
 
         for cp,p in enumerate(self.stimuli):
             AssignCat=np.unique(self.data[condColumn][self.data['Stimulus']==p])
-            assert len(AssignCat)==1, ' category mapping not unique for a stimulus'
-            WhichCat[cp]=AssignCat
+           # print(cp,p,AssignCat)
+            #assert len(AssignCat)==1, ' category mapping not unique for a stimulus'
+            WhichCat.append(AssignCat)
+        WhichCat=np.array(WhichCat)
+        assert len(np.unique(WhichCat))==len(np.unique(self.WithinConds)), 'stimulus category mapping problem'
         return WhichCat
     
 
