@@ -197,8 +197,8 @@ class EyeData:
         Bounds['BoundX2']=self.boundsX[:,1]
         Bounds['BoundY1']=self.boundsY[:,0]
         Bounds['BoundY2']=self.boundsY[:,1] 
-        
-        self.durs=xr.DataArray(self.durations, dims=('subjectID','Stimulus'), coords={'subjectID':Subjects,'Stimulus': Stimuli})
+        if duration:
+            self.durs=xr.DataArray(self.durations, dims=('subjectID','Stimulus'), coords={'subjectID':Subjects,'Stimulus': Stimuli})
         self.nfix = xr.DataArray(self.nfixations, dims=('subjectID','Stimulus'), coords={'subjectID':Subjects,'Stimulus': Stimuli})
         self.meanfix_xy = xr.DataArray(MeanFixXY, dims=('subjectID','Stimulus','XY'), coords={'subjectID':Subjects,'Stimulus': Stimuli, 'XY':['X','Y']})
         self.sdfix_xy = xr.DataArray(SDFixXY, dims=('subjectID','Stimulus','XY'), coords={'subjectID':Subjects,'Stimulus': Stimuli, 'XY':['X','Y']})
@@ -805,7 +805,8 @@ def AOIbounds(starts,end,nDiv):
 
 
 def StatEntropy(StatP): 
-    """Calculate entropy of probability distribution """
+    """Calculate entropy of probability distribution
+    without nans, result should be the same as scipy.stats.entropy with base=2"""
     LogP=np.log2(StatP)   
     LogP[np.isfinite(LogP)==0]=0   # replace nans with zeros    
     return -np.sum(StatP*LogP)
