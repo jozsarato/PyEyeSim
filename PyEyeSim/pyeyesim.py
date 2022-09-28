@@ -229,44 +229,7 @@ class EyeData:
             FixCountInd=FixCountInd[:,:,int(np.round(self.boundsX[stimn,0])):int(np.round(self.boundsX[stimn,1]))]  # cut X
             FixCountInd=FixCountInd[:,int(np.round(self.boundsY[stimn,0])):int(np.round(self.boundsY[stimn,1])),:] # cut Y
         return FixCountInd
-    
-    def FixDurProg(self,nfixmax=10,Stim=0,Vis=1):
-        ''' within trial fixation duration progression
-        nfixmax controls the first n fixations to compare'''
-        self.durprog=np.zeros((self.ns,self.np,nfixmax))
-        self.durprog[:]=np.NAN
-        for cs,s in enumerate(self.subjects):
-            for cp,p in enumerate(self.stimuli):      
-                Durs=self.GetDurations(s,p)
-                if len(Durs)<nfixmax:
-                    self.durprog[cs,cp,0:len(Durs)]=Durs
-                else:
-                    self.durprog[cs,cp,:]=Durs[0:nfixmax]
-      
-        if Stim==0:
-            Y=np.nanmean(np.nanmean(self.durprog,1),0)
-            Err=stats.sem(np.nanmean(self.durprog,1),axis=0,nan_policy='omit')
-            if Vis:
-                plt.fill_between(np.arange(nfixmax),Y-Err,Y+Err,alpha=.5)
-                plt.plot(np.arange(nfixmax),Y,color='k')
-                plt.xlabel('Fixation number')
-                plt.ylabel('Fixation duration')
-                plt.title('All stimuli')
-            
-        else:
-            Y=np.nanmean(self.durprog[:,self.stimuli==Stim,:],0).flatten()
-           # print(np.shape(Y))
-            Err=stats.sem(self.durprog[:,self.stimuli==Stim,:],axis=0,nan_policy='omit').flatten()
-           # print(np.shape(Err))
-           # print(Y+Err)
-            if Vis: 
-                plt.fill_between(np.arange(nfixmax),Y-Err,Y+Err,alpha=.5)
-                plt.plot(np.arange(nfixmax),Y,color='k')
-                plt.xlabel('Fixation number')
-                plt.ylabel('Fixation duration')
-                plt.title(Stim)
-            
-        return None
+   
     
     def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0):
         ''' Pipeline for  heatmap calculation, FixCounts are calculated for stimulus, or passed pre-calcualted as optional parameter
@@ -582,21 +545,56 @@ class EyeData:
             print(cc,c,'saccade amplitude = ',np.round(np.mean(np.nanmean(self.sacc_ampl[:,Idx],1)),2),'+/-',np.round(np.std(np.nanmean(self.sacc_ampl[:,Idx],1)),2),'pix')
             print('')
         return
+     
+    def FixDurProg(self,nfixmax=10,Stim=0,Vis=1):
+        ''' within trial fixation duration progression
+        nfixmax controls the first n fixations to compare'''
+        self.durprog=np.zeros((self.ns,self.np,nfixmax))
+        self.durprog[:]=np.NAN
+        for cs,s in enumerate(self.subjects):
+            for cp,p in enumerate(self.stimuli):      
+                Durs=self.GetDurations(s,p)
+                if len(Durs)<nfixmax:
+                    self.durprog[cs,cp,0:len(Durs)]=Durs
+                else:
+                    self.durprog[cs,cp,:]=Durs[0:nfixmax]
+      
+        if Stim==0:
+            Y=np.nanmean(np.nanmean(self.durprog,1),0)
+            Err=stats.sem(np.nanmean(self.durprog,1),axis=0,nan_policy='omit')
+            if Vis:
+                plt.fill_between(np.arange(nfixmax),Y-Err,Y+Err,alpha=.5)
+                plt.plot(np.arange(1,nfixmax+1),Y,color='k')
+                plt.xticks(np.intp(np.linspace(1,nfixmax,5)),np.intp(np.linspace(1,nfixmax,5)))
+                plt.xlabel('Fixation number')
+                plt.ylabel('Fixation duration')
+                plt.title('All stimuli')
+            
+        else:
+            Y=np.nanmean(self.durprog[:,self.stimuli==Stim,:],0).flatten()
+           # print(np.shape(Y))
+            Err=stats.sem(self.durprog[:,self.stimuli==Stim,:],axis=0,nan_policy='omit').flatten()
+           # print(np.shape(Err))
+           # print(Y+Err)
+            if Vis: 
+                PlotDurProg(nfixmax,Y,Err)
+                plt.title(Stim)
+            
+        return None
+    
+    
     
     def FixDurProgGroups(self,withinColName,nfixmax=10):
         self.FixDurProg(nfixmax=nfixmax,Stim=0,Vis=0)
         WhichC=self.GetCats(withinColName)
-        plt.figure()
         for cc,c in enumerate(self.WithinConds):
             Idx=np.nonzero(WhichC==c)[0]
             Y=np.nanmean(np.nanmean(self.durprog[:,Idx],1),0)
             Err=stats.sem(np.nanmean(self.durprog[:,Idx],1),axis=0,nan_policy='omit')
-            plt.fill_between(np.arange(nfixmax),Y-Err,Y+Err,alpha=.5)
-            plt.plot(np.arange(nfixmax),Y,label=c)
-        plt.xlabel('Fixation number',fontsize=14)
-        plt.ylabel('Fixation duration',fontsize=14)
+            PlotDurProg(nfixmax,Y,Err,c)
         plt.legend()
-            
+
+
 
     
     def AOIFix(self,p,FixTrialX,FixTrialY,nDivH,nDivV,InferS=1):
@@ -810,3 +808,12 @@ def StatEntropy(StatP):
     LogP=np.log2(StatP)   
     LogP[np.isfinite(LogP)==0]=0   # replace nans with zeros    
     return -np.sum(StatP*LogP)
+
+
+def PlotDurProg(nmax,Y,error,label=''):
+    plt.fill_between(np.arange(1,nmax+1),Y-error,Y+error,alpha=.5)
+    plt.plot(np.arange(1,nmax+1),Y,label=label)
+    plt.xticks(np.intp(np.linspace(1,nmax,5)),np.intp(np.linspace(1,nmax,5)))
+    plt.xlabel('Fixation number',fontsize=14)
+    plt.ylabel('Fixation duration',fontsize=14)
+    return 
