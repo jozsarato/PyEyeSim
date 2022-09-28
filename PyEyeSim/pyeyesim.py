@@ -229,44 +229,7 @@ class EyeData:
             FixCountInd=FixCountInd[:,:,int(np.round(self.boundsX[stimn,0])):int(np.round(self.boundsX[stimn,1]))]  # cut X
             FixCountInd=FixCountInd[:,int(np.round(self.boundsY[stimn,0])):int(np.round(self.boundsY[stimn,1])),:] # cut Y
         return FixCountInd
-    
-    def FixDurProg(self,nfixmax=10,Stim=0,Vis=1):
-        ''' within trial fixation duration progression
-        nfixmax controls the first n fixations to compare'''
-        self.durprog=np.zeros((self.ns,self.np,nfixmax))
-        self.durprog[:]=np.NAN
-        for cs,s in enumerate(self.subjects):
-            for cp,p in enumerate(self.stimuli):      
-                Durs=self.GetDurations(s,p)
-                if len(Durs)<nfixmax:
-                    self.durprog[cs,cp,0:len(Durs)]=Durs
-                else:
-                    self.durprog[cs,cp,:]=Durs[0:nfixmax]
-      
-        if Stim==0:
-            Y=np.nanmean(np.nanmean(self.durprog,1),0)
-            Err=stats.sem(np.nanmean(self.durprog,1),axis=0,nan_policy='omit')
-            if Vis:
-                plt.fill_between(np.arange(nfixmax),Y-Err,Y+Err,alpha=.5)
-                plt.plot(np.arange(nfixmax),Y,color='k')
-                plt.xlabel('Fixation number')
-                plt.ylabel('Fixation duration')
-                plt.title('All stimuli')
-            
-        else:
-            Y=np.nanmean(self.durprog[:,self.stimuli==Stim,:],0).flatten()
-           # print(np.shape(Y))
-            Err=stats.sem(self.durprog[:,self.stimuli==Stim,:],axis=0,nan_policy='omit').flatten()
-           # print(np.shape(Err))
-           # print(Y+Err)
-            if Vis: 
-                plt.fill_between(np.arange(nfixmax),Y-Err,Y+Err,alpha=.5)
-                plt.plot(np.arange(nfixmax),Y,color='k')
-                plt.xlabel('Fixation number')
-                plt.ylabel('Fixation duration')
-                plt.title(Stim)
-            
-        return None
+   
     
     def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0):
         ''' Pipeline for  heatmap calculation, FixCounts are calculated for stimulus, or passed pre-calcualted as optional parameter
@@ -306,11 +269,8 @@ class EyeData:
                 smap[cs,:,:]=SaliencyMapFilt(FixCounts[cs,:,:],SD=SD,Ind=1)       
         if Vis:
             smapall[smapall<cutThr]=np.NAN  # replacing below threshold with NAN
-            plt.imshow( self.images[Stim])
-          #  plt.imshow(smap,alpha=.5)
-            plt.imshow(smapall,alpha=.5)
-            
-            
+            plt.imshow(self.images[Stim])
+            plt.imshow(smapall,alpha=.5)        
             plt.xticks([])
             plt.yticks([])
         return smapall
@@ -527,7 +487,7 @@ class EyeData:
 
         Diff=hmaps[0]-hmaps[1]
         #plt.imshow(Diff,cmap='RdBu',alpha=.5)
-
+        
         plt.imshow(Diff,cmap='RdBu', vmin=-np.nanmax(np.abs(Diff)), vmax=np.nanmax(np.abs(Diff)),alpha=.5)
         plt.xticks([])
         plt.yticks([])
@@ -540,7 +500,6 @@ class EyeData:
         if hasattr(self,'images'):
             plt.imshow( self.images[Stim])
         plt.imshow(np.abs(Diff), vmin=0, vmax=np.nanmax(np.abs(Diff)),alpha=.5)
-        
         plt.xticks([])
         plt.yticks([])
         plt.colorbar()
@@ -558,8 +517,8 @@ class EyeData:
         if hasattr(self,'entropies')==False:   # check if entropy has already been calculated
             print('Calculating entropy')
             Entropies,self.entropmax,self.entropies_ind=self.GetEntropies()
-        Cols=['darkred','cornflowerblue']
-        plt.figure(figsize=(8,8))
+        #Cols=['darkred','cornflowerblue']
+#        plt.figure(figsize=(8,8))
         
         Entrs=[]
         Fixies=[]
@@ -582,21 +541,51 @@ class EyeData:
             print(cc,c,'saccade amplitude = ',np.round(np.mean(np.nanmean(self.sacc_ampl[:,Idx],1)),2),'+/-',np.round(np.std(np.nanmean(self.sacc_ampl[:,Idx],1)),2),'pix')
             print('')
         return
+     
+    def FixDurProg(self,nfixmax=10,Stim=0,Vis=1):
+        ''' within trial fixation duration progression
+        nfixmax controls the first n fixations to compare'''
+        self.durprog=np.zeros((self.ns,self.np,nfixmax))
+        self.durprog[:]=np.NAN
+        for cs,s in enumerate(self.subjects):
+            for cp,p in enumerate(self.stimuli):      
+                Durs=self.GetDurations(s,p)
+                if len(Durs)<nfixmax:
+                    self.durprog[cs,cp,0:len(Durs)]=Durs
+                else:
+                    self.durprog[cs,cp,:]=Durs[0:nfixmax]
+      
+        if Stim==0:
+            Y=np.nanmean(np.nanmean(self.durprog,1),0)
+            Err=stats.sem(np.nanmean(self.durprog,1),axis=0,nan_policy='omit')
+            if Vis:
+                PlotDurProg(nfixmax,Y,Err)
+                plt.title('All stimuli')
+            
+        else:
+            Y=np.nanmean(self.durprog[:,self.stimuli==Stim,:],0).flatten()
+       
+            Err=stats.sem(self.durprog[:,self.stimuli==Stim,:],axis=0,nan_policy='omit').flatten()
+
+            if Vis: 
+                PlotDurProg(nfixmax,Y,Err)
+                plt.title(Stim)
+            
+        return None
+    
+    
     
     def FixDurProgGroups(self,withinColName,nfixmax=10):
         self.FixDurProg(nfixmax=nfixmax,Stim=0,Vis=0)
         WhichC=self.GetCats(withinColName)
-        plt.figure()
         for cc,c in enumerate(self.WithinConds):
             Idx=np.nonzero(WhichC==c)[0]
             Y=np.nanmean(np.nanmean(self.durprog[:,Idx],1),0)
             Err=stats.sem(np.nanmean(self.durprog[:,Idx],1),axis=0,nan_policy='omit')
-            plt.fill_between(np.arange(nfixmax),Y-Err,Y+Err,alpha=.5)
-            plt.plot(np.arange(nfixmax),Y,label=c)
-        plt.xlabel('Fixation number',fontsize=14)
-        plt.ylabel('Fixation duration',fontsize=14)
+            PlotDurProg(nfixmax,Y,Err,c)
         plt.legend()
-            
+
+
 
     
     def AOIFix(self,p,FixTrialX,FixTrialY,nDivH,nDivV,InferS=1):
@@ -674,7 +663,7 @@ class EyeData:
     
     
     def GetInddiff(self,nHor,nVer,Vis=0,zscore=0,InferS=1):
-        ''' calculate individual similarity between all pairs of participants for all stimuli, for a given division'''
+        ''' N DIVISION BASED. calculate individual similarity between all pairs of participants for all stimuli, for a given division'''
         statPMat,statEntropyMat=self.CalcStatPs(nHor,nVer,InferS=InferS)
      
         Inddiff=self.StatPDiffInd1(statPMat)
@@ -697,7 +686,7 @@ class EyeData:
       
     
     def GetInddiff_v2(self,size=50,Vis=0,fixs=0):
-        ''' calculate individual similarity between all pairs of participants for all stimuli, for a given division'''
+        ''' PIXE; NUMBER BASED; calculate individual similarity between all pairs of participants for all stimuli, for a given division'''
         statPMat=self.GetBinnedStimFixS(size=size,fixs=fixs)
         Inddiff=self.StatPDiffInd2(statPMat)
         Indmean=np.nanmean(Inddiff,2)
@@ -810,3 +799,12 @@ def StatEntropy(StatP):
     LogP=np.log2(StatP)   
     LogP[np.isfinite(LogP)==0]=0   # replace nans with zeros    
     return -np.sum(StatP*LogP)
+
+
+def PlotDurProg(nmax,Y,error,label=''):
+    plt.fill_between(np.arange(1,nmax+1),Y-error,Y+error,alpha=.5)
+    plt.plot(np.arange(1,nmax+1),Y,label=label)
+    plt.xticks(np.intp(np.linspace(1,nmax,5)),np.intp(np.linspace(1,nmax,5)))
+    plt.xlabel('fixation number',fontsize=14)
+    plt.ylabel('fixation duration (ms)',fontsize=14)
+    return 
