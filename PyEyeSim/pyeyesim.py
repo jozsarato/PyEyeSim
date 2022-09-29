@@ -719,6 +719,10 @@ class EyeData:
     
     
     def RunDiffDivs(self,mindiv,maxdiv,Vis=1):
+        ''' run grid based fixation map comparison from 
+        mindiv*mindiv 
+        to maxdiv *maxdiv number of divisions
+        vis=1: visualized mean similarity'''
         if Vis:
             plt.figure()
         DiffsRaw=np.zeros((self.np,maxdiv-mindiv))
@@ -729,8 +733,55 @@ class EyeData:
         if Vis:
             plt.errorbar(np.arange(self.np),np.mean(DiffsZscore,1),np.std(DiffsZscore,1),linestyle='none',color='k',marker='o',markersize=5)
         return DiffsZscore,DiffsRaw
-    pass
-  
+    
+    
+    
+    
+    
+    def BinnedDescriptives(self,length,binsize,timecol,durcol):
+        ''' length: maximum trial length of interest 
+        binsize: length of timebin 
+        timecol: name of column with time length information
+        durcol: name of column with fixation duration information '''
+        Bins=np.arange(0,length+binsize,binsize)
+        print(f'Bins {Bins}')
+        meansAll=np.zeros((self.ns,len(Bins)-1))
+        meansAllstim=np.zeros((self.ns,self.np,len(Bins)-1))
+        meanLscanpath=np.zeros((self.ns,self.np,len(Bins)-1))
+        totLscanpath=np.zeros((self.ns,self.np,len(Bins)-1))
+        
+        cb=0
+        for bs,be in zip(Bins[0:-1],Bins[1:]):
+            BindIdx=(self.data[timecol]>bs) & (self.data[timecol]<be)
+            print(f'from {bs} to {be} found: ',np.sum(BindIdx))
+            for cs,s in enumerate(self.subjects):
+                 SubjIdx=self.data['subjectID']==s
+                 for cp,p in enumerate(self.stimuli):
+                     Idx=((self.data['Stimulus']==p) & BindIdx & SubjIdx)
+                     meansAllstim[cs,cp,cb]=np.mean(self.data[durcol][Idx])
+
+                     meanLscanpath[cs,cp,cb],totLscanpath[cs,cp,cb]=ScanpathL(self.data['mean_x'][Idx].to_numpy(), self.data['mean_y'][Idx].to_numpy())
+                 meansAll[cs,cb]=np.mean(self.data[durcol][BindIdx & SubjIdx])
+            cb+=1
+        
+        plt.figure()
+        VisBinnedProg(Bins,meansAll,'fixation duration (ms)')  
+        plt.figure()
+        VisBinnedProg(Bins,np.nanmean(meanLscanpath,1),'saccade ampl (pixel)')  
+        plt.figure()
+        VisBinnedProg(Bins,np.nanmean(totLscanpath,1),'scanpath length (pixel)')  
+
+        return meansAll,meansAllstim,meanLscanpath,totLscanpath
+
+#  class ends here    
+    
+    
+    
+
+    
+
+
+
 def MeanPlot(N,Y,yLab=0,xtickL=0,newfig=1,color='darkred',label=None):
     ''' expects data, row: subjects columbn: stimuli '''
     if newfig:
@@ -808,3 +859,11 @@ def PlotDurProg(nmax,Y,error,label=''):
     plt.xlabel('fixation number',fontsize=14)
     plt.ylabel('fixation duration (ms)',fontsize=14)
     return 
+
+
+def VisBinnedProg(bins,Y,ylabel):
+    plt.errorbar((bins[0:-1]+bins[1:])/2,np.nanmean(Y,0),stats.sem(Y,0,nan_policy='omit'),color='navy',linewidth=2)
+    plt.xlabel('time (ms)')
+    plt.ylabel(ylabel)
+    return 
+
