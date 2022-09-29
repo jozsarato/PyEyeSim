@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import copy 
 import pickle
 import xarray as xr
+import matplotlib.ticker as ticker
 
 #%%
 
@@ -886,6 +887,7 @@ def VisBinnedProg(bins,Y,ylabel,col='navy',label='',axin=0):
         fig,axin=plt.subplots()
     axin.errorbar((bins[0:-1]+bins[1:])/2,np.nanmean(Y,0),stats.sem(Y,0,nan_policy='omit'),color=col,linewidth=2,label=label)
     axin.set_xlabel('time (ms)')
+    axin.yaxis.set_major_locator(ticker.MaxNLocator(5))
     axin.set_ylabel(ylabel)
     return axin
 
