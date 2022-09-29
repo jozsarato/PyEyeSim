@@ -745,11 +745,10 @@ class EyeData:
         durcol: name of column with fixation duration information '''
         Bins=np.arange(0,length+binsize,binsize)
         print(f'Bins {Bins}')
-        meansAll=np.zeros((self.ns,len(Bins)-1))
-        meansAllstim=np.zeros((self.ns,self.np,len(Bins)-1))
-        meanLscanpath=np.zeros((self.ns,self.np,len(Bins)-1))
-        totLscanpath=np.zeros((self.ns,self.np,len(Bins)-1))
-        
+        self.tbins=Bins
+        self.binFixL=np.zeros((self.ns,self.np,len(Bins)-1))
+        self.saccadeAmp=np.zeros((self.ns,self.np,len(Bins)-1))
+        self.totLscanpath=np.zeros((self.ns,self.np,len(Bins)-1))
         cb=0
         for bs,be in zip(Bins[0:-1],Bins[1:]):
             BindIdx=(self.data[timecol]>bs) & (self.data[timecol]<be)
@@ -758,20 +757,41 @@ class EyeData:
                  SubjIdx=self.data['subjectID']==s
                  for cp,p in enumerate(self.stimuli):
                      Idx=((self.data['Stimulus']==p) & BindIdx & SubjIdx)
-                     meansAllstim[cs,cp,cb]=np.mean(self.data[durcol][Idx])
-
-                     meanLscanpath[cs,cp,cb],totLscanpath[cs,cp,cb]=ScanpathL(self.data['mean_x'][Idx].to_numpy(), self.data['mean_y'][Idx].to_numpy())
-                 meansAll[cs,cb]=np.mean(self.data[durcol][BindIdx & SubjIdx])
+                     self.binFixL[cs,cp,cb]=np.mean(self.data[durcol][Idx])
+                     self.saccadeAmp[cs,cp,cb],self.totLscanpath[cs,cp,cb]=ScanpathL(self.data['mean_x'][Idx].to_numpy(), self.data['mean_y'][Idx].to_numpy())
             cb+=1
         
         plt.figure()
-        VisBinnedProg(Bins,meansAll,'fixation duration (ms)')  
+        VisBinnedProg(Bins,np.nanmean(self.binFixL,1),'fixation duration (ms)')  
         plt.figure()
-        VisBinnedProg(Bins,np.nanmean(meanLscanpath,1),'saccade ampl (pixel)')  
+        VisBinnedProg(Bins,np.nanmean(self.saccadeAmp,1),'saccade ampl (pixel)')  
         plt.figure()
-        VisBinnedProg(Bins,np.nanmean(totLscanpath,1),'scanpath length (pixel)')  
+        VisBinnedProg(Bins,np.nanmean(self.totLscanpath,1),'scanpath length (pixel)')  
+        return self.binFixL,self.saccadeAmp,self.totLscanpath
 
-        return meansAll,meansAllstim,meanLscanpath,totLscanpath
+    def BinnedDescStim(self,stimuli):
+        if hasattr(self,'binFixL')==False: 
+            print('run BinnedDescriptives first, than call this function fo r')
+                    
+       
+    def BinnedDescriptivesGroups(self,withinColName):
+        if hasattr(self,'binFixL')==False: 
+            print('run BinnedDescriptives first, than call this function fo r')
+        WhichC=self.GetCats(withinColName)
+        Colors=['navy','salmon','olive','orange','gray']
+        fig,ax=plt.subplots(nrows=3,ncols=1,figsize=(4,10))
+        for cc,c in enumerate(self.WithinConds):
+            Idx=np.nonzero(WhichC==c)[0]
+            axout=VisBinnedProg(self.tbins,np.nanmean(self.binFixL[:,Idx,:],1),'fixation duration (ms)',col=Colors[cc],label=c,axin=ax[0])
+            axout=VisBinnedProg(self.tbins,np.nanmean(self.saccadeAmp[:,Idx,:],1),'saccade ampl (pixel)',col=Colors[cc],label=c,axin=ax[1])
+            axout=VisBinnedProg(self.tbins,np.nanmean(self.totLscanpath[:,Idx,:],1),'scanpath length (pixel)',col=Colors[cc],label=c,axin=ax[2])
+
+        ax[0].legend()
+        ax[1].legend()
+        ax[2].legend()
+        plt.tight_layout()        
+        
+    
 
 #  class ends here    
     
@@ -861,9 +881,11 @@ def PlotDurProg(nmax,Y,error,label=''):
     return 
 
 
-def VisBinnedProg(bins,Y,ylabel):
-    plt.errorbar((bins[0:-1]+bins[1:])/2,np.nanmean(Y,0),stats.sem(Y,0,nan_policy='omit'),color='navy',linewidth=2)
-    plt.xlabel('time (ms)')
-    plt.ylabel(ylabel)
-    return 
+def VisBinnedProg(bins,Y,ylabel,col='navy',label='',axin=0):
+    if type(axin)==int:
+        fig,axin=plt.subplots()
+    axin.errorbar((bins[0:-1]+bins[1:])/2,np.nanmean(Y,0),stats.sem(Y,0,nan_policy='omit'),color=col,linewidth=2,label=label)
+    axin.set_xlabel('time (ms)')
+    axin.set_ylabel(ylabel)
+    return axin
 
