@@ -739,12 +739,14 @@ class EyeData:
     
     
     
-    def BinnedDescriptives(self,length,binsize,timecol,durcol):
-        ''' length: maximum trial length of interest 
+    def BinnedDescriptives(self,length,binsize,timecol,durcol,startime=0):
+        ''' time-binned within trial descriptive progression
+        INPUTS
+        length: maximum trial length of interest in ms
         binsize: length of timebin 
         timecol: name of column with time length information
         durcol: name of column with fixation duration information '''
-        Bins=np.arange(0,length+binsize,binsize)
+        Bins=np.arange(startime,length+binsize,binsize)
         print(f'Bins {Bins}')
         self.tbins=Bins
         self.binFixL=np.zeros((self.ns,self.np,len(Bins)-1))
@@ -776,6 +778,7 @@ class EyeData:
                     
        
     def BinnedDescriptivesGroups(self,withinColName):
+        ''' time-binned within trial descriptive progression, groups of stimuli'''
         if hasattr(self,'binFixL')==False: 
             print('run BinnedDescriptives first, than call this function fo r')
         WhichC=self.GetCats(withinColName)
