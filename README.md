@@ -16,4 +16,8 @@ three main functionalities:
 3. Between group similarity (for two groups of observers observing the same stimuli)
 
 
+
 if you cloned the library and are in the root folder of the library, you can install it, using: pip install -e .
+
+
+for examples of using the library, see the Demo.ipynb in the Notebooks folder
