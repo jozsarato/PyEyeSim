@@ -19,8 +19,12 @@ three main functionalities:
 
 The library started to develop for use in art perception studies, therefore, there is an emphasis on stimulus based eye-movement comparison.
 
+
+#### Installation:
 if you cloned the library and are in the root folder of the library using the terminal, you can install it, using: pip install -e .
 
+
+#### Demo:
 for examples of using the library, see the Demo.ipynb in the Notebooks folder
 
 
