@@ -17,18 +17,28 @@ import matplotlib.ticker as ticker
 
 
 class EyeData:
-    def __init__(self, name, design,data,x_size,y_size):
+    def __init__(self, name, design,data,x_size,y_size,fixdata=1):
         self.name = name
         self.design = design
         self.data=data
         self.x_size=x_size
         self.y_size=y_size
-        print('Fixation dataset',self.name)
+        self.fixdata=fixdata
+        if fixdata:
+            print('Fixation dataset',self.name)
+        else:
+            print('Saccade dataset',self.name)
+            print(' Expected saccade columns:  begin_x,begin_y,end_x,end_y')
+
         print('dataset size: ',np.shape(self.data))
         print('study design: ',self.design)
         print('presentation size:  x=',self.x_size,'pixels y=',self.y_size,' pixels')
         print('presentation size:  x=',self.x_size,'pixels y=',self.y_size,' pixels')
-        DefColumns={'StimName':'Stimulus','SubjName':'subjectID','mean_x':'mean_x','mean_y':'mean_y'}
+        if fixdata:   # if fixation data
+            DefColumns={'Stimulus':'Stimulus','subjectID':'subjectID','mean_x':'mean_x','mean_y':'mean_y'}
+        else:   # if saccade data
+            DefColumns={'Stimulus':'Stimulus','subjectID':'subjectID','begin_x':'begin_x', 'begin_y':'begin_y', 'end_x':'end_x','end_y':'end_y'}
+
         for df in DefColumns:
             try:
                 data[DefColumns[df]]
@@ -55,10 +65,17 @@ class EyeData:
         ''' the library expects column names Stimulus, subjectID, mean_x and mean_y, if you data is not in this format, this function will rename your columns accordingly 
          optionally, with FixDuration you can name your column of fixations lengths, which will be called duration afterwards'''
        # print(type(FixDuration))
-        if type(FixDuration)!='int':
-            self.data=self.data.rename(columns={StimName:'Stimulus',SubjName:'subjectID',mean_x: 'mean_x',mean_y: 'mean_y',FixDuration: 'duration'})
+       
+        if self.fixdata:
+            if type(FixDuration)!='int':
+                self.data=self.data.rename(columns={StimName:'Stimulus',SubjName:'subjectID',mean_x: 'mean_x',mean_y: 'mean_y',FixDuration: 'duration'})
+            else:
+                self.data=self.data.rename(columns={StimName:'Stimulus',SubjName:'subjectID',mean_x: 'mean_x',mean_y: 'mean_y'})
         else:
-            self.data=self.data.rename(columns={StimName:'Stimulus',SubjName:'subjectID',mean_x: 'mean_x',mean_y: 'mean_y'})
+            if type(FixDuration)!='int':
+                self.data=self.data.rename(columns={StimName:'Stimulus',SubjName:'subjectID',FixDuration: 'duration'})
+            else:
+                self.data=self.data.rename(columns={StimName:'Stimulus',SubjName:'subjectID'})
         
         try:
             subjs,stims=self.GetParams()
