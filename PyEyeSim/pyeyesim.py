@@ -816,7 +816,7 @@ class EyeData:
         
         
     def AngleCalc(self,ycm,viewD):
-        ''' calculate visual angle from vertical screen size, viewing distance and resolution  
+        ''' calculate visual angle from vertical screen size (cm), viewing distance (cm) and resolution (pixel)  
         since y pixel size is already provided at initialization, does not have to be provided here'''
         self.pixdeg=degrees(atan2(.5*ycm, viewD)) / (.5*self.y_size)
         return self.pixdeg
