@@ -12,6 +12,7 @@ import copy
 import pickle
 import xarray as xr
 import matplotlib.ticker as ticker
+from math import atan2, degrees
 
 #%%
 
@@ -810,8 +811,30 @@ class EyeData:
         ax[0].legend()
         ax[1].legend()
         ax[2].legend()
-        plt.tight_layout()        
+        plt.tight_layout()      
         
+        
+        
+    def AngleCalc(self,ycm,viewD):
+        ''' calculate visual angle from vertical screen size, viewing distance and resolution  
+        since y pixel size is already provided at initialization, does not have to be provided here'''
+        self.pixdeg=degrees(atan2(.5*ycm, viewD)) / (.5*self.y_size)
+        return self.pixdeg
+    def AngtoPix(self,Deg):
+        ''' angle to pixel transform '''
+        if hasattr(self, 'pixdeg')==False:
+            print('please provide ycm (vertical screen size), and viewD, viewing distance for AngleCalc first')
+
+        return  Deg / self.pixdeg
+
+    def PixdoDeg(self,pix):
+         ''' pixel to angle transform '''
+         if hasattr(self, 'pixdeg')==False:
+             print('please provide ycm (vertical screen size), and viewD, viewing distance for AngleCalc first')
+         return self.pixdeg*pix
+
+
+
     
 
 #  class ends here    
@@ -910,4 +933,5 @@ def VisBinnedProg(bins,Y,ylabel,col='navy',label='',axin=0):
     axin.yaxis.set_major_locator(ticker.MaxNLocator(5))
     axin.set_ylabel(ylabel)
     return axin
+
 
