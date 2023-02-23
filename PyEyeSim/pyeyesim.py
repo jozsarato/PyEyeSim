@@ -834,6 +834,24 @@ class EyeData:
          return self.pixdeg*pix
 
 
+    def DataArrayHmm(self,stim):
+        XX=np.array([])
+        YY=np.array([])
+        Lengths=np.array([],dtype=int)
+        for cs,s in enumerate(self.subjects):
+            fixX,fixY=self.GetFixationData(s,stim)
+            if any(fixX<-10) or any(fixX>self.x_size+10) or any(fixY<-10)or any(fixY>self.y_size+10):
+                print('invalid fixation location for subj', s)
+            else:
+                if len(fixX)>2:
+                    XX=np.append(XX,fixX)
+                    YY=np.append(YY,fixY)
+                    Lengths=np.append(Lengths,len(fixX))
+                else:
+                    print('not enought fixations for subj', s)
+
+        return XX,YY,Lengths
+
 
     
 
