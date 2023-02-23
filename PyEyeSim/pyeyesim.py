@@ -835,6 +835,7 @@ class EyeData:
 
 
     def DataArrayHmm(self,stim):
+        ''' HMM data arrangement, for the format required by hmmlearn'''
         XX=np.array([])
         YY=np.array([])
         Lengths=np.array([],dtype=int)
@@ -857,7 +858,34 @@ class EyeData:
 
 #  class ends here    
     
-    
+def MyTrainTest(Dat,Lengths,ntest,vis=0):
+    ''' separate hidden markov model dataset, into training and test set'''
+    totest=np.random.choice(np.arange(len(Lengths)),size=ntest,replace=False)
+    Idxs=np.cumsum(Lengths)
+    if vis:
+        fig,ax=plt.subplots(ncols=2)
+        ax[0].set_title('training data')
+        ax[1].set_title('test data')
+    lenTrain=np.array([])
+    lenTest=Lengths[totest]
+    DatTest=np.zeros((0,2))
+    DatTr=np.zeros((0,2)) 
+    for ci in range(len(Lengths)):
+        if ci==0:
+            start=0
+        else:
+            start=Idxs[ci-1]
+        if ci in totest:
+            if vis:
+                ax[1].plot(Dat[start:Idxs[ci],0],Dat[start:Idxs[ci],1])
+            DatTest=np.vstack((DatTest,Dat[start:Idxs[ci],:]))
+        else:
+            if vis:
+                ax[0].plot(Dat[start:Idxs[ci],0],Dat[start:Idxs[ci],1])
+            DatTr=np.vstack((DatTr,Dat[start:Idxs[ci],:]))
+            lenTrain=np.append(lenTest,Lengths[ci])
+     
+    return DatTr,DatTest,lenTrain,lenTest    
     
 
     
