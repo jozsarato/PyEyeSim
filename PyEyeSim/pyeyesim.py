@@ -13,7 +13,7 @@ import pickle
 import xarray as xr
 import matplotlib.ticker as ticker
 from math import atan2, degrees
-
+import hmmlearn.hmm  as hmm
 #%%
 
 
@@ -886,7 +886,7 @@ class EyeData:
     
     def MyTrainTestVis(self, DatTr,DatTest,lenTrain,lenTest,totest=0):    
         ''' make figure for training test - set visualization'''
-        fig,ax=plt.subplots(ncols=2)
+        fig,ax=plt.subplots(ncols=2,figsize=(8,3.5))
         self.MySaccadeVis(ax[0],DatTr,lenTrain,title='training data',alpha=.3)
         if type(totest)==int:
             titStr=''
@@ -915,7 +915,33 @@ class EyeData:
         return
             
 
-         
+    def FitLOOHMM(self,ncomp,stim,covar='full'):
+        ''' fit HMM, N subject times, leaving out once each time
+        ncomp: number of components
+        stim: stimulus code 
+        covar: covariance type 'full' or  'tied' '''
+        NTest=1
+        xx,yy,lengths=self.DataArrayHmm(stim,tolerance=80)
+        Dat=np.column_stack((xx,yy))
+        ScoresLOO=np.zeros(len(self.suseHMM))
+        for cs,s in enumerate(self.suseHMM):
+            HMM=hmm.GaussianHMM(n_components=ncomp, covariance_type=covar)
+            DatTr,DatTest,lenTrain,lenTest=self.MyTrainTest(Dat,lengths,NTest,vis=0,rand=0,totest=cs)
+            HMM.fit(DatTr,lengths=lenTrain)
+            ScoresLOO[cs]=HMM.score(DatTest,lengths=lenTest)/np.sum(lenTest)
+        return Dat,lengths,ScoresLOO
+    
+    def VisLOOHMM(self,Dat,lengths,ScoresLOO,nshow=3,title=''):
+        ''' visualize least and most typical sequences, from above fitted HMM'''
+        Sorted=np.argsort(ScoresLOO)
+        fig,ax=plt.subplots(ncols=nshow,nrows=2,figsize=(10,7))
+        for a in range(nshow):
+            DatTr,DatTest,lenTrain,lenTest=self.MyTrainTest(Dat,lengths,5,vis=0,rand=0,totest=Sorted[a])
+            self.MySaccadeVis(ax[0,a],DatTest,lenTest,title='max'+str(a)+' logL: '+str(np.round(ScoresLOO[Sorted[a]],2)))
+            DatTr,DatTest,lenTrain,lenTest=self.MyTrainTest(Dat,lengths,5,vis=0,rand=0,totest=Sorted[-a-1])
+            self.MySaccadeVis(ax[1,a],DatTest,lenTest,title='min'+str(a)+' logL: '+str(np.round(ScoresLOO[Sorted[-a-1]],2)))
+        plt.suptitle(title)
+        plt.tight_layout() 
         
 #  class ends here    
 
