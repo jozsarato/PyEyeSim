@@ -14,6 +14,8 @@ import xarray as xr
 import matplotlib.ticker as ticker
 from math import atan2, degrees
 import hmmlearn.hmm  as hmm
+from matplotlib.patches import Ellipse
+
 #%%
 
 
@@ -943,6 +945,28 @@ class EyeData:
         plt.suptitle(title)
         plt.tight_layout() 
         
+    def FitVisHMM(self,stim,ncomp=3,covar='full',ax=0):
+        xx,yy,lengths=self.DataArrayHmm(stim,tolerance=80)
+        Dat=np.column_stack((xx,yy))
+        HMM=hmm.GaussianHMM(n_components=ncomp, covariance_type=covar)
+        HMM.fit(Dat,lengths)
+        if type(ax)==int:
+            fig,ax=plt.subplots()
+        
+        ax.scatter(Dat[:,0],Dat[:,1],color='k',alpha=.2)
+        ax.scatter(HMM.means_[:,0],HMM.means_[:,1],color='darkred',s=50)
+        for c1 in range(ncomp):
+            draw_ellipse((HMM.means_[c1,0],HMM.means_[c1,1]),HMM.covars_[c1],ax=ax,facecolor='none',edgecolor='k')
+            for c2 in range(ncomp):
+                if c1!=c2:
+                    ax.plot([HMM.means_[c1,0],HMM.means_[c2,0]],[HMM.means_[c1,1],HMM.means_[c2,1]],linewidth=HMM.transmat_[c1,c2]*5)
+    
+        ax.set_ylim([self.y_size,0])
+        ax.set_xlim([0,self.x_size])
+        ax.set_title('logL '+str(np.round(HMM.score(Dat,lengths)/np.sum(lengths),2)))
+        
+    
+            
 #  class ends here    
 
 
@@ -1034,4 +1058,23 @@ def VisBinnedProg(bins,Y,ylabel,col='navy',label='',axin=0):
     axin.set_ylabel(ylabel)
     return axin
 
-
+def draw_ellipse(position, covariance, ax=None, **kwargs):
+    """Draw an ellipse with a given position and covariance
+    source:
+    https://jakevdp.github.io/PythonDataScienceHandbook/05.12-gaussian-mixtures.html """
+    ax = ax or plt.gca()
+    
+    # Convert covariance to principal axes
+    if covariance.shape == (2, 2):
+        U, s, Vt = np.linalg.svd(covariance)
+        angle = np.degrees(np.arctan2(U[1, 0], U[0, 0]))
+        width, height = 2 * np.sqrt(s)
+    else:
+        angle = 0
+        width, height = 2 * np.sqrt(covariance)
+    
+    # Draw the Ellipse
+    for nsig in range(1, 2):
+        ax.add_patch(Ellipse(position, nsig * width, nsig * height,
+                             angle, **kwargs))
+        
