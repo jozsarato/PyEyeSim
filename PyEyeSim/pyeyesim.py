@@ -856,39 +856,59 @@ class EyeData:
 
     
 
-#  class ends here    
     
-def MyTrainTest(Dat,Lengths,ntest,vis=0):
-    ''' separate hidden markov model dataset, into training and test set'''
-    totest=np.random.choice(np.arange(len(Lengths)),size=ntest,replace=False)
-    Idxs=np.cumsum(Lengths)
-    if vis:
+    def MyTrainTest(self,Dat,Lengths,ntest,vis=0):
+        ''' separate hidden markov model dataset, into training and test set'''
+        totest=np.random.choice(np.arange(len(Lengths)),size=ntest,replace=False)
+        Idxs=np.cumsum(Lengths)
+       
+        lenTrain=np.array([],dtype=int)
+        lenTest=Lengths[totest]
+        DatTest=np.zeros((0,2))
+        DatTr=np.zeros((0,2)) 
+        for ci in range(len(Lengths)):
+            if ci==0:
+                start=0
+            else:
+                start=Idxs[ci-1]
+            if ci in totest:
+                DatTest=np.vstack((DatTest,Dat[start:Idxs[ci],:]))
+            else:
+                DatTr=np.vstack((DatTr,Dat[start:Idxs[ci],:]))
+                lenTrain=np.append(lenTrain,Lengths[ci])
+        if vis:
+            self.MyTrainTestVis(DatTr,DatTest,lenTrain,lenTest)
+        return DatTr,DatTest,lenTrain,lenTest   
+    
+    def MyTrainTestVis(self, DatTr,DatTest,lenTrain,lenTest):    
+        ''' make figure for training test - set visualization'''
         fig,ax=plt.subplots(ncols=2)
-        ax[0].set_title('training data')
-        ax[1].set_title('test data')
-    lenTrain=np.array([])
-    lenTest=Lengths[totest]
-    DatTest=np.zeros((0,2))
-    DatTr=np.zeros((0,2)) 
-    for ci in range(len(Lengths)):
-        if ci==0:
-            start=0
-        else:
-            start=Idxs[ci-1]
-        if ci in totest:
-            if vis:
-                ax[1].plot(Dat[start:Idxs[ci],0],Dat[start:Idxs[ci],1])
-            DatTest=np.vstack((DatTest,Dat[start:Idxs[ci],:]))
-        else:
-            if vis:
-                ax[0].plot(Dat[start:Idxs[ci],0],Dat[start:Idxs[ci],1])
-            DatTr=np.vstack((DatTr,Dat[start:Idxs[ci],:]))
-            lenTrain=np.append(lenTest,Lengths[ci])
-     
-    return DatTr,DatTest,lenTrain,lenTest    
-    
+        self.MySaccadeVis(ax[0],DatTr,lenTrain,title='training data',alpha=.3)
+        self.MySaccadeVis(ax[1],DatTest,lenTest,title='test data')
+        return 
+          
+    def MySaccadeVis(self,ax,XYdat,lengths,title='',alpha=1):
+        ''' saccade visualization, on input ax, based on combined data 2d array, and lengths 1d array'''
+        ax.set_title(title)
+        ax.set_xlim([0,self.x_size])
+        ax.set_ylim([0,self.y_size])
+        ax.scatter(XYdat[:,0],XYdat[:,1],color='k',alpha=alpha)
+        Idxs=np.cumsum(lengths)
+        for ci in range(len(lengths)):
+            if ci==0:
+                start=0
+            else:
+                start=Idxs[ci-1]
+            ax.plot(XYdat[start:Idxs[ci],0],XYdat[start:Idxs[ci],1],alpha=alpha)
+        return
+            
 
-    
+         
+        
+#  class ends here    
+
+
+
 
 
 
