@@ -828,40 +828,44 @@ class EyeData:
         return  Deg / self.pixdeg
 
     def PixdoDeg(self,pix):
-         ''' pixel to angle transform '''
+         ''' pixel to degrees of visual angle transform '''
          if hasattr(self, 'pixdeg')==False:
              print('please provide ycm (vertical screen size), and viewD, viewing distance for AngleCalc first')
          return self.pixdeg*pix
 
-
-    def DataArrayHmm(self,stim):
-        ''' HMM data arrangement, for the format required by hmmlearn'''
+     # hmm related functions start here
+    def DataArrayHmm(self,stim,tolerance=10):
+        ''' HMM data arrangement, for the format required by hmmlearn
+        tolarance control the numbers of pixels, where out of stimulus fixations are still accepted
+        participants with invalid fixations are removed'''
+        
         XX=np.array([])
         YY=np.array([])
         Lengths=np.array([],dtype=int)
+        self.suseHMM=np.array([],dtype=int)
         for cs,s in enumerate(self.subjects):
             fixX,fixY=self.GetFixationData(s,stim)
-            if any(fixX<-10) or any(fixX>self.x_size+10) or any(fixY<-10)or any(fixY>self.y_size+10):
+            if any(fixX<-tolerance) or any(fixX>self.x_size+tolerance) or any(fixY<-tolerance)or any(fixY>self.y_size+tolerance):
                 print('invalid fixation location for subj', s)
             else:
                 if len(fixX)>2:
                     XX=np.append(XX,fixX)
                     YY=np.append(YY,fixY)
                     Lengths=np.append(Lengths,len(fixX))
+                    self.suseHMM=np.append(self.suseHMM,s)
                 else:
                     print('not enought fixations for subj', s)
 
         return XX,YY,Lengths
 
-
     
-
-    
-    def MyTrainTest(self,Dat,Lengths,ntest,vis=0):
+    def MyTrainTest(self,Dat,Lengths,ntest,vis=0,rand=1,totest=0):
         ''' separate hidden markov model dataset, into training and test set'''
-        totest=np.random.choice(np.arange(len(Lengths)),size=ntest,replace=False)
+        if rand:
+            totest=np.random.choice(np.arange(len(Lengths)),size=ntest,replace=False)
+        else:
+            totest=np.array([totest],dtype=int)
         Idxs=np.cumsum(Lengths)
-       
         lenTrain=np.array([],dtype=int)
         lenTest=Lengths[totest]
         DatTest=np.zeros((0,2))
@@ -877,22 +881,30 @@ class EyeData:
                 DatTr=np.vstack((DatTr,Dat[start:Idxs[ci],:]))
                 lenTrain=np.append(lenTrain,Lengths[ci])
         if vis:
-            self.MyTrainTestVis(DatTr,DatTest,lenTrain,lenTest)
+            self.MyTrainTestVis(DatTr,DatTest,lenTrain,lenTest,totest)
         return DatTr,DatTest,lenTrain,lenTest   
     
-    def MyTrainTestVis(self, DatTr,DatTest,lenTrain,lenTest):    
+    def MyTrainTestVis(self, DatTr,DatTest,lenTrain,lenTest,totest=0):    
         ''' make figure for training test - set visualization'''
         fig,ax=plt.subplots(ncols=2)
         self.MySaccadeVis(ax[0],DatTr,lenTrain,title='training data',alpha=.3)
-        self.MySaccadeVis(ax[1],DatTest,lenTest,title='test data')
+        if type(totest)==int:
+            titStr=''
+        else:
+            if len(lenTest)==1:
+                titStr='subj '+str(int(self.suseHMM[totest][0]))
+            else:
+                titStr='n subj '+str(len(totest))
+
+        self.MySaccadeVis(ax[1],DatTest,lenTest,title='test data '+titStr)
         return 
           
     def MySaccadeVis(self,ax,XYdat,lengths,title='',alpha=1):
         ''' saccade visualization, on input ax, based on combined data 2d array, and lengths 1d array'''
         ax.set_title(title)
         ax.set_xlim([0,self.x_size])
-        ax.set_ylim([0,self.y_size])
-        ax.scatter(XYdat[:,0],XYdat[:,1],color='k',alpha=alpha)
+        ax.set_ylim([self.y_size,0])
+        ax.scatter(XYdat[:,0],XYdat[:,1],c=np.arange(len(XYdat[:,0])),alpha=alpha)
         Idxs=np.cumsum(lengths)
         for ci in range(len(lengths)):
             if ci==0:
@@ -968,10 +980,6 @@ def CheckCor(AOIs,FixLoc):
         else: # if gaze out of screen
             AOI=np.NAN                      
     return AOI 
-
-
-def AOIbounds(starts,end,nDiv):  
-    return np.linspace(starts,end,nDiv+1)  
 
 
 def StatEntropy(StatP): 
