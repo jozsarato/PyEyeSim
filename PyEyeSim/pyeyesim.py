@@ -947,19 +947,23 @@ class EyeData:
             ScoresLOO[cs]=HMM.score(DatTest,lengths=lenTest)/np.sum(lenTest)
         return Dat,lengths,ScoresLOO
     
-    def VisLOOHMM(self,Dat,lengths,ScoresLOO,nshow=3,title=''):
+    def VisLOOHMM(self,Dat,lengths,ScoresLOO,nshow=3,title='',showim=False,stimname=0):
         ''' visualize least and most typical sequences, from above fitted HMM'''
         Sorted=np.argsort(ScoresLOO)
         fig,ax=plt.subplots(ncols=nshow,nrows=2,figsize=(10,7))
         for a in range(nshow):
+            if showim==True:
+                ax[0,a].imshow(self.images[stimname])
+                ax[1,a].imshow(self.images[stimname])
             DatTr,DatTest,lenTrain,lenTest=self.MyTrainTest(Dat,lengths,5,vis=0,rand=0,totest=Sorted[a])
             self.MySaccadeVis(ax[0,a],DatTest,lenTest,title='max'+str(a)+' logL: '+str(np.round(ScoresLOO[Sorted[a]],2)))
             DatTr,DatTest,lenTrain,lenTest=self.MyTrainTest(Dat,lengths,5,vis=0,rand=0,totest=Sorted[-a-1])
             self.MySaccadeVis(ax[1,a],DatTest,lenTest,title='min'+str(a)+' logL: '+str(np.round(ScoresLOO[Sorted[-a-1]],2)))
+            
         plt.suptitle(title)
         plt.tight_layout() 
         
-    def FitVisHMM(self,stim,ncomp=3,covar='full',ax=0,ax2=0,NTest=5):
+    def FitVisHMM(self,stim,ncomp=3,covar='full',ax=0,ax2=0,NTest=5,showim=False):
         ''' fit and visualize HMM -- beta version
         different random train - test split for each iteration-- noisy results'''
         xx,yy,lengths=self.DataArrayHmm(stim,tolerance=80)
@@ -974,8 +978,12 @@ class EyeData:
         if type(ax2)==int:
             fig,ax2=plt.subplots()
 
-        
-        ax.scatter(Dat[:,0],Dat[:,1],color='k',alpha=.2)
+        if showim:
+            ax.imshow(self.images[stim])
+            alph=.5
+        else:
+            alph=.2
+        ax.scatter(Dat[:,0],Dat[:,1],color='k',alpha=alph)
         ax.scatter(HMM.means_[:,0],HMM.means_[:,1],color='darkred',s=50)
         for c1 in range(ncomp):
             draw_ellipse((HMM.means_[c1,0],HMM.means_[c1,1]),HMM.covars_[c1],ax=ax,facecolor='none',edgecolor='olive',linewidth=2)
@@ -991,7 +999,7 @@ class EyeData:
         ax.set_title('ncomp: '+str(ncomp)+' logL '+str(np.round(meanscore,2)))
         
      
-        ax2.scatter(ncomp,HMM.score(DatTr,lengths=lenTrain)/np.sum(lenTrain),color='g')
+        ax2.scatter(ncomp,meanscore,color='g')
         ax2.scatter(ncomp,HMM.score(DatTest,lengths=lenTest)/np.sum(lenTest),color='r')
         ax2.set_xlabel('num components')
         ax2.set_ylabel('log likelihood')
