@@ -945,25 +945,44 @@ class EyeData:
         plt.suptitle(title)
         plt.tight_layout() 
         
-    def FitVisHMM(self,stim,ncomp=3,covar='full',ax=0):
+    def FitVisHMM(self,stim,ncomp=3,covar='full',ax=0,ax2=0,NTest=5):
+        ''' fit and visualize HMM -- beta version
+        different random train - test split for each iteration-- noisy results'''
         xx,yy,lengths=self.DataArrayHmm(stim,tolerance=80)
         Dat=np.column_stack((xx,yy))
+        
+        DatTr,DatTest,lenTrain,lenTest=self.MyTrainTest(Dat,lengths,NTest,vis=0,rand=1)
+
         HMM=hmm.GaussianHMM(n_components=ncomp, covariance_type=covar)
-        HMM.fit(Dat,lengths)
+        HMM.fit(DatTr,lenTrain)
         if type(ax)==int:
             fig,ax=plt.subplots()
+        if type(ax2)==int:
+            fig,ax2=plt.subplots()
+
         
         ax.scatter(Dat[:,0],Dat[:,1],color='k',alpha=.2)
         ax.scatter(HMM.means_[:,0],HMM.means_[:,1],color='darkred',s=50)
         for c1 in range(ncomp):
-            draw_ellipse((HMM.means_[c1,0],HMM.means_[c1,1]),HMM.covars_[c1],ax=ax,facecolor='none',edgecolor='k')
+            draw_ellipse((HMM.means_[c1,0],HMM.means_[c1,1]),HMM.covars_[c1],ax=ax,facecolor='none',edgecolor='olive',linewidth=2)
             for c2 in range(ncomp):
                 if c1!=c2:
-                    ax.plot([HMM.means_[c1,0],HMM.means_[c2,0]],[HMM.means_[c1,1],HMM.means_[c2,1]],linewidth=HMM.transmat_[c1,c2]*5)
+                    ax.plot([HMM.means_[c1,0],HMM.means_[c2,0]],[HMM.means_[c1,1],HMM.means_[c2,1]],linewidth=HMM.transmat_[c1,c2]*5,color='r')
     
         ax.set_ylim([self.y_size,0])
         ax.set_xlim([0,self.x_size])
-        ax.set_title('logL '+str(np.round(HMM.score(Dat,lengths)/np.sum(lengths),2)))
+        ax.set_yticks([])
+        ax.set_xticks([])
+        meanscore=HMM.score(DatTr,lenTrain)/np.sum(lenTrain)
+        ax.set_title('ncomp: '+str(ncomp)+' logL '+str(np.round(meanscore,2)))
+        
+     
+        ax2.scatter(ncomp,HMM.score(DatTr,lengths=lenTrain)/np.sum(lenTrain),color='g')
+        ax2.scatter(ncomp,HMM.score(DatTest,lengths=lenTest)/np.sum(lenTest),color='r')
+        ax2.set_xlabel('num components')
+        ax2.set_ylabel('log likelihood')
+      
+        return meanscore
         
     
             
