@@ -91,12 +91,11 @@ class EyeData:
         if StimPath==0:
             print('Stim path not provided')
         else:
-           #try: 
-           self.GetStimuli(StimExt,StimPath)
-           print('stimuli loaded succesfully, access as self.images')
-            #except:
-                
-             #   print('stimuli not found')
+         #  try: 
+            self.GetStimuli(StimExt,StimPath)
+            print('stimuli loaded succesfully, access as self.images')
+          # except:   
+           #    print('stimuli not found')
         pass
   
     
@@ -104,12 +103,15 @@ class EyeData:
         ''' load stimuulus files from path'''
         self.images={}
         if path=='infer':
+            if 'category' in self.data:
+                self.data.rename(columns={'category':'Category'},inplace=True)
             print('infer path from database categeory')
 
         for cs,s in enumerate(self.stimuli):
             if path=='infer':
                 cat=int(np.unique(self.data['Category'][self.data['Stimulus']==s])[0])
                 p=str(cat)+'\\'
+                print(cs,s,p)
         
             if path!='infer':
                 print(path+s+extension)
@@ -484,7 +486,7 @@ class EyeData:
         return 
     
     
-    def CompareGroupsHeatMap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0):
+    def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0):
         ''' visualize group heatmap, along with heatmap difference 
         SD optional parameter of heatmap smoothness, in pixels!
         CutArea==1: use central area only with 99% of fixations
@@ -941,10 +943,9 @@ class EyeData:
         Dat=np.column_stack((xx,yy))
         ScoresLOO=np.zeros(len(self.suseHMM))
         for cs,s in enumerate(self.suseHMM):
-            HMM=hmm.GaussianHMM(n_components=ncomp, covariance_type=covar)
             DatTr,DatTest,lenTrain,lenTest=self.MyTrainTest(Dat,lengths,NTest,vis=0,rand=0,totest=cs)
-            HMM.fit(DatTr,lengths=lenTrain)
-            ScoresLOO[cs]=HMM.score(DatTest,lengths=lenTest)/np.sum(lenTest)
+            HMMfitted,sctr,scte=FitScoreHMMGauss(ncomp,DatTr,DatTest,lenTrain,lenTest,covar=covar)
+            ScoresLOO[cs]=scte
         return Dat,lengths,ScoresLOO
     
     def VisLOOHMM(self,Dat,lengths,ScoresLOO,nshow=3,title='',showim=False,stimname=0):
@@ -971,8 +972,9 @@ class EyeData:
         
         DatTr,DatTest,lenTrain,lenTest=self.MyTrainTest(Dat,lengths,NTest,vis=0,rand=1)
 
-        HMM=hmm.GaussianHMM(n_components=ncomp, covariance_type=covar)
-        HMM.fit(DatTr,lenTrain)
+
+        HMMfitted,meanscore,meanscoreTe=FitScoreHMMGauss(ncomp,DatTr,DatTest,lenTrain,lenTest,covar=covar)
+
         if type(ax)==int:
             fig,ax=plt.subplots()
         if type(ax2)==int:
@@ -984,23 +986,23 @@ class EyeData:
         else:
             alph=.2
         ax.scatter(Dat[:,0],Dat[:,1],color='k',alpha=alph)
-        ax.scatter(HMM.means_[:,0],HMM.means_[:,1],color='darkred',s=50)
+        ax.scatter(HMMfitted.means_[:,0],HMMfitted.means_[:,1],color='darkred',s=50)
         for c1 in range(ncomp):
-            draw_ellipse((HMM.means_[c1,0],HMM.means_[c1,1]),HMM.covars_[c1],ax=ax,facecolor='none',edgecolor='olive',linewidth=2)
+            draw_ellipse((HMMfitted.means_[c1,0],HMMfitted.means_[c1,1]),HMMfitted.covars_[c1],ax=ax,facecolor='none',edgecolor='olive',linewidth=2)
             for c2 in range(ncomp):
                 if c1!=c2:
-                    ax.plot([HMM.means_[c1,0],HMM.means_[c2,0]],[HMM.means_[c1,1],HMM.means_[c2,1]],linewidth=HMM.transmat_[c1,c2]*5,color='r')
+                    ax.plot([HMMfitted.means_[c1,0],HMMfitted.means_[c2,0]],[HMMfitted.means_[c1,1],HMMfitted.means_[c2,1]],linewidth=HMMfitted.transmat_[c1,c2]*5,color='r')
     
         ax.set_ylim([self.y_size,0])
         ax.set_xlim([0,self.x_size])
         ax.set_yticks([])
         ax.set_xticks([])
-        meanscore=HMM.score(DatTr,lenTrain)/np.sum(lenTrain)
-        ax.set_title('ncomp: '+str(ncomp)+' logL '+str(np.round(meanscore,2)))
+    
+        ax.set_title('n: '+str(ncomp)+' train'+str(np.round(meanscore,2))+' test'+str(np.round(meanscoreTe,2)),fontsize=9)
         
      
         ax2.scatter(ncomp,meanscore,color='g')
-        ax2.scatter(ncomp,HMM.score(DatTest,lengths=lenTest)/np.sum(lenTest),color='r')
+        ax2.scatter(ncomp,meanscoreTe,color='r')
         ax2.set_xlabel('num components')
         ax2.set_ylabel('log likelihood')
       
@@ -1013,7 +1015,12 @@ class EyeData:
 
 
 
-
+def FitScoreHMMGauss(ncomp,xx,xxt,lenx,lenxxt,covar='full'):
+    HMM=hmm.GaussianHMM(n_components=ncomp, covariance_type=covar)
+    HMM.fit(xx,lenx)
+    sctr=HMM.score(xx,lenx)/np.sum(lenx)
+    scte=HMM.score(xxt,lenxxt)/np.sum(lenxxt)
+    return HMM,sctr,scte
 
 def MeanPlot(N,Y,yLab=0,xtickL=0,newfig=1,color='darkred',label=None):
     ''' expects data, row: subjects columbn: stimuli '''
