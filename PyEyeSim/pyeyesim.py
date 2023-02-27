@@ -60,6 +60,7 @@ class EyeData:
         """ Get stimulus and subject info of dataset """  
         self.subjects=np.unique(self.data['subjectID'].to_numpy())
         self.stimuli=np.unique(self.data['Stimulus'].to_numpy())
+
         self.ns,self.np=len(self.subjects),len(self.stimuli)
         return  self.subjects,self.stimuli
     
@@ -90,21 +91,34 @@ class EyeData:
         if StimPath==0:
             print('Stim path not provided')
         else:
-            try: 
-                self.GetStimuli(StimPath,StimExt)
-                print('stimuli loaded succesfully, access as self.images')
-            except:
+           #try: 
+           self.GetStimuli(StimExt,StimPath)
+           print('stimuli loaded succesfully, access as self.images')
+            #except:
                 
-                print('stimuli not found')
+             #   print('stimuli not found')
         pass
   
     
-    def GetStimuli(self,path,extension):
+    def GetStimuli(self,extension,path=0):
         ''' load stimuulus files from path'''
         self.images={}
+        if path=='infer':
+            print('infer path from database categeory')
+
         for cs,s in enumerate(self.stimuli):
-            print(path+s+extension)
-            Stim=plt.imread(path+s+extension)
+            if path=='infer':
+                cat=int(np.unique(self.data['Category'][self.data['Stimulus']==s])[0])
+                p=str(cat)+'\\'
+        
+            if path!='infer':
+                print(path+s+extension)
+                Stim=plt.imread(path+s+extension)
+            else:
+                if type(s)!=str:
+                    print(p+str(int(s))+extension)
+                    Stim=plt.imread(p+str(int(s))+extension)
+                    
             Res=np.shape(Stim)
             if Res[0] != self.y_size:
                 print("!y size incosistency warning expected",self.y_size,'vs actual', Res)
@@ -113,7 +127,7 @@ class EyeData:
             
             self.images[s]=Stim
         pass 
-        
+ 
     def GetFixationData(self,s,p):
         """get X,Y fixation sequence for a participant and stimulus
         output 1: array of pixel x for sequence of fixations
