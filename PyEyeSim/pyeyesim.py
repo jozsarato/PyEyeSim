@@ -394,7 +394,7 @@ class EyeData:
         self.Conds=np.unique(self.data[betwcond])
         print('Conditions',self.Conds)
        
-        assert len(self.Conds)==2, 'you need 2 groups'
+      #  assert len(self.Conds)==2, 'you need 2 groups'
         WhichC=np.zeros(self.ns)
         WhichCN=[]
         for cs,s in enumerate(self.subjects):
@@ -1008,7 +1008,53 @@ class EyeData:
       
         return meanscore
         
+    def FitVisHMMGroups(self,stim,betwcond,ncomp=3,covar='full',ax=0,ax2=0,NTest=3,showim=False):
+        ''' fit and visualize HMM -- beta version
+        different random train - test split for each iteration-- noisy results'''
+        groups=self.GetGroups(betwcond)
+        Grs=np.unique(self.data['betwcond'])
+
+        # xx,yy,lengths=self.DataArrayHmm(stim,tolerance=80)
+      #  for cgr,gr in enumerate(np.unique(groups))):
+
+        # Dat=np.column_stack((xx,yy))
+        
+        # DatTr,DatTest,lenTrain,lenTest=self.MyTrainTest(Dat,lengths,NTest,vis=0,rand=1)
+
+        # HMMfitted,meanscore,meanscoreTe=FitScoreHMMGauss(ncomp,DatTr,DatTest,lenTrain,lenTest,covar=covar)
+
+        # if type(ax)==int:
+        #     fig,ax=plt.subplots()
+        # if type(ax2)==int:
+        #     fig,ax2=plt.subplots()
+
+        # if showim:
+        #     ax.imshow(self.images[stim])
+        #     alph=.5
+        # else:
+        #     alph=.2
+        # ax.scatter(Dat[:,0],Dat[:,1],color='k',alpha=alph)
+        # ax.scatter(HMMfitted.means_[:,0],HMMfitted.means_[:,1],color='darkred',s=50)
+        # for c1 in range(ncomp):
+        #     draw_ellipse((HMMfitted.means_[c1,0],HMMfitted.means_[c1,1]),HMMfitted.covars_[c1],ax=ax,facecolor='none',edgecolor='olive',linewidth=2)
+        #     for c2 in range(ncomp):
+        #         if c1!=c2:
+        #             ax.plot([HMMfitted.means_[c1,0],HMMfitted.means_[c2,0]],[HMMfitted.means_[c1,1],HMMfitted.means_[c2,1]],linewidth=HMMfitted.transmat_[c1,c2]*5,color='r')
     
+        # ax.set_ylim([self.y_size,0])
+        # ax.set_xlim([0,self.x_size])
+        # ax.set_yticks([])
+        # ax.set_xticks([])
+    
+        # ax.set_title('n: '+str(ncomp)+' train'+str(np.round(meanscore,2))+' test'+str(np.round(meanscoreTe,2)),fontsize=9)
+        
+     
+        # ax2.scatter(ncomp,meanscore,color='g')
+        # ax2.scatter(ncomp,meanscoreTe,color='r')
+        # ax2.set_xlabel('num components')
+        # ax2.set_ylabel('log likelihood')
+      
+        return meanscore   
             
 #  class ends here    
 
