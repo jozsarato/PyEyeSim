@@ -1017,54 +1017,63 @@ class EyeData:
         ax2.set_xlabel('num components')
         ax2.set_ylabel('log likelihood')
       
-        return meanscore
+        return meanscore,meanscoreTe
         
-    def FitVisHMMGroups(self,stim,betwcond,ncomp=3,covar='full',ax=0,ax2=0,NTest=3,showim=False):
+    def FitVisHMMGroups(self,stim,betwcond,ncomp=3,covar='full',ax=0,ax2=0,NTest=3,showim=False,Rep=1,groupnames=0):
         ''' fit and visualize HMM -- beta version
         different random train - test split for each iteration-- noisy results'''
         self.GetGroups(betwcond)
         Grs=np.unique(self.data[betwcond])
-        XXTrain=[]
-        LengthsTrain=[]
-        XXTest=[]
-        LengthsTest=[]
+        
         fig,ax=plt.subplots(ncols=len(Grs),figsize=(12,5))
-        fig,ax2=plt.subplots(ncols=2,figsize=(7,4))
+        fig,ax2=plt.subplots(ncols=2,figsize=(7,3))
 
         # data arrangement for groups
-        for cgr,gr in enumerate(Grs):
-            xx,yy,Lengths=self.DataArrayHmm(stim,group=gr,tolerance=50)
-            Dat=np.column_stack((xx,yy))
-            DatTr,DatTest,lenTrain,lenTest=self.MyTrainTest(Dat,Lengths,1,vis=0,rand=1,totest=NTest)
-            XXTrain.append(DatTr)
-            XXTest.append(DatTest)
-            LengthsTrain.append(lenTrain)
-            LengthsTest.append(lenTest)
-            
-            
-        ScoresTrain=np.zeros((len(Grs),len(Grs)))
-        ScoresTest=np.zeros((len(Grs),len(Grs)))
-     
-        for cgr,gr in enumerate(Grs):
-            HMMfitted,meanscore,meanscoreTe=FitScoreHMMGauss(ncomp,XXTrain[cgr],XXTest[cgr],LengthsTrain[cgr],LengthsTest[cgr],covar=covar)
-            self.VisHMM(Dat,HMMfitted,ax=ax[cgr],showim=showim,stim=stim)
-            
-            for cgr2,gr2 in enumerate(Grs):
-                ScoresTrain[cgr2,cgr]=HMMfitted.score(XXTrain[cgr2],LengthsTrain[cgr2])/np.sum(LengthsTrain[cgr2])
-                ScoresTest[cgr2,cgr]=HMMfitted.score(XXTest[cgr2],LengthsTest[cgr2])/np.sum(LengthsTest[cgr2])
+      
+          
+        
+        ScoresTrain=np.zeros((Rep,len(Grs),len(Grs)))
+        ScoresTest=np.zeros((Rep,len(Grs),len(Grs)))
+       
+       
+        for rep in range(Rep):  
+            XXTrain=[]
+            LengthsTrain=[]
+            XXTest=[]
+            LengthsTest=[]
+            for cgr,gr in enumerate(Grs):
+                xx,yy,Lengths=self.DataArrayHmm(stim,group=gr,tolerance=50)
+                Dat=np.column_stack((xx,yy))
+                DatTr,DatTest,lenTrain,lenTest=self.MyTrainTest(Dat,Lengths,1,vis=0,rand=1,totest=NTest)
+                XXTrain.append(DatTr)
+                XXTest.append(DatTest)
+                LengthsTrain.append(lenTrain)
+                LengthsTest.append(lenTest)
+            for cgr,gr in enumerate(Grs):
+                HMMfitted,meanscore,meanscoreTe=FitScoreHMMGauss(ncomp,XXTrain[cgr],XXTest[cgr],LengthsTrain[cgr],LengthsTest[cgr],covar=covar)
+                if rep==0:
+                    self.VisHMM(XXTrain[cgr],HMMfitted,ax=ax[cgr],showim=showim,stim=stim)
+                    ax[cgr].set_title(groupnames[cgr])
+                for cgr2,gr2 in enumerate(Grs):
+                    ScoresTrain[rep,cgr2,cgr]=HMMfitted.score(XXTrain[cgr2],LengthsTrain[cgr2])/np.sum(LengthsTrain[cgr2])
+                    ScoresTest[rep,cgr2,cgr]=HMMfitted.score(XXTest[cgr2],LengthsTest[cgr2])/np.sum(LengthsTest[cgr2])
 
-        im=ax2[0].pcolor(ScoresTrain)
+        im=ax2[0].pcolor(np.mean(ScoresTrain,0))
         ax2[0].set_title('training')
         plt.colorbar(im)
-        im=ax2[1].pcolor(ScoresTest)
+        im=ax2[1].pcolor(np.mean(ScoresTest,0))
         plt.colorbar(im)
         ax2[1].set_title('test')
         for pl in range(2):
             ax2[pl].set_xlabel('fitted')
             ax2[pl].set_ylabel('tested')
             ax2[pl].set_xticks(np.arange(len(Grs))+.5)
-            ax2[pl].set_xticklabels(Grs)
-            ax2[pl].set_yticklabels(Grs)
+            if type(groupnames)==int:
+                ax2[pl].set_xticklabels(Grs)
+                ax2[pl].set_yticklabels(Grs)
+            else:
+                ax2[pl].set_xticklabels(groupnames)
+                ax2[pl].set_yticklabels(groupnames)
             ax2[pl].set_yticks(np.arange(len(Grs))+.5)
 
         plt.tight_layout()
