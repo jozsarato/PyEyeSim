@@ -15,7 +15,7 @@ import matplotlib.ticker as ticker
 from math import atan2, degrees
 import hmmlearn.hmm  as hmm
 from matplotlib.patches import Ellipse
-
+import platform
 #%%
 
 
@@ -110,7 +110,11 @@ class EyeData:
         for cs,s in enumerate(self.stimuli):
             if path=='infer':
                 cat=int(np.unique(self.data['Category'][self.data['Stimulus']==s])[0])
-                p=str(cat)+'\\'
+                if platform.platform().find('mac')>-1:
+                    p=str(cat)+'/'
+
+                else:
+                    p=str(cat)+'\\'
                 print(cs,s,p)
         
             if path!='infer':
