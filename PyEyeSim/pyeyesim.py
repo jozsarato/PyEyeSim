@@ -989,6 +989,8 @@ class EyeData:
             alph=.5
         else:
             alph=.2
+        if np.shape(dat)[0]>200:
+            alph=.1
         ax.scatter(dat[:,0],dat[:,1],color='k',alpha=alph)
         ax.scatter(hmmfitted.means_[:,0],hmmfitted.means_[:,1],color='darkred',s=50)
         for c1 in range(hmmfitted.n_components):
@@ -1024,7 +1026,7 @@ class EyeData:
         ax2.set_xlabel('num components')
         ax2.set_ylabel('log likelihood')
       
-        return meanscore,meanscoreTe
+        return HMMfitted,meanscore,meanscoreTe
         
     def FitVisHMMGroups(self,stim,betwcond,ncomp=3,covar='full',ax=0,ax2=0,NTest=3,showim=False,Rep=1,groupnames=0):
         ''' fit and visualize HMM -- beta version
@@ -1082,7 +1084,7 @@ class EyeData:
             ax2[pl].set_xticks(np.arange(len(Grs))+.5)
             if type(groupnames)==int:
                 ax2[pl].set_xticklabels(Grs)
-                ax2[pl].set_yticklabels(Grs)
+                ax2[pl].set_yticklabels(Grs,rotation=90)
             else:
                 ax2[pl].set_xticklabels(groupnames)
                 ax2[pl].set_yticklabels(groupnames,rotation=90)
