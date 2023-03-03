@@ -1001,10 +1001,10 @@ class EyeData:
         ax.set_xticks([])   
         
         
-    def FitVisHMM(self,stim,ncomp=3,covar='full',ax=0,ax2=0,NTest=5,showim=False):
+    def FitVisHMM(self,stim,ncomp=3,covar='full',ax=0,ax2=0,NTest=5,showim=False,verb=True):
         ''' fit and visualize HMM -- beta version
         different random train - test split for each iteration-- noisy results'''
-        xx,yy,lengths=self.DataArrayHmm(stim,tolerance=80)
+        xx,yy,lengths=self.DataArrayHmm(stim,tolerance=80,verb=verb)
         Dat=np.column_stack((xx,yy))
         
         DatTr,DatTest,lenTrain,lenTest=self.MyTrainTest(Dat,lengths,NTest,vis=0,rand=1)
@@ -1093,6 +1093,28 @@ class EyeData:
             
 #  class ends here    
 
+def DiffCompsHMM(datobj,stim=0,ncomps=np.arange(2,6),NRep=10,NTest=3):
+    ''' fit and cross validate HMM for a number of different hidden state numbers, as defined by ncomps'''
+    fig,ax=plt.subplots(ncols=3,nrows=2,figsize=(13,6))
+    fig,ax2=plt.subplots()
+    
+    scoretrain,scoretest=np.zeros((NRep,len(ncomps))),np.zeros((NRep,len(ncomps)))
+    for cc,nc in enumerate(ax.flat):
+        if cc<len(ncomps):
+            print('num comps: ',ncomps[cc],' num:', cc+1,'/', len(ncomps))
+            for rep in range(NRep):
+                scoretrain[rep,cc],scoretest[rep,cc]=datobj.FitVisHMM(datobj.stimuli[stim],ncomps[cc],covar='full',ax=nc,ax2=ax2,showim=True,NTest=NTest,verb=False)
+    plt.legend(['train','test'])
+    plt.tight_layout()
+    
+    plt.figure()
+    plt.errorbar(ncomps,np.mean(scoretrain,0),stats.sem(scoretrain,0),color='g',label='train',marker='o')
+    plt.errorbar(ncomps,np.mean(scoretest,0),stats.sem(scoretest,0),color='r',label='test',marker='o')
+    plt.xlabel('num of components')
+    plt.ylabel('log(likelihood)')
+    
+    plt.legend()
+    return 
 
 
     
