@@ -901,7 +901,7 @@ class EyeData:
             totest=np.array([totest],dtype=int)
         Idxs=np.cumsum(Lengths)
         lenTrain=np.array([],dtype=int)
-        lenTest=Lengths[totest]
+        lenTest=np.array([],dtype=int)
         DatTest=np.zeros((0,2))
         DatTr=np.zeros((0,2)) 
         for ci in range(len(Lengths)):
@@ -911,6 +911,7 @@ class EyeData:
                 start=Idxs[ci-1]
             if ci in totest:
                 DatTest=np.vstack((DatTest,Dat[start:Idxs[ci],:]))
+                lenTest=np.append(lenTest,Lengths[ci])
             else:
                 DatTr=np.vstack((DatTr,Dat[start:Idxs[ci],:]))
                 lenTrain=np.append(lenTrain,Lengths[ci])
@@ -1035,9 +1036,6 @@ class EyeData:
         fig2,ax2=plt.subplots(ncols=2) 
 
         # data arrangement for groups
-      
-          
-        
         ScoresTrain=np.zeros((Rep,len(Grs),len(Grs)))
         ScoresTest=np.zeros((Rep,len(Grs),len(Grs)))
        
@@ -1048,9 +1046,12 @@ class EyeData:
             XXTest=[]
             LengthsTest=[]
             for cgr,gr in enumerate(Grs):
-                xx,yy,Lengths=self.DataArrayHmm(stim,group=gr,tolerance=50,verb=False)
+                xx,yy,Lengths=self.DataArrayHmm(stim,group=cgr,tolerance=50,verb=False)
+                if np.sum(np.shape(xx))==0:
+                    print('data not found')
                 Dat=np.column_stack((xx,yy))
-                DatTr,DatTest,lenTrain,lenTest=self.MyTrainTest(Dat,Lengths,1,vis=0,rand=1,totest=NTest)
+                
+                DatTr,DatTest,lenTrain,lenTest=self.MyTrainTest(Dat,Lengths,ntest=NTest,vis=0,rand=1)
                 XXTrain.append(DatTr)
                 XXTest.append(DatTest)
                 LengthsTrain.append(lenTrain)
@@ -1059,7 +1060,11 @@ class EyeData:
                 HMMfitted,meanscore,meanscoreTe=FitScoreHMMGauss(ncomp,XXTrain[cgr],XXTest[cgr],LengthsTrain[cgr],LengthsTest[cgr],covar=covar)
                 if rep==0:
                     self.VisHMM(XXTrain[cgr],HMMfitted,ax=ax[cgr],showim=showim,stim=stim)
-                    ax[cgr].set_title(groupnames[cgr])
+                    if type(groupnames)==int:
+                        ax[cgr].set_title(cgr)
+
+                    else:
+                        ax[cgr].set_title(groupnames[cgr])
                 for cgr2,gr2 in enumerate(Grs):
                     ScoresTrain[rep,cgr2,cgr]=HMMfitted.score(XXTrain[cgr2],LengthsTrain[cgr2])/np.sum(LengthsTrain[cgr2])
                     ScoresTest[rep,cgr2,cgr]=HMMfitted.score(XXTest[cgr2],LengthsTest[cgr2])/np.sum(LengthsTest[cgr2])
@@ -1095,7 +1100,11 @@ class EyeData:
 
 def DiffCompsHMM(datobj,stim=0,ncomps=np.arange(2,6),NRep=10,NTest=3):
     ''' fit and cross validate HMM for a number of different hidden state numbers, as defined by ncomps'''
-    fig,ax=plt.subplots(ncols=3,nrows=2,figsize=(13,6))
+    if len(ncomps)<7:
+        fig,ax=plt.subplots(ncols=3,nrows=2,figsize=(13,6))
+    elif len(ncomps)<12:
+        fig,ax=plt.subplots(ncols=4,nrows=3,figsize=(14,8))
+  
     fig,ax2=plt.subplots()
     
     scoretrain,scoretest=np.zeros((NRep,len(ncomps))),np.zeros((NRep,len(ncomps)))
@@ -1103,7 +1112,11 @@ def DiffCompsHMM(datobj,stim=0,ncomps=np.arange(2,6),NRep=10,NTest=3):
         if cc<len(ncomps):
             print('num comps: ',ncomps[cc],' num:', cc+1,'/', len(ncomps))
             for rep in range(NRep):
-                scoretrain[rep,cc],scoretest[rep,cc]=datobj.FitVisHMM(datobj.stimuli[stim],ncomps[cc],covar='full',ax=nc,ax2=ax2,showim=True,NTest=NTest,verb=False)
+                if rep==NRep-1:
+                    showi=True
+                else:
+                    showi=False
+                scoretrain[rep,cc],scoretest[rep,cc]=datobj.FitVisHMM(datobj.stimuli[stim],ncomps[cc],covar='full',ax=nc,ax2=ax2,showim=showi,NTest=NTest,verb=False)
     plt.legend(['train','test'])
     plt.tight_layout()
     
