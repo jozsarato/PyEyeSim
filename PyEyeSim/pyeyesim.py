@@ -112,7 +112,6 @@ class EyeData:
                 cat=int(np.unique(self.data['Category'][self.data['Stimulus']==s])[0])
                 if platform.platform().find('mac')>-1:
                     p=str(cat)+'/'
-
                 else:
                     p=str(cat)+'\\'
                 print(cs,s,p)
@@ -857,10 +856,11 @@ class EyeData:
          return self.pixdeg*pix
 
      # hmm related functions start here
-    def DataArrayHmm(self,stim,group=-1,tolerance=20):
+    def DataArrayHmm(self,stim,group=-1,tolerance=20,verb=True):
         ''' HMM data arrangement, for the format required by hmmlearn
         tolarance control the numbers of pixels, where out of stimulus fixations are still accepted
-        participants with invalid fixations are removed'''
+        participants with invalid fixations are removed
+        verb-- verbose-- print missing participants, too much printing for leave one out cross validation'''
         
         XX=np.array([])
         YY=np.array([])
@@ -878,7 +878,8 @@ class EyeData:
                 fixX,fixY=self.GetFixationData(s,stim)
               #  print(cs,s,fixX)
                 if any(fixX<-tolerance) or any(fixX>self.x_size+tolerance) or any(fixY<-tolerance)or any(fixY>self.y_size+tolerance):
-                    print('invalid fixation location for subj', s)
+                    if verb:
+                        print('invalid fixation location for subj', s)
                 else:
                     if len(fixX)>2:
                         XX=np.append(XX,fixX)
@@ -886,7 +887,8 @@ class EyeData:
                         Lengths=np.append(Lengths,len(fixX))
                         self.suseHMM=np.append(self.suseHMM,s)
                     else:
-                        print('not enough fixations for subj', s)
+                        if verb:
+                            print('not enough fixations for subj', s)
 
         return XX,YY,Lengths
 
@@ -968,12 +970,12 @@ class EyeData:
         fig,ax=plt.subplots(ncols=nshow,nrows=2,figsize=(10,7))
         for a in range(nshow):
             if showim==True:
-                ax[0,a].imshow(self.images[stimname])
-                ax[1,a].imshow(self.images[stimname])
+                ax[0,a].imshow(self.images[stimname],cmap='gray')
+                ax[1,a].imshow(self.images[stimname],cmap='gray')
             DatTr,DatTest,lenTrain,lenTest=self.MyTrainTest(Dat,lengths,5,vis=0,rand=0,totest=Sorted[a])
-            self.MySaccadeVis(ax[0,a],DatTest,lenTest,title='max'+str(a)+' logL: '+str(np.round(ScoresLOO[Sorted[a]],2)))
+            self.MySaccadeVis(ax[1,a],DatTest,lenTest,title='max'+str(a)+' logL: '+str(np.round(ScoresLOO[Sorted[a]],2)))
             DatTr,DatTest,lenTrain,lenTest=self.MyTrainTest(Dat,lengths,5,vis=0,rand=0,totest=Sorted[-a-1])
-            self.MySaccadeVis(ax[1,a],DatTest,lenTest,title='min'+str(a)+' logL: '+str(np.round(ScoresLOO[Sorted[-a-1]],2)))
+            self.MySaccadeVis(ax[0,a],DatTest,lenTest,title='min'+str(a)+' logL: '+str(np.round(ScoresLOO[Sorted[-a-1]],2)))
         plt.suptitle(title)
         plt.tight_layout() 
         
@@ -1030,7 +1032,7 @@ class EyeData:
         Grs=np.unique(self.data[betwcond])
         
         fig,ax=plt.subplots(ncols=len(Grs),figsize=(12,5))
-        fig,ax2=plt.subplots(ncols=2,figsize=(7,3))
+        fig2,ax2=plt.subplots(ncols=2) 
 
         # data arrangement for groups
       
@@ -1046,7 +1048,7 @@ class EyeData:
             XXTest=[]
             LengthsTest=[]
             for cgr,gr in enumerate(Grs):
-                xx,yy,Lengths=self.DataArrayHmm(stim,group=gr,tolerance=50)
+                xx,yy,Lengths=self.DataArrayHmm(stim,group=gr,tolerance=50,verb=False)
                 Dat=np.column_stack((xx,yy))
                 DatTr,DatTest,lenTrain,lenTest=self.MyTrainTest(Dat,Lengths,1,vis=0,rand=1,totest=NTest)
                 XXTrain.append(DatTr)
@@ -1064,66 +1066,30 @@ class EyeData:
 
         im=ax2[0].pcolor(np.mean(ScoresTrain,0))
         ax2[0].set_title('training')
-        plt.colorbar(im)
+ #       plt.colorbar(im1)
         im=ax2[1].pcolor(np.mean(ScoresTest,0))
-        plt.colorbar(im)
+#        plt.colorbar(im2)
         ax2[1].set_title('test')
+        ax2[0].set_ylabel('tested')
+
         for pl in range(2):
             ax2[pl].set_xlabel('fitted')
-            ax2[pl].set_ylabel('tested')
             ax2[pl].set_xticks(np.arange(len(Grs))+.5)
             if type(groupnames)==int:
                 ax2[pl].set_xticklabels(Grs)
                 ax2[pl].set_yticklabels(Grs)
             else:
                 ax2[pl].set_xticklabels(groupnames)
-                ax2[pl].set_yticklabels(groupnames)
+                ax2[pl].set_yticklabels(groupnames,rotation=90)
             ax2[pl].set_yticks(np.arange(len(Grs))+.5)
+        fig2.subplots_adjust(right=0.8)
+        cbar_ax = fig2.add_axes([0.85, 0.15, 0.05, 0.7])
+        fig2.colorbar(im, cax=cbar_ax)
+    #    plt.tight_layout()
+        plt.show()
 
-        plt.tight_layout()
 
-
-        # xx,yy,lengths=self.DataArrayHmm(stim,tolerance=80)
-      #  for cgr,gr in enumerate(np.unique(groups))):
-
-        # Dat=np.column_stack((xx,yy))
-        
-        # DatTr,DatTest,lenTrain,lenTest=self.MyTrainTest(Dat,lengths,NTest,vis=0,rand=1)
-
-        # HMMfitted,meanscore,meanscoreTe=FitScoreHMMGauss(ncomp,DatTr,DatTest,lenTrain,lenTest,covar=covar)
-
-        # if type(ax)==int:
-        #     fig,ax=plt.subplots()
-        # if type(ax2)==int:
-        #     fig,ax2=plt.subplots()
-
-        # if showim:
-        #     ax.imshow(self.images[stim])
-        #     alph=.5
-        # else:
-        #     alph=.2
-        # ax.scatter(Dat[:,0],Dat[:,1],color='k',alpha=alph)
-        # ax.scatter(HMMfitted.means_[:,0],HMMfitted.means_[:,1],color='darkred',s=50)
-        # for c1 in range(ncomp):
-        #     draw_ellipse((HMMfitted.means_[c1,0],HMMfitted.means_[c1,1]),HMMfitted.covars_[c1],ax=ax,facecolor='none',edgecolor='olive',linewidth=2)
-        #     for c2 in range(ncomp):
-        #         if c1!=c2:
-        #             ax.plot([HMMfitted.means_[c1,0],HMMfitted.means_[c2,0]],[HMMfitted.means_[c1,1],HMMfitted.means_[c2,1]],linewidth=HMMfitted.transmat_[c1,c2]*5,color='r')
-    
-        # ax.set_ylim([self.y_size,0])
-        # ax.set_xlim([0,self.x_size])
-        # ax.set_yticks([])
-        # ax.set_xticks([])
-    
-        # ax.set_title('n: '+str(ncomp)+' train'+str(np.round(meanscore,2))+' test'+str(np.round(meanscoreTe,2)),fontsize=9)
-        
-     
-        # ax2.scatter(ncomp,meanscore,color='g')
-        # ax2.scatter(ncomp,meanscoreTe,color='r')
-        # ax2.set_xlabel('num components')
-        # ax2.set_ylabel('log likelihood')
-      
-        return meanscore   
+        return ScoresTrain, ScoresTest
             
 #  class ends here    
 
