@@ -1004,7 +1004,7 @@ class EyeData:
         ax.set_xticks([])   
         
         
-    def FitVisHMM(self,stim,ncomp=3,covar='full',ax=0,ax2=0,NTest=5,showim=False,verb=True):
+    def FitVisHMM(self,stim,ncomp=3,covar='full',ax=0,ax2=0,NTest=5,showim=True,verb=True,vis=True):
         ''' fit and visualize HMM -- beta version
         different random train - test split for each iteration-- noisy results'''
         xx,yy,lengths=self.DataArrayHmm(stim,tolerance=80,verb=verb)
@@ -1014,17 +1014,17 @@ class EyeData:
 
 
         HMMfitted,meanscore,meanscoreTe=FitScoreHMMGauss(ncomp,DatTr,DatTest,lenTrain,lenTest,covar=covar)
-
-        if type(ax)==int:
-            fig,ax=plt.subplots()
-        if type(ax2)==int:
-            fig,ax2=plt.subplots()
-        self.VisHMM(DatTr,HMMfitted,ax=ax,showim=showim,stim=stim)
-        ax.set_title('n: '+str(ncomp)+' train ll: '+str(np.round(meanscore,2))+' test ll: '+str(np.round(meanscoreTe,2)),fontsize=9)
-        ax2.scatter(ncomp,meanscore,color='g')
-        ax2.scatter(ncomp,meanscoreTe,color='r')
-        ax2.set_xlabel('num components')
-        ax2.set_ylabel('log likelihood')
+        if vis:
+            if type(ax)==int:
+                fig,ax=plt.subplots()
+            if type(ax2)==int:
+                fig,ax2=plt.subplots()
+            self.VisHMM(DatTr,HMMfitted,ax=ax,showim=showim,stim=stim)
+            ax.set_title('n: '+str(ncomp)+' train ll: '+str(np.round(meanscore,2))+' test ll: '+str(np.round(meanscoreTe,2)),fontsize=9)
+            ax2.scatter(ncomp,meanscore,color='g')
+            ax2.scatter(ncomp,meanscoreTe,color='r')
+            ax2.set_xlabel('num components')
+            ax2.set_ylabel('log likelihood')
       
         return HMMfitted,meanscore,meanscoreTe
         
@@ -1100,7 +1100,7 @@ class EyeData:
             
 #  class ends here    
 
-def DiffCompsHMM(datobj,stim=0,ncomps=np.arange(2,6),NRep=10,NTest=3):
+def DiffCompsHMM(datobj,stim=0,ncomps=np.arange(2,6),NRep=10,NTest=3,covar='full'):
     ''' fit and cross validate HMM for a number of different hidden state numbers, as defined by ncomps'''
     if len(ncomps)<7:
         fig,ax=plt.subplots(ncols=3,nrows=2,figsize=(13,6))
@@ -1115,10 +1115,11 @@ def DiffCompsHMM(datobj,stim=0,ncomps=np.arange(2,6),NRep=10,NTest=3):
             print('num comps: ',ncomps[cc],' num:', cc+1,'/', len(ncomps))
             for rep in range(NRep):
                 if rep==NRep-1:
-                    showi=True
+                    vis=True
                 else:
-                    showi=False
-                scoretrain[rep,cc],scoretest[rep,cc]=datobj.FitVisHMM(datobj.stimuli[stim],ncomps[cc],covar='full',ax=nc,ax2=ax2,showim=showi,NTest=NTest,verb=False)
+                    vis=False
+                hmm,scoretrain[rep,cc],scoretest[rep,cc]=datobj.FitVisHMM(datobj.stimuli[stim],ncomps[cc],covar=covar,ax=nc,ax2=ax2,vis=vis,NTest=NTest,verb=False)
+
     plt.legend(['train','test'])
     plt.tight_layout()
     
