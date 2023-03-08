@@ -978,7 +978,7 @@ class EyeData:
         
         print()
         
-        colors=['k','gray','salmon','olive','y','m','g','c','navy','orange','darkred','r','darkgreen','k','gray','salmon','olive','y','m','g','c']
+        colors=['k','gray','salmon','olive','m','c','g','y','navy','orange','darkred','r','darkgreen','k','gray','salmon','olive','y','m','g','c']
         if type(ax)==int:
            fig,ax= plt.subplots()
         if showim:
