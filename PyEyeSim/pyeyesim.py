@@ -981,7 +981,11 @@ class EyeData:
         plt.tight_layout() 
         
         
-    def VisHMM(self,dat,hmmfitted,ax=0,showim=1,stim=0):
+    def VisHMM(self,dat,hmmfitted,ax=0,showim=1,stim=0,lengths=0,incol=False):
+        
+        print()
+        
+        colors=['k','gray','salmon','olive','m','c','g','y','navy','orange','darkred','r','darkgreen','k','gray','salmon','olive','y','m','g','c']
         if type(ax)==int:
            fig,ax= plt.subplots()
         if showim:
@@ -991,10 +995,23 @@ class EyeData:
             alph=.2
         if np.shape(dat)[0]>200:
             alph=.1
-        ax.scatter(dat[:,0],dat[:,1],color='k',alpha=alph)
+
+        preds=hmmfitted.predict(dat,lengths)
+
         ax.scatter(hmmfitted.means_[:,0],hmmfitted.means_[:,1],color='darkred',s=50)
+        
         for c1 in range(hmmfitted.n_components):
-            draw_ellipse((hmmfitted.means_[c1,0],hmmfitted.means_[c1,1]),hmmfitted.covars_[c1],ax=ax,facecolor='none',edgecolor='olive',linewidth=2)
+            if incol:
+                color1=colors[c1]  # color for scatter 
+                color2=colors[c1] # color for patch
+
+            else:
+                color1='k'
+                color2='olive'
+
+            ax.scatter(dat[preds==c1,0],dat[preds==c1,1],color=color1,alpha=alph)
+
+            draw_ellipse((hmmfitted.means_[c1,0],hmmfitted.means_[c1,1]),hmmfitted.covars_[c1],ax=ax,facecolor='none',edgecolor=color2,linewidth=2)
             for c2 in range(hmmfitted.n_components):
                 if c1!=c2:
                     ax.plot([hmmfitted.means_[c1,0],hmmfitted.means_[c2,0]],[hmmfitted.means_[c1,1],hmmfitted.means_[c2,1]],linewidth=hmmfitted.transmat_[c1,c2]*5,color='r')
@@ -1004,7 +1021,8 @@ class EyeData:
         ax.set_xticks([])   
         
         
-    def FitVisHMM(self,stim,ncomp=3,covar='full',ax=0,ax2=0,NTest=5,showim=True,verb=True,vis=True):
+
+    def FitVisHMM(self,stim,ncomp=3,covar='full',ax=0,ax2=0,NTest=5,showim=True,verb=True,incol=False,vis=True):
         ''' fit and visualize HMM -- beta version
         different random train - test split for each iteration-- noisy results'''
         xx,yy,lengths=self.DataArrayHmm(stim,tolerance=80,verb=verb)
@@ -1014,17 +1032,20 @@ class EyeData:
 
 
         HMMfitted,meanscore,meanscoreTe=FitScoreHMMGauss(ncomp,DatTr,DatTest,lenTrain,lenTest,covar=covar)
+
+
         if vis:
             if type(ax)==int:
                 fig,ax=plt.subplots()
             if type(ax2)==int:
                 fig,ax2=plt.subplots()
-            self.VisHMM(DatTr,HMMfitted,ax=ax,showim=showim,stim=stim)
+            self.VisHMM(DatTr,HMMfitted,ax=ax,showim=showim,stim=stim,lengths=lenTrain,incol=incol)
             ax.set_title('n: '+str(ncomp)+' train ll: '+str(np.round(meanscore,2))+' test ll: '+str(np.round(meanscoreTe,2)),fontsize=9)
             ax2.scatter(ncomp,meanscore,color='g')
             ax2.scatter(ncomp,meanscoreTe,color='r')
             ax2.set_xlabel('num components')
             ax2.set_ylabel('log likelihood')
+
       
         return HMMfitted,meanscore,meanscoreTe
         
