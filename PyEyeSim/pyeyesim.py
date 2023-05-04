@@ -188,7 +188,7 @@ class EyeData:
         self.boundsX,self.boundsY=self.InferSize(Interval=99)
         self.actsize=(self.boundsX[:,1]-self.boundsX[:,0])*(self.boundsY[:,1]-self.boundsY[:,0])
         self.nfixations=np.zeros((self.ns,self.np))
-        
+        self.nfixations[:]=np.NAN
         self.sacc_ampl=np.zeros((self.ns,self.np))
         self.len_scanpath=np.zeros((self.ns,self.np))
 
@@ -1179,7 +1179,7 @@ def HistPlot(Y,xtickL=0,newfig=1):
     assert len(np.shape(Y))==2, '2d data is expected: observer*stimulus'
     if newfig:
        plt.figure()
-    plt.hist(np.mean(Y,1),color='darkred')
+    plt.hist(np.nanmean(Y,1),color='darkred')
     plt.xlabel(xtickL,fontsize=14)
     plt.ylabel('Num observers',fontsize=13)
     return None
