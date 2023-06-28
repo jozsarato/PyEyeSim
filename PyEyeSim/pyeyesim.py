@@ -51,9 +51,11 @@ class EyeData:
         
 
     def info(self):
+        ''' return dataset name and design info '''
         return self.name,self.design
 
     def data(self):
+        ''' return data'''
         return self.data
     
     def GetParams(self):
