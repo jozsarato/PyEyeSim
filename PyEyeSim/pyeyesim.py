@@ -51,9 +51,11 @@ class EyeData:
         
 
     def info(self):
+        ''' return dataset name and design info '''
         return self.name,self.design
 
     def data(self):
+        ''' return data'''
         return self.data
     
     def GetParams(self):
@@ -133,12 +135,12 @@ class EyeData:
             self.images[s]=Stim
         pass 
  
-    def GetFixationData(self,s,p):
-        """get X,Y fixation sequence for a participant and stimulus
+    def GetFixationData(self,subj,stim):
+        """get X,Y fixation sequence for a subject and stimulus
         output 1: array of pixel x for sequence of fixations
         output 2: array of pixel y for sequence of fixations"""
-        SubjIdx=np.nonzero(self.data['subjectID'].to_numpy()==s)  #idx for subject
-        TrialSubIdx=np.intersect1d(np.nonzero(self.data['Stimulus'].to_numpy()==p),SubjIdx) # idx for subject and painting
+        SubjIdx=np.nonzero(self.data['subjectID'].to_numpy()==subj)  #idx for subject
+        TrialSubIdx=np.intersect1d(np.nonzero(self.data['Stimulus'].to_numpy()==stim),SubjIdx) # idx for subject and painting
         FixTrialX=np.array(self.data['mean_x'].iloc[TrialSubIdx]) # get x data for trial
         FixTrialY=np.array(self.data['mean_y'].iloc[TrialSubIdx]) # get y data for trial
         return FixTrialX,FixTrialY
@@ -188,7 +190,7 @@ class EyeData:
         self.boundsX,self.boundsY=self.InferSize(Interval=99)
         self.actsize=(self.boundsX[:,1]-self.boundsX[:,0])*(self.boundsY[:,1]-self.boundsY[:,0])
         self.nfixations=np.zeros((self.ns,self.np))
-        
+        self.nfixations[:]=np.NAN
         self.sacc_ampl=np.zeros((self.ns,self.np))
         self.len_scanpath=np.zeros((self.ns,self.np))
 
@@ -1179,7 +1181,7 @@ def HistPlot(Y,xtickL=0,newfig=1):
     assert len(np.shape(Y))==2, '2d data is expected: observer*stimulus'
     if newfig:
        plt.figure()
-    plt.hist(np.mean(Y,1),color='darkred')
+    plt.hist(np.nanmean(Y,1),color='darkred')
     plt.xlabel(xtickL,fontsize=14)
     plt.ylabel('Num observers',fontsize=13)
     return None
