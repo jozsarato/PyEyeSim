@@ -812,7 +812,13 @@ class EyeData:
         VisBinnedProg(Bins,np.nanmean(self.saccadeAmp,1),'saccade ampl (pixel)')  
         plt.figure()
         VisBinnedProg(Bins,np.nanmean(self.totLscanpath,1),'scanpath length (pixel)')  
+        
+        JointBinnedPlot(Bins,np.nanmean(self.binFixL,1),np.nanmean(self.saccadeAmp,1),ylabel1='fixation duration (ms)',ylabel2='saccade ampl (pixel)')
+        
+        
         return self.binFixL,self.saccadeAmp,self.totLscanpath
+
+
 
     def BinnedDescStim(self,stimuli):
         if hasattr(self,'binFixL')==False: 
@@ -831,6 +837,10 @@ class EyeData:
             axout=VisBinnedProg(self.tbins,np.nanmean(self.binFixL[:,Idx,:],1),'fixation duration (ms)',col=Colors[cc],label=c,axin=ax[0])
             axout=VisBinnedProg(self.tbins,np.nanmean(self.saccadeAmp[:,Idx,:],1),'saccade ampl (pixel)',col=Colors[cc],label=c,axin=ax[1])
             axout=VisBinnedProg(self.tbins,np.nanmean(self.totLscanpath[:,Idx,:],1),'scanpath length (pixel)',col=Colors[cc],label=c,axin=ax[2])
+            
+            ax1,ax2=JointBinnedPlot(self.tbins,np.nanmean(self.binFixL[:,Idx,:],1),np.nanmean(self.saccadeAmp[:,Idx,:],1),ylabel1='fixation duration (ms)',ylabel2='saccade ampl (pixel)')
+            ax1.set_title(c)
+            
 
         ax[0].legend()
         ax[1].legend()
@@ -1248,6 +1258,25 @@ def VisBinnedProg(bins,Y,ylabel,col='navy',label='',axin=0):
     axin.yaxis.set_major_locator(ticker.MaxNLocator(5))
     axin.set_ylabel(ylabel)
     return axin
+
+
+def JointBinnedPlot(bins,y1,y2,col1='olive',col2='orange',ylabel1='',ylabel2=''):
+    fig,ax1=plt.subplots(figsize=(6,5))
+    ax1.errorbar((bins[0:-1]+bins[1:])/2,np.nanmean(y1,0),stats.sem(y1,0,nan_policy='omit'),color=col1,linewidth=2)
+    ax1.set_xlabel('time (ms)')
+    ax1.yaxis.set_major_locator(ticker.MaxNLocator(5))
+    ax1.set_ylabel(ylabel1,color=col1)
+    ax1.tick_params(axis='y', labelcolor=col1)
+
+    ax2 = ax1.twinx() 
+    ax2.set_ylabel(ylabel2,color=col2)
+    ax2.errorbar((bins[0:-1]+bins[1:])/2,np.nanmean(y2,0),stats.sem(y2,0,nan_policy='omit'),color=col2,linewidth=2)
+    ax2.tick_params(axis='y', labelcolor=col2)
+
+    return ax1,ax2
+
+
+
 
 def draw_ellipse(position, covariance, ax=None, **kwargs):
     """Draw an ellipse with a given position and covariance
