@@ -1215,10 +1215,11 @@ class EyeData:
                         if self.nsac[s1,p1]>5 and self.nsac[s2,p1]>5:                    
                             for h in range(nHor):
                                 for v in range(nVer):
-                                    if len(Saccades[s1,p1,h,v])>0 and len(Saccades[s2,p1,h,v])>0:
-                                            
-                                        simsacn=CalcSim(Saccades[s1,p1,h,v],Saccades[s2,p1,h,v])
-                                        SimSacP[s1,s2,p1,h,v]=simsacn/(len(Saccades[s1,p1,h,v])+len(Saccades[s2,p1,h,v]))
+                                    if len(Saccades[s1,p1,h,v])>0:
+                                        SimSacP[s1,s2,p1,h,v]=0
+                                        if len(Saccades[s2,p1,h,v])>0: 
+                                            simsacn=CalcSim(Saccades[s1,p1,h,v],Saccades[s2,p1,h,v])
+                                            SimSacP[s1,s2,p1,h,v]=simsacn/(len(Saccades[s1,p1,h,v])+len(Saccades[s2,p1,h,v]))
         return SimSacP
     
     
