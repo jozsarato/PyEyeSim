@@ -794,6 +794,9 @@ class EyeData:
         self.binFixL=np.zeros((self.ns,self.np,len(Bins)-1))
         self.saccadeAmp=np.zeros((self.ns,self.np,len(Bins)-1))
         self.totLscanpath=np.zeros((self.ns,self.np,len(Bins)-1))
+        self.binFixL[:]=np.NAN
+        self.saccadeAmp[:]=np.NAN
+        self.totLscanpath[:]=np.NAN
         cb=0
         for bs,be in zip(Bins[0:-1],Bins[1:]):
             BindIdx=(self.data[timecol]>bs) & (self.data[timecol]<be)
@@ -1261,7 +1264,7 @@ def VisBinnedProg(bins,Y,ylabel,col='navy',label='',axin=0):
 
 
 def JointBinnedPlot(bins,y1,y2,col1='olive',col2='orange',ylabel1='',ylabel2=''):
-    fig,ax1=plt.subplots(figsize=(6,5))
+    fig,ax1=plt.subplots(figsize=(5,3))
     ax1.errorbar((bins[0:-1]+bins[1:])/2,np.nanmean(y1,0),stats.sem(y1,0,nan_policy='omit'),color=col1,linewidth=2)
     ax1.set_xlabel('time (ms)')
     ax1.yaxis.set_major_locator(ticker.MaxNLocator(5))
@@ -1272,6 +1275,7 @@ def JointBinnedPlot(bins,y1,y2,col1='olive',col2='orange',ylabel1='',ylabel2='')
     ax2.set_ylabel(ylabel2,color=col2)
     ax2.errorbar((bins[0:-1]+bins[1:])/2,np.nanmean(y2,0),stats.sem(y2,0,nan_policy='omit'),color=col2,linewidth=2)
     ax2.tick_params(axis='y', labelcolor=col2)
+    ax2.yaxis.set_major_locator(ticker.MaxNLocator(5))
 
     return ax1,ax2
 
