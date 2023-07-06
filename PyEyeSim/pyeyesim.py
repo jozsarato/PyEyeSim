@@ -5,6 +5,7 @@ Created on Wed Mar  2 10:40:42 2022
 @author: aratoj87
 """
 import numpy as np
+from numpy import matlib
 from scipy import stats,ndimage
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -1130,6 +1131,103 @@ class EyeData:
 
 
         return ScoresTrain, ScoresTest
+    
+        
+    def GetSaccades(self):
+        SaccadeObj=[]
+        
+        self.nsac=np.zeros((self.ns,self.np))
+        self.saccadelenghts=np.zeros((self.ns,self.np))
+        for cs,s in enumerate(self.subjects):
+                SaccadeObj.append([])        
+                for cp,p in enumerate(self.stimuli):
+                    SaccadeObj[cs].append([])
+                    FixTrialX,FixTrialY=self.GetFixationData(s,p)
+                    StartTrialX,StartTrialY,EndTrialX,EndTrialY=SaccadesTrial(FixTrialX,FixTrialY)
+                    SaccadesSubj=np.column_stack((StartTrialX,StartTrialY,EndTrialX,EndTrialY)) 
+                    csac=0
+                    for sac in range(len(StartTrialX)):
+                        if np.isfinite(SaccadesSubj[sac,0])==True:
+                            SaccadeObj[cs][cp].append(SaccadeLine(SaccadesSubj[sac,:]))  # store saccades as list of  objects 
+                            self.saccadelenghts[cs,cp]+=SaccadeObj[cs][cp][-1].length()   
+                            csac+=1
+                    self.nsac[cs,cp]=csac  # num of saccades for each participant and painting
+                    if csac>0:
+                        self.saccadelenghts[cs,cp]/=csac
+                
+                    else:
+                        self.saccadelenghts[cs,cp]=np.NAN
+        return SaccadeObj
+        
+    def SaccadeSel(self,SaccadeObj,nDiv): 
+        nH,nV=nDiv,nDiv
+        SaccadeAOIAngles=[]
+        SaccadeAOIAnglesCross=[]
+        
+        AOIRects=CreatAoiRects(nH,nV,self.boundsX,self.boundsY)
+        Saccades=np.zeros((((self.ns,self.np,nH,nV))),dtype=np.ndarray)  # store an array of saccades that cross the cell, for each AOI rectangle of each trial for each partiicpant
+        for s in np.arange(self.ns):
+            SaccadeAOIAngles.append([])
+            SaccadeAOIAnglesCross.append([])
+            for p in range(self.np):
+                SaccadeAOIAngles[s].append(np.zeros(((int(self.nsac[s,p]),nH,nV))))
+               # print(s,p,NSac[s,p])
+                SaccadeAOIAngles[s][p][:]=np.NAN
+                SaccadeAOIAnglesCross[s].append(np.zeros(((int(self.nsac[s,p]),nH,nV))))
+                SaccadeAOIAnglesCross[s][p][:]=np.NAN
+                for sac in range(len(SaccadeObj[s][p])):
+                    SaccadeDots=SaccadeObj[s][p][sac].LinePoints()
+                    
+                    
+                    for h in range(nH):
+                        for v in range(nV):
+                           # print(h,v)
+                            if AOIRects[p][h][v].Cross(SaccadeDots)==True:
+                              #  print(h,v,SaccadeObj[s][p][sac].Angle())
+                                SaccadeAOIAngles[s][p][sac,h,v]=SaccadeObj[s][p][sac].Angle()  # get the angle of the sacccade
+    
+                    if np.sum(SaccadeAOIAngles[s][p][sac,:,:]>0)>1:  # select saccaded that use multiple cells
+                        #print('CrossSel',SaccadeAOIAngles[s][p][sac,:,:])
+                        SaccadeAOIAnglesCross[s][p][sac,:,:]=SaccadeAOIAngles[s][p][sac,:,:]
+    
+                for h in range(nH):
+                    for v in range(nV):
+                        if np.sum(np.isfinite(SaccadeAOIAnglesCross[s][p][:,h,v]))>0:
+                            Saccades[s,p,h,v]=np.array(SaccadeAOIAnglesCross[s][p][~np.isnan(SaccadeAOIAnglesCross[s][p][:,h,v]),h,v])
+                        else:
+                            Saccades[s,p,h,v]=np.array([])
+        return Saccades
+
+
+    
+    def SacSim1Group(self,Saccades,nDiv,Thr=5):
+        ''' calculate saccade similarity for each stimulus, betwween each pair of participants '''
+        nHor,nVer=nDiv,nDiv
+        SimSacP=np.zeros((self.ns,self.ns,self.np,nHor,nVer))  
+        SimSacP[:]=np.NaN
+        for s1 in range(self.ns):
+            for s2 in range(self.ns):
+                if s1!=s2:
+                    for p1 in range(self.np):
+                        if self.nsac[s1,p1]>5 and self.nsac[s2,p1]>5:                    
+                            for h in range(nHor):
+                                for v in range(nVer):
+                                    if len(Saccades[s1,p1,h,v])>0 and len(Saccades[s2,p1,h,v])>0:
+                                            
+                                        simsacn=CalcSim(Saccades[s1,p1,h,v],Saccades[s2,p1,h,v])
+                                        SimSacP[s1,s2,p1,h,v]=simsacn/(len(Saccades[s1,p1,h,v])+len(Saccades[s2,p1,h,v]))
+        return SimSacP
+    
+    
+    def VisScanPath(self,stimn,ax,alpha=.5):
+        ax.imshow(self.images[self.stimuli[stimn]])        
+        for cs in range(self.ns):
+            fixx,fixy=self.GetFixationData(self.subjects[cs],self.stimuli[stimn])
+            ax.plot(fixx,fixy,alpha=alpha,color='salmon')
+
+            
+        
+    
             
 #  class ends here    
 
@@ -1209,19 +1307,30 @@ def SaliencyMapFilt(Fixies,SD=25,Ind=0):
     else:
         Smap=ndimage.filters.gaussian_filter(Fixies,SD)
     return Smap
-    
+
+
+def SaccadesTrial(TrialX,TrialY):
+    ''' transform 2 arrays of fixations x-y positions, into approximate saccaddes
+    with start and end locations '''
+    StartTrialX=TrialX[0:-1]
+    StartTrialY=TrialY[0:-1]     
+    EndTrialX=TrialX[1:]
+    EndTrialY=TrialY[1:]
+    return StartTrialX,StartTrialY,EndTrialX,EndTrialY
+
+
+
+
 def ScanpathL(x,y):
     ''' input 2 arrays for x and y ordered fixations
     output 1: average amplitude of  saccacdes
     output 2: total  length of scanpath'''
-    x1=x[0:-1]
-    x2=x[1:]
-    y1=y[0:-1]
-    y2=y[1:] 
+    x1,y1,x2,y2=SaccadesTrial(x,y)
     lengths=np.sqrt((x2-x1)**2+(y2-y1)**2)
     return np.mean(lengths),np.sum(lengths)
 
-    
+
+
 def CheckCor(AOIs,FixLoc):
     """ to check if fixation coordinates are within AOI """  
     for coor in range(len(AOIs)-1):
@@ -1298,3 +1407,104 @@ def draw_ellipse(position, covariance, ax=None, **kwargs):
         ax.add_patch(Ellipse(position, nsig * width, nsig * height,
                              angle, **kwargs))
         
+
+
+def CreatAoiRects(nHorD,nVerD,BoundsX,BoundsY):
+    AOIRects=[]
+    for p in range( np.shape(BoundsX)[0]):
+        AOIboundsH=AOIbounds(BoundsX[p,0],BoundsX[p,1],nHorD)
+        AOIboundsV=AOIbounds(BoundsY[p,0],BoundsY[p,1],nVerD)
+        print(AOIboundsH)
+        print(AOIboundsV)
+
+        AOIRects.append([])
+        for h in range(nHorD):
+            AOIRects[p].append([])
+            for v in range(nVerD):
+                AOIRects[p][h].append(Rect(AOIboundsH[h],AOIboundsV[v],AOIboundsH[h+1],AOIboundsV[v+1]))  # store AOIs as objects
+    return AOIRects
+
+
+
+class Rect:
+     def __init__(self, x1,y1,x2,y2):
+        if x1 > x2: 
+            x1,x2=x2,x1 # to start with smaller x
+        if y1 > y2:
+            y1,y2,=y2,y1 # to start with smaller y
+        self.x1=x1
+        self.y1=y1
+        self.x2=x2
+        self.y2=y2    
+     def Vis(self,alp=.2,Col='b'):
+        plt.plot([self.x1,self.x1],[self.y1,self.y2],alpha=alp,color=Col)
+        plt.plot([self.x2,self.x2],[self.y1,self.y2],alpha=alp,color=Col)
+        plt.plot([self.x1,self.x2],[self.y1,self.y1],alpha=alp,color=Col)
+        plt.plot([self.x1,self.x2],[self.y2,self.y2],alpha=alp,color=Col)
+        
+     def Contains(self,x,y):
+        if x>self.x1 and x<self.x2 and y > self.y1 and y < self.y2:              
+            return True
+        else:
+            return False
+        
+     def Cross(self,LinePoints):
+         CrossXidx=np.nonzero((LinePoints[0]>self.x1)&(LinePoints[0]<self.x2))
+         if len(CrossXidx)>0:
+             if any(LinePoints[1][CrossXidx]>self.y1)==True and any(LinePoints[1][CrossXidx]<self.y2)==True:
+                 return True
+             else:
+                 return False
+         else:
+            return False
+                     
+     def Contains2(self,LinePoints):
+      
+         CrossXidx=np.nonzero((LinePoints[:,0]>self.x1)&(LinePoints[:,0]<self.x2))
+         CrossYidx=np.nonzero((LinePoints[:,1]>self.y1)&(LinePoints[:,1]<self.y2))
+         return  np.intersect1d(CrossXidx,CrossYidx)    
+     
+        
+
+class SaccadeLine:
+    def __init__(self, coordvect):  # create a saccade object with start and end pixels
+        self.x1=coordvect[0]
+        self.y1=coordvect[1]
+        self.x2=coordvect[2]
+        self.y2=coordvect[3]
+    def Coords(self):   
+        return self.x1,self.y1,self.x2,self.y2
+    def length(self):   # length of saccade
+        return int(np.sqrt((self.x2-self.x1)**2+(self.y2-self.y1)**2))
+    
+    def lengthHor(self):  # horizontal length of saccade
+        return  np.abs(self.x2-self.x1)
+    
+    def lengthVer(self):  # vertical length of saccade
+        return  np.abs(self.y2-self.y1)
+    
+    def Angle(self):   # angle of saccade (0-360 deg)
+        Ang=np.degrees(np.arccos((self.x2-self.x1)/self.length()))  #calculate angel of saccades
+        if self.y2 < self.y1:  # if downward saccade
+            Ang=360-Ang  
+        return Ang
+    def Vis(self,alp=.2,Col='k'):  # plot saccade
+        plt.plot([self.x1,self.x2],[self.y1,self.y2],alpha=alp,color=Col)
+        return
+    
+    def LinePoints(self):  # use dots with density of 1dot/1pixel to approximate line.
+        LineX=np.linspace(self.x1,self.x2,self.length())
+        LineY=np.linspace(self.y1,self.y2,self.length())
+        return LineX,LineY
+    
+
+def CalcSim(saccades1,saccades2,Thr=5):
+    ''' calculcate angle based similarity for two arrays of saccade objects (for each cell)'''
+    A=matlib.repmat(saccades1,len(saccades2),1)   # matrix of s1 saccades in cell
+    B=matlib.repmat(saccades2,len(saccades1),1).T  # matrix of s2 saccades in cell
+    simsacn=np.sum(np.abs(A-B)<Thr)
+    A[A>180]-=180
+    A[A<180]+=180                                       
+    simsacn+=np.sum(np.abs(A-B)<Thr) 
+    return simsacn
+
