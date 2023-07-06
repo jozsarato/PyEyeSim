@@ -1219,7 +1219,9 @@ class EyeData:
                                         SimSacP[s1,s2,p1,h,v]=0
                                         if len(Saccades[s2,p1,h,v])>0: 
                                             simsacn=CalcSim(Saccades[s1,p1,h,v],Saccades[s2,p1,h,v])
-                                            SimSacP[s1,s2,p1,h,v]=simsacn/(len(Saccades[s1,p1,h,v])+len(Saccades[s2,p1,h,v]))
+                                            if simsacn>0:
+                                                SimSacP[s1,s2,p1,h,v]=simsacn/len(Saccades[s1,p1,h,v]) 
+                                               # SimSacP[s1,s2,p1,h,v]=1 ##+len(Saccades[s2,p1,h,v]))
         return SimSacP
     
     
