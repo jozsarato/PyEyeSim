@@ -975,6 +975,7 @@ class EyeData:
         xx,yy,lengths=self.DataArrayHmm(stim,tolerance=80)
         Dat=np.column_stack((xx,yy))
         ScoresLOO=np.zeros(len(self.suseHMM))
+        print(len(ScoresLOO))
         for cs,s in enumerate(self.suseHMM):
             DatTr,DatTest,lenTrain,lenTest=self.MyTrainTest(Dat,lengths,NTest,vis=0,rand=0,totest=cs)
             HMMfitted,sctr,scte=FitScoreHMMGauss(ncomp,DatTr,DatTest,lenTrain,lenTest,covar=covar)
@@ -1222,12 +1223,17 @@ class EyeData:
         return SimSacP
     
     
-    def VisScanPath(self,stimn,ax,alpha=.5):
-        ax.imshow(self.images[self.stimuli[stimn]])        
-        for cs in range(self.ns):
-            fixx,fixy=self.GetFixationData(self.subjects[cs],self.stimuli[stimn])
-            ax.plot(fixx,fixy,alpha=alpha,color='salmon')
-
+    def VisScanPath(self,stimn,ax,alpha=.5,allS=True,col='salmon'):
+        ''' if allS not provided, it is a number/index of a participant'''
+        ax.imshow(self.images[self.stimuli[stimn]])  
+        if type(allS)==bool:
+            for cs in range(self.ns):
+                fixx,fixy=self.GetFixationData(self.subjects[cs],self.stimuli[stimn])
+                ax.plot(fixx,fixy,alpha=alpha,color=col)
+        else:
+            fixx,fixy=self.GetFixationData(self.subjects[allS],self.stimuli[stimn])
+            ax.plot(fixx,fixy,alpha=alpha,color=col)
+            
             
         
     
