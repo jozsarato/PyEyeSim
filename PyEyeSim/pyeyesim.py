@@ -179,6 +179,8 @@ class EyeData:
                 print(p,' Bound over y_size found indicating out of stimulus area fixations-replaced with',self.y_size)    
         BoundsX=np.intp(np.round(BoundsX))
         BoundsY=np.intp(np.round(BoundsY))
+        #self.boundsX=BoundsX
+        #self.boundsY=BoundsY
         return BoundsX,BoundsY
     
     
@@ -1223,20 +1225,61 @@ class EyeData:
         return SimSacP
     
     
-    def VisScanPath(self,stimn,ax,alpha=.5,allS=True,col='salmon'):
+    def VisScanPath(self,stimn,ax,alpha=.5,allS=True,col='salmon',visFix=False):
         ''' if allS not provided, it is a number/index of a participant'''
         ax.imshow(self.images[self.stimuli[stimn]])  
         if type(allS)==bool:
             for cs in range(self.ns):
                 fixx,fixy=self.GetFixationData(self.subjects[cs],self.stimuli[stimn])
                 ax.plot(fixx,fixy,alpha=alpha,color=col)
+                if visFix:
+                    ax.scatter(fixx,fixy,color='gray',alpha=.2)
         else:
             fixx,fixy=self.GetFixationData(self.subjects[allS],self.stimuli[stimn])
             ax.plot(fixx,fixy,alpha=alpha,color=col)
+            if visFix:
+                ax.scatter(fixx,fixy,color='gray',alpha=.4)
+
             
             
         
-    
+    def SacSimPipeline(self,divs=[4,5,7,9]):
+        SaccadeObj=self.GetSaccades()
+        StimSims=np.zeros((len(divs),self.np))
+        StimSimsInd=np.zeros((len(divs),self.ns,self.np))
+
+        for cd,ndiv in enumerate(divs):
+            sacDivSel=self.SaccadeSel(SaccadeObj,ndiv)
+            SimSacP=self.SacSim1Group(sacDivSel,ndiv)
+            StimSimsInd[cd,:,:]=np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0)
+            StimSims[cd,:]=np.nanmean(np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0),0)
+        return StimSims,np.nanmean(StimSimsInd,0)
+    def HMMSimPipeline(self,ncomps=[4,6]):
+        
+        StimSimsHMM=np.zeros((len(ncomps),self.np))
+        
+        print(np.shape(StimSimsHMM))
+        StimSimsHMMall=np.zeros((len(ncomps),self.ns,self.np))
+        StimSimsHMMall[:]=np.NAN
+        for cncomp, ncomp in enumerate(ncomps):
+            print(f'fitting HMM with {ncomp} components')
+            for cp in range(self.np):
+                print(f'for stimulus {self.stimuli[cp]}')
+                Dat,lengths,ScoresLOO=self.FitLOOHMM(ncomp,self.stimuli[cp],covar='tied')
+                missS=np.setdiff1d(self.subjects,self.suseHMM)
+                if len(missS)>0:
+                    idxs=np.array([],dtype=int)
+                    for cs,s in enumerate(self.subjects):
+                        if s not in missS:
+                            idxs=np.append(idxs,cs)            
+                    StimSimsHMMall[cncomp,idxs,cp]=ScoresLOO
+                else:
+                    StimSimsHMMall[cncomp,:,cp]=ScoresLOO
+                StimSimsHMM[cncomp,cp]=np.mean(ScoresLOO)
+        return StimSimsHMM, np.nanmean(StimSimsHMMall,0)
+                
+
+ 
             
 #  class ends here    
 
