@@ -220,7 +220,7 @@ class EyeData:
                     if duration:
                         self.durations[cs,cp]=np.NAN
                         
-        print('Mean fixation number: ',np.round(np.mean(np.mean(self.nfixations,1)),2),' +/- ',np.round(np.std(np.mean(self.nfixations,1)),2))
+        print('Mean fixation number: ',np.round(np.nanmean(np.nanmean(self.nfixations,1)),2),' +/- ',np.round(np.nanstd(np.nanmean(self.nfixations,1)),2))
         if duration:
             print('Mean fixation duration: ',np.round(np.nanmean(np.nanmean(self.durations,1)),1),' +/- ',np.round(np.nanstd(np.nanmean(self.durations,1)),1),'msec')
         else:
@@ -1255,7 +1255,9 @@ class EyeData:
             StimSims[cd,:]=np.nanmean(np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0),0)
         return StimSims,np.nanmean(StimSimsInd,0)
     def HMMSimPipeline(self,ncomps=[4,6]):
-        
+        ''' fit l hidden markov model to data, with different number of components, each participants likelihood with leave-one-out cross validation
+        can have a long run time with longer viewing time/lot of data 
+        return the individual loo log likelihoods from the best model (highest log likelihood) for each stimulus '''
         StimSimsHMM=np.zeros((len(ncomps),self.np))
         
         print(np.shape(StimSimsHMM))
@@ -1276,7 +1278,7 @@ class EyeData:
                 else:
                     StimSimsHMMall[cncomp,:,cp]=ScoresLOO
                 StimSimsHMM[cncomp,cp]=np.mean(ScoresLOO)
-        return StimSimsHMM, np.nanmean(StimSimsHMMall,0)
+        return StimSimsHMM, np.nanmax(StimSimsHMMall,0)
                 
 
  
