@@ -276,7 +276,7 @@ class EyeData:
         return FixCountInd
    
     
-    def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax=False):
+    def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax=False,alpha=.5):
         ''' Pipeline for  heatmap calculation, FixCounts are calculated for stimulus, or passed pre-calcualted as optional parameter
         output: heatmap for a stimulus
         cutarea option: 1 only use active area (99% percentile of fixations), 0- use all of the area 
@@ -323,7 +323,7 @@ class EyeData:
             
             else:
                 plt.imshow(self.images[Stim])
-                plt.imshow(smapall,alpha=.5)        
+                plt.imshow(smapall,alpha=alpha)        
                 plt.xticks([])
                 plt.yticks([])
                 
