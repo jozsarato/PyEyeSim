@@ -1252,6 +1252,8 @@ class EyeData:
         ax.set_xlim([0,self.x_size])
             
         ax.set_ylim([self.y_size,0])
+        ax.set_xticks([])
+        ax.set_yticks([])
 
         
     def SacSimPipeline(self,divs=[4,5,7,9]):
