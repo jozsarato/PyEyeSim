@@ -276,7 +276,7 @@ class EyeData:
         return FixCountInd
    
     
-    def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0):
+    def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax=False):
         ''' Pipeline for  heatmap calculation, FixCounts are calculated for stimulus, or passed pre-calcualted as optional parameter
         output: heatmap for a stimulus
         cutarea option: 1 only use active area (99% percentile of fixations), 0- use all of the area 
@@ -314,10 +314,19 @@ class EyeData:
                 smap[cs,:,:]=SaliencyMapFilt(FixCounts[cs,:,:],SD=SD,Ind=1)       
         if Vis:
             smapall[smapall<cutThr]=np.NAN  # replacing below threshold with NAN
-            plt.imshow(self.images[Stim])
-            plt.imshow(smapall,alpha=.5)        
-            plt.xticks([])
-            plt.yticks([])
+
+            if type(ax)!=int:
+                ax.imshow(self.images[Stim])
+                ax.imshow(smapall,alpha=.5)        
+                ax.set_xticks([])
+                ax.set_yticks([])
+            
+            else:
+                plt.imshow(self.images[Stim])
+                plt.imshow(smapall,alpha=.5)        
+                plt.xticks([])
+                plt.yticks([])
+                
         return smapall
     
   
@@ -556,7 +565,7 @@ class EyeData:
     
     
     def CompareWithinGroupsFix(self,withinColName):
-        '''run set of between group fixation comparisons, makes plots and prints descriptive stats'''
+        '''run set of within group fixation comparisons, makes plots and prints descriptive stats'''
         
         WhichC=self.GetCats(withinColName)
 
@@ -732,7 +741,7 @@ class EyeData:
       
     
     def GetInddiff_v2(self,size=50,Vis=0,fixs=0):
-        ''' PIXE; NUMBER BASED; calculate individual similarity between all pairs of participants for all stimuli, for a given division'''
+        ''' PIXEl; NUMBER BASED; calculate individual similarity between all pairs of participants for all stimuli, for a given division'''
         statPMat=self.GetBinnedStimFixS(size=size,fixs=fixs)
         Inddiff=self.StatPDiffInd2(statPMat)
         Indmean=np.nanmean(Inddiff,2)
@@ -1233,15 +1242,17 @@ class EyeData:
                 fixx,fixy=self.GetFixationData(self.subjects[cs],self.stimuli[stimn])
                 ax.plot(fixx,fixy,alpha=alpha,color=col)
                 if visFix:
-                    ax.scatter(fixx,fixy,color='gray',alpha=.2)
+                    ax.scatter(fixx,fixy,color='gray',alpha=alpha)
+            
         else:
             fixx,fixy=self.GetFixationData(self.subjects[allS],self.stimuli[stimn])
             ax.plot(fixx,fixy,alpha=alpha,color=col)
             if visFix:
-                ax.scatter(fixx,fixy,color='gray',alpha=.4)
+                ax.scatter(fixx,fixy,color='gray',alpha=alpha)
+        ax.set_xlim([0,self.x_size])
+            
+        ax.set_ylim([self.y_size,0])
 
-            
-            
         
     def SacSimPipeline(self,divs=[4,5,7,9]):
         SaccadeObj=self.GetSaccades()
