@@ -1333,13 +1333,12 @@ def DiffCompsHMM(datobj,stim=0,ncomps=np.arange(2,6),NRep=10,NTest=3,covar='full
     plt.legend(['train','test'])
     plt.tight_layout()
     
-    plt.figure()
-    plt.errorbar(ncomps,np.mean(scoretrain,0),stats.sem(scoretrain,0),color='g',label='train',marker='o')
-    plt.errorbar(ncomps,np.mean(scoretest,0),stats.sem(scoretest,0),color='r',label='test',marker='o')
-    plt.xlabel('num of components')
-    plt.ylabel('log(likelihood)')
-    
-    plt.legend()
+    fig,ax=plt.subplots()
+    ax.errorbar(ncomps,np.mean(scoretrain,0),stats.sem(scoretrain,0),color='g',label='train',marker='o')
+    ax.errorbar(ncomps,np.mean(scoretest,0),stats.sem(scoretest,0),color='r',label='test',marker='o')
+    ax.set_xlabel('num of components')
+    ax.set_ylabel('log(likelihood)')
+    ax.legend()
     return 
 
 
@@ -1352,19 +1351,19 @@ def FitScoreHMMGauss(ncomp,xx,xxt,lenx,lenxxt,covar='full'):
     scte=HMM.score(xxt,lenxxt)/np.sum(lenxxt)
     return HMM,sctr,scte
 
-def MeanPlot(N,Y,yLab=0,xtickL=0,newfig=1,color='darkred',label=None):
-    ''' expects data, row: subjects columbn: stimuli '''
-    if newfig:
-        plt.figure(figsize=(N/2,5))
-    plt.errorbar(np.arange(N),np.nanmean(Y,0),stats.sem(Y,0,nan_policy="omit")*2,linestyle='None',marker='o',color=color,label=label)
+def MeanPlot(N,Y,yLab=0,xtickL=0,color='darkred',label=None,ax=0):
+    ''' expects data format: row- subjects column-stimuli '''
+    if type(ax)==int:
+        fig,ax=plt.subplots(figsize=(N/2,5))
+    ax.errorbar(np.arange(N),np.nanmean(Y,0),stats.sem(Y,0,nan_policy="omit")*2,linestyle='None',marker='o',color=color,label=label)
     if type(xtickL)!=int:
-        plt.xticks(np.arange(N),xtickL,fontsize=9,rotation=60)
-    plt.xlabel('Stimulus',fontsize=14)
-    plt.ylabel(yLab,fontsize=14)
+        ax.set_xticks(np.arange(N),labels=xtickL,fontsize=9,rotation=60)
+    ax.set_xlabel('Stimulus',fontsize=14)
+    ax.set_ylabel(yLab,fontsize=14)
     return None
 
 def HistPlot(Y,xtickL=0,newfig=1):
-    ''' expects data, row: subjects columbn: stimuli '''
+    ''' expected data format: row-  subjects column- stimuli '''
     assert len(np.shape(Y))==2, '2d data is expected: observer*stimulus'
     if newfig:
        plt.figure()
