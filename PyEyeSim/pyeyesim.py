@@ -332,7 +332,7 @@ class EyeData:
             
             else:
                 if center:
-                    plt.imshow(self.images[Stim],extent=[xs1,xs2,ys1,ys2])
+                    plt.imshow(self.images[Stim],extent=[xs1,xs2,ys2,ys1])
                 else:
                     plt.imshow(self.images[Stim])
                 plt.imshow(smapall,alpha=alpha)        
