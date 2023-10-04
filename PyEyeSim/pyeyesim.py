@@ -276,11 +276,12 @@ class EyeData:
         return FixCountInd
    
     
-    def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax=False,alpha=.5):
+    def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax=False,alpha=.5,center=0):
         ''' Pipeline for  heatmap calculation, FixCounts are calculated for stimulus, or passed pre-calcualted as optional parameter
         output: heatmap for a stimulus
         cutarea option: 1 only use active area (99% percentile of fixations), 0- use all of the area 
-        cutoff=median: median cutoff, otherwise percetile of values to replace with nans, goal--> clear visualization'''
+        cutoff=median: median cutoff, otherwise percetile of values to replace with nans, goal--> clear visualization
+        center, if pixel coordinates dont match, painting presented centrally, but gaze coors are zero based'''
       #  if hasattr(self,'fixcounts'):
        #     FixCountIndie=self.fixcounts['Stim']
         #else:    
@@ -314,15 +315,26 @@ class EyeData:
                 smap[cs,:,:]=SaliencyMapFilt(FixCounts[cs,:,:],SD=SD,Ind=1)       
         if Vis:
             smapall[smapall<cutThr]=np.NAN  # replacing below threshold with NAN
-
+            if center:
+                xs1=(self.x_size-np.shape(self.images[Stim])[0])/2
+                xs2=self.x_size-xs1
+                ys1=(self.y_size-np.shape(self.images[Stim])[1])/2
+                ys2=self.y_size-ys1
+                
             if type(ax)!=int:
-                ax.imshow(self.images[Stim])
+                if center:
+                    ax.imshow(self.images[Stim],extent=[xs1,xs2,ys2,ys1])
+                else:
+                    ax.imshow(self.images[Stim])
                 ax.imshow(smapall,alpha=.5)        
                 ax.set_xticks([])
                 ax.set_yticks([])
             
             else:
-                plt.imshow(self.images[Stim])
+                if center:
+                    plt.imshow(self.images[Stim],extent=[xs1,xs2,ys1,ys2])
+                else:
+                    plt.imshow(self.images[Stim])
                 plt.imshow(smapall,alpha=alpha)        
                 plt.xticks([])
                 plt.yticks([])
