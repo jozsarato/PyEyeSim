@@ -316,9 +316,9 @@ class EyeData:
         if Vis:
             smapall[smapall<cutThr]=np.NAN  # replacing below threshold with NAN
             if center:
-                xs1=(self.x_size-np.shape(self.images[Stim])[0])/2
+                xs1=(self.x_size-np.shape(self.images[Stim])[1])/2
                 xs2=self.x_size-xs1
-                ys1=(self.y_size-np.shape(self.images[Stim])[1])/2
+                ys1=(self.y_size-np.shape(self.images[Stim])[0])/2
                 ys2=self.y_size-ys1
                 
             if type(ax)!=int:
