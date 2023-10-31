@@ -577,7 +577,8 @@ class EyeData:
     
     
     def CompareWithinGroupsFix(self,withinColName):
-        '''run set of within group fixation comparisons, makes plots and prints descriptive stats'''
+        '''run set of within group fixation comparisons, makes plots and prints descriptive stats
+        THIS IS IMPCOMPLETE EXPLANATION'''
         
         WhichC=self.GetCats(withinColName)
 
@@ -643,6 +644,8 @@ class EyeData:
     
     
     def FixDurProgGroups(self,withinColName,nfixmax=10):
+        ''' ADD DOCSTRING
+        '''
         self.FixDurProg(nfixmax=nfixmax,Stim=0,Vis=0)
         WhichC=self.GetCats(withinColName)
         for cc,c in enumerate(self.WithinConds):
