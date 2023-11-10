@@ -320,8 +320,8 @@ class EyeData:
                 xs2=self.x_size-xs1
                 ys1=(self.y_size-np.shape(self.images[Stim])[0])/2
                 ys2=self.y_size-ys1
-                
-            if type(ax)!=int:
+                if ax==False:
+                    fig,ax=plt.subplots()
                 if center:
                     ax.imshow(self.images[Stim],extent=[xs1,xs2,ys2,ys1])
                 else:
@@ -330,14 +330,7 @@ class EyeData:
                 ax.set_xticks([])
                 ax.set_yticks([])
             
-            else:
-                if center:
-                    plt.imshow(self.images[Stim],extent=[xs1,xs2,ys2,ys1])
-                else:
-                    plt.imshow(self.images[Stim])
-                plt.imshow(smapall,alpha=alpha)        
-                plt.xticks([])
-                plt.yticks([])
+            
                 
         return smapall
     
@@ -1244,13 +1237,16 @@ class EyeData:
                                 for v in range(nVer):
                                     if len(Saccades[s1,p1,h,v])>0 and len(Saccades[s2,p1,h,v])>0:
                                             
-                                        simsacn=CalcSim(Saccades[s1,p1,h,v],Saccades[s2,p1,h,v])
+                                        simsacn=CalcSim(Saccades[s1,p1,h,v],Saccades[s2,p1,h,v],Thr=Thr)
                                         SimSacP[s1,s2,p1,h,v]=simsacn/(len(Saccades[s1,p1,h,v])+len(Saccades[s2,p1,h,v]))
         return SimSacP
     
     
-    def VisScanPath(self,stimn,ax,alpha=.5,allS=True,col='salmon',visFix=False):
+    
+    def VisScanPath(self,stimn,ax=False,alpha=.5,allS=True,col='salmon',visFix=False):
         ''' if allS not provided, it is a number/index of a participant'''
+        if ax==False:
+            fig,ax=plt.subplots()
         ax.imshow(self.images[self.stimuli[stimn]])  
         if type(allS)==bool:
             for cs in range(self.ns):
@@ -1271,14 +1267,14 @@ class EyeData:
         ax.set_yticks([])
 
         
-    def SacSimPipeline(self,divs=[4,5,7,9]):
+    def SacSimPipeline(self,divs=[4,5,7,9],Thr=5):
         SaccadeObj=self.GetSaccades()
         StimSims=np.zeros((len(divs),self.np))
         StimSimsInd=np.zeros((len(divs),self.ns,self.np))
 
         for cd,ndiv in enumerate(divs):
             sacDivSel=self.SaccadeSel(SaccadeObj,ndiv)
-            SimSacP=self.SacSim1Group(sacDivSel,ndiv)
+            SimSacP=self.SacSim1Group(sacDivSel,ndiv,Thr=Thr)
             StimSimsInd[cd,:,:]=np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0)
             StimSims[cd,:]=np.nanmean(np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0),0)
         return StimSims,np.nanmean(StimSimsInd,0)
