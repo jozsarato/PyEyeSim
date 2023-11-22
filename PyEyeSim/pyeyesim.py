@@ -119,19 +119,18 @@ class EyeData:
                     p=str(cat)+'\\'
                 print(cs,s,p)
         
-            if path!='infer':
+            else:
                 if type(s)==str:
-                    print(path+s+extension)
+                  #  print(path+s+extension)
                     Stim=plt.imread(path+s+extension)
-                else:
-                    
-                    print(path+str(int(s))+extension)
+                else:   
+                   # print(path+str(int(s))+extension)
                     Stim=plt.imread(path+str(int(s))+extension)
 
-            else:
-                if type(s)!=str:
-                    print(p+str(int(s))+extension)
-                    Stim=plt.imread(p+str(int(s))+extension)
+           # else:
+            #    if type(s)!=str:
+             #       print(p+str(int(s))+extension)
+              #      Stim=plt.imread(p+str(int(s))+extension)
                     
             Res=np.shape(Stim)
             if Res[0] != self.y_size:
@@ -171,18 +170,14 @@ class EyeData:
             BoundsX[cp,:]=np.percentile(self.data['mean_x'].to_numpy()[Idx],[(100-Interval)/2,Interval+(100-Interval)/2])
             BoundsY[cp,:]=np.percentile(self.data['mean_y'].to_numpy()[Idx],[(100-Interval)/2,Interval+(100-Interval)/2])
             
-            if BoundsX[cp,0]<0:
-                BoundsX[cp,0]=0
-                print(p,' Bound below zero X found indicating out of stimulus area fixations-replaced with 0')
+            if BoundsX[cp,0]<0:  
+                BoundsX[cp,0]=0. ## out of area bounds are replaced with screen size
             if BoundsY[cp,0]<0:
-                BoundsY[cp,0]=0
-                print(p,' Bound below zeroY found indicating out of stimulus area fixations-replaced with 0')    
+                BoundsY[cp,0]=0  ## out of area bounds are replaced with screen size
             if BoundsX[cp,1]>self.x_size:
-                BoundsX[cp,1]=self.x_size
-                print(p,' Bound over x_size found indicating out of stimulus area fixations-replaced with', self.x_size)
+                BoundsX[cp,1]=self.x_size  ## out of area bounds are replaced with screen size
             if BoundsY[cp,1]>self.y_size:
-                BoundsY[cp,1]=self.y_size
-                print(p,' Bound over y_size found indicating out of stimulus area fixations-replaced with',self.y_size)    
+                BoundsY[cp,1]=self.y_size  ## out of area bounds are replaced with screen size
         BoundsX=np.intp(np.round(BoundsX))
         BoundsY=np.intp(np.round(BoundsY))
         #self.boundsX=BoundsX
@@ -292,7 +287,9 @@ class EyeData:
        #     FixCountIndie=self.fixcounts['Stim']
         #else:    
         stimn=np.nonzero(self.stimuli==Stim)[0]
-
+        if hasattr(self,'boundsX')==False:
+            print('run RunDescriptiveFix first- without visuals')
+            self.RunDescriptiveFix()
         if type(FixCounts)==int:
             if CutArea:
                 FixCounts=self.FixCountCalc(Stim,CutAct=1) 
