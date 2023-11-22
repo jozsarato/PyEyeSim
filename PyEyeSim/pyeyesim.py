@@ -120,8 +120,14 @@ class EyeData:
                 print(cs,s,p)
         
             if path!='infer':
-                print(path+s+extension)
-                Stim=plt.imread(path+s+extension)
+                if type(s)==str:
+                    print(path+s+extension)
+                    Stim=plt.imread(path+s+extension)
+                else:
+                    
+                    print(path+str(int(s))+extension)
+                    Stim=plt.imread(path+str(int(s))+extension)
+
             else:
                 if type(s)!=str:
                     print(p+str(int(s))+extension)
@@ -325,7 +331,7 @@ class EyeData:
                 ax.imshow(self.images[Stim],extent=[xs1,xs2,ys2,ys1])
             else:
                 ax.imshow(self.images[Stim])
-                
+            ax.imshow(smapall,alpha=.5) 
             ax.set_xticks([])
             ax.set_yticks([])
 
