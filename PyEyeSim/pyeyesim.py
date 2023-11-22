@@ -315,22 +315,20 @@ class EyeData:
                 smap[cs,:,:]=SaliencyMapFilt(FixCounts[cs,:,:],SD=SD,Ind=1)       
         if Vis:
             smapall[smapall<cutThr]=np.NAN  # replacing below threshold with NAN
+            xs1=(self.x_size-np.shape(self.images[Stim])[1])/2
+            xs2=self.x_size-xs1
+            ys1=(self.y_size-np.shape(self.images[Stim])[0])/2
+            ys2=self.y_size-ys1
+            if ax==False:
+                fig,ax=plt.subplots()
             if center:
-                xs1=(self.x_size-np.shape(self.images[Stim])[1])/2
-                xs2=self.x_size-xs1
-                ys1=(self.y_size-np.shape(self.images[Stim])[0])/2
-                ys2=self.y_size-ys1
-                if ax==False:
-                    fig,ax=plt.subplots()
-                if center:
-                    ax.imshow(self.images[Stim],extent=[xs1,xs2,ys2,ys1])
-                else:
-                    ax.imshow(self.images[Stim])
-                ax.imshow(smapall,alpha=.5)        
-                ax.set_xticks([])
-                ax.set_yticks([])
-            
-            
+                ax.imshow(self.images[Stim],extent=[xs1,xs2,ys2,ys1])
+            else:
+                ax.imshow(self.images[Stim])
+                
+            ax.set_xticks([])
+            ax.set_yticks([])
+
                 
         return smapall
     
