@@ -1019,8 +1019,10 @@ class EyeData:
         
         
     def VisHMM(self,dat,hmmfitted,ax=0,showim=1,stim=0,lengths=0,incol=False):
-        
-        print()
+        ''' visualize fixations and fitted hidden markov model
+        dat: fixations
+        hmmfitted: fitted hidden markov model
+        ax: if not provided, new figure opens '''
         
         colors=['k','gray','salmon','olive','m','c','g','y','navy','orange','darkred','r','darkgreen','k','gray','salmon','olive','y','m','g','c']
         if type(ax)==int:
@@ -1158,6 +1160,7 @@ class EyeData:
     
         
     def GetSaccades(self):
+        ''' from fixations, make approximate saccades, and store it as saccade objects'''
         SaccadeObj=[]
         
         self.nsac=np.zeros((self.ns,self.np))
@@ -1184,6 +1187,7 @@ class EyeData:
         return SaccadeObj
         
     def SaccadeSel(self,SaccadeObj,nDiv): 
+        ''' select saccades for angle comparison method'''
         nH,nV=nDiv,nDiv
         SaccadeAOIAngles=[]
         SaccadeAOIAnglesCross=[]
@@ -1245,7 +1249,16 @@ class EyeData:
     
     
     def VisScanPath(self,stimn,ax=False,alpha=.5,allS=True,col='salmon',visFix=False):
-        ''' if allS not provided, it is a number/index of a participant'''
+        ''' 
+        stimn: stimulus index
+        ax: if not provided, makes new figure
+        alpha: transparency
+        allS:  if not provided all participants, otherise it is a number/index of a participant
+        col: Color
+        VisFix: visualize fixations
+
+        '''
+
         if ax==False:
             fig,ax=plt.subplots()
         ax.imshow(self.images[self.stimuli[stimn]])  
