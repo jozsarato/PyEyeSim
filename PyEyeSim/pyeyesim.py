@@ -22,6 +22,9 @@ import platform
 
 class EyeData:
     def __init__(self, name, design,data,x_size,y_size,fixdata=1):
+        ''' initalizing eye data object:
+        provide name, design, data, and screen size info
+        fixdata=1, fixation data expected for most functionalities, otherwise saccade data '''
         self.name = name
         self.design = design
         self.data=data
@@ -52,8 +55,12 @@ class EyeData:
         
 
     def info(self):
-        ''' return dataset name and design info '''
-        return self.name,self.design
+        ''' return dataset, name design info 
+        print screen info '''
+        print('screen x_size',self.x_size)
+        print('screen y_size',self.y_size)
+        print(self.name)
+        print(self.design,'design')
 
     def data(self):
         ''' return data'''
