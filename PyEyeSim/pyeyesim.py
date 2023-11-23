@@ -822,9 +822,7 @@ class EyeData:
         self.binFixL=np.zeros((self.ns,self.np,len(Bins)-1))
         self.saccadeAmp=np.zeros((self.ns,self.np,len(Bins)-1))
         self.totLscanpath=np.zeros((self.ns,self.np,len(Bins)-1))
-        self.binFixL[:]=np.NAN
-        self.saccadeAmp[:]=np.NAN
-        self.totLscanpath[:]=np.NAN
+       
         cb=0
         for bs,be in zip(Bins[0:-1],Bins[1:]):
             BindIdx=(self.data[timecol]>bs) & (self.data[timecol]<be)
@@ -833,21 +831,24 @@ class EyeData:
                  SubjIdx=self.data['subjectID']==s
                  for cp,p in enumerate(self.stimuli):
                      Idx=((self.data['Stimulus']==p) & BindIdx & SubjIdx)
-                     self.binFixL[cs,cp,cb]=np.mean(self.data[durcol][Idx])
-                     self.saccadeAmp[cs,cp,cb],self.totLscanpath[cs,cp,cb]=ScanpathL(self.data['mean_x'][Idx].to_numpy(), self.data['mean_y'][Idx].to_numpy())
+                     if np.sum(Idx)>0:
+                        self.binFixL[cs,cp,cb]=np.mean(self.data[durcol][Idx])
+                        self.saccadeAmp[cs,cp,cb],self.totLscanpath[cs,cp,cb]=ScanpathL(self.data['mean_x'][Idx].to_numpy(), self.data['mean_y'][Idx].to_numpy())
+
             cb+=1
         
-        plt.figure()
+        self.saccadeAmp[self.saccadeAmp==0]=np.NAN
+        self.totLscanpath[self.totLscanpath==0]=np.NAN
+        self.binFixL[self.binFixL==0]=np.NAN
+
         VisBinnedProg(Bins,np.nanmean(self.binFixL,1),'fixation duration (ms)')  
-        plt.figure()
         VisBinnedProg(Bins,np.nanmean(self.saccadeAmp,1),'saccade ampl (pixel)')  
-        plt.figure()
         VisBinnedProg(Bins,np.nanmean(self.totLscanpath,1),'scanpath length (pixel)')  
         
         JointBinnedPlot(Bins,np.nanmean(self.binFixL,1),np.nanmean(self.saccadeAmp,1),ylabel1='fixation duration (ms)',ylabel2='saccade ampl (pixel)')
         
         
-        return self.binFixL,self.saccadeAmp,self.totLscanpath
+        return 
 
 
 
