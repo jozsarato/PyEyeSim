@@ -20,6 +20,7 @@ import hmmlearn.hmm  as hmm
 from matplotlib.patches import Ellipse
 import platform
 #%%
+from .visualhelper import VisBinnedProg
 
 
 class EyeData:
@@ -36,8 +37,6 @@ class EyeData:
         self.y_size=y_size
         self.fixdata=fixdata
 
-
-        #import _visuals # VisScanPath
 
         if fixdata:
             print('Fixation dataset',self.name)
@@ -1367,14 +1366,6 @@ def PlotDurProg(nmax,Y,error,label=''):
     return 
 
 
-def VisBinnedProg(bins,Y,ylabel,col='navy',label='',axin=0):
-    if type(axin)==int:
-        fig,axin=plt.subplots()
-    axin.errorbar((bins[0:-1]+bins[1:])/2,np.nanmean(Y,0),stats.sem(Y,0,nan_policy='omit'),color=col,linewidth=2,label=label)
-    axin.set_xlabel('time (ms)')
-    axin.yaxis.set_major_locator(ticker.MaxNLocator(5))
-    axin.set_ylabel(ylabel)
-    return axin
 
 
 def JointBinnedPlot(bins,y1,y2,col1='olive',col2='orange',ylabel1='',ylabel2=''):
