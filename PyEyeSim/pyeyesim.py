@@ -463,8 +463,8 @@ class EyeData:
             print('Calculating entropy')
             Entropies,self.entropmax,self.entropies_ind=self.GetEntropies()
         Cols=['darkred','cornflowerblue']
-        plt.figure(figsize=(8,8))
-        
+        #plt.figure(figsize=(8,8))
+        fig,ax=plt.subplots()
         Entrs=[]
         Fixies=[]
         ScanpLs=[]
@@ -484,14 +484,10 @@ class EyeData:
             print(cc,c,'tot scanpath len = ',np.round(np.mean(np.nanmean(self.len_scanpath[Idx,:],1)),2),'+/-',np.round(np.std(np.nanmean(self.len_scanpath[Idx,:],1)),2),'pix')
             print(cc,c,'saccade amplitude = ',np.round(np.mean(np.nanmean(self.sacc_ampl[Idx,:],1)),2),'+/-',np.round(np.std(np.nanmean(self.sacc_ampl[Idx,:],1)),2),'pix')
 
-            plt.subplot(2,2,1)
-            MeanPlot(self.np,FixGr,yLab='Num Fixations',xtickL=self.stimuli,newfig=0,label=c,color=Cols[cc])
-            plt.subplot(2,2,2)
-            MeanPlot(self.np,EntrGr,yLab='Entropy',xtickL=self.stimuli,newfig=0,label=c,color=Cols[cc])
-            plt.subplot(2,2,3)
-            MeanPlot(self.np,self.len_scanpath[Idx,:],yLab='tot scanpath len (pix)',xtickL=self.stimuli,newfig=0,label=c,color=Cols[cc])
-            plt.subplot(2,2,4)
-            MeanPlot(self.np,self.sacc_ampl[Idx,:],yLab='saccade amplitude (pix)',xtickL=self.stimuli,newfig=0,label=c,color=Cols[cc])
+            MeanPlot(self.np,FixGr,yLab='Num Fixations',xtickL=self.stimuli,newfig=0,label=c,color=Cols[cc],ax=ax[0,0])
+            MeanPlot(self.np,EntrGr,yLab='Entropy',xtickL=self.stimuli,newfig=0,label=c,color=Cols[cc],ax=ax[0,1])
+            MeanPlot(self.np,self.len_scanpath[Idx,:],yLab='tot scanpath len (pix)',xtickL=self.stimuli,newfig=0,label=c,color=Cols[cc],ax=ax[1,0])
+            MeanPlot(self.np,self.sacc_ampl[Idx,:],yLab='saccade amplitude (pix)',xtickL=self.stimuli,newfig=0,label=c,color=Cols[cc],ax=ax[1,1])
             
             
         t,p=stats.ttest_ind(Entrs[0],Entrs[1])
@@ -795,14 +791,15 @@ class EyeData:
         to maxdiv *maxdiv number of divisions
         vis=1: visualized mean similarity'''
         if Vis:
-            plt.figure()
+            fig,ax=plt.subplots()
+           # plt.figure()
         DiffsRaw=np.zeros((self.np,maxdiv-mindiv))
         DiffsZscore=np.zeros((self.np,maxdiv-mindiv))
         for cdiv,divs in enumerate(np.arange(mindiv,maxdiv)):
             DiffsRaw[:,cdiv]=self.GetInddiff(divs,divs,Vis=Vis,zscore=1)
             DiffsZscore[:,cdiv]=(DiffsRaw[:,cdiv]-np.mean(DiffsRaw[:,cdiv]))/np.std(DiffsRaw[:,cdiv])
         if Vis:
-            plt.errorbar(np.arange(self.np),np.mean(DiffsZscore,1),np.std(DiffsZscore,1),linestyle='none',color='k',marker='o',markersize=5)
+            ax.errorbar(np.arange(self.np),np.mean(DiffsZscore,1),np.std(DiffsZscore,1),linestyle='none',color='k',marker='o',markersize=5)
         return DiffsZscore,DiffsRaw
     
     
@@ -856,11 +853,13 @@ class EyeData:
         if hasattr(self,'binFixL')==False: 
             print('run BinnedDescriptives first, than call this function fo r')
                     
-       
+       ## function still missing
+
+
     def BinnedDescriptivesGroups(self,withinColName):
         ''' time-binned within trial descriptive progression, groups of stimuli'''
         if hasattr(self,'binFixL')==False: 
-            print('run BinnedDescriptives first, than call this function fo r')
+            print('run BinnedDescriptives first, than call this function for group wise visualization')
         WhichC=self.GetCats(withinColName)
         Colors=['navy','salmon','olive','orange','gray']
         fig,ax=plt.subplots(nrows=3,ncols=1,figsize=(4,10))
@@ -1383,14 +1382,14 @@ def MeanPlot(N,Y,yLab=0,xtickL=0,color='darkred',label=None,ax=0):
     ax.set_ylabel(yLab,fontsize=14)
     return None
 
-def HistPlot(Y,xtickL=0,newfig=1):
+def HistPlot(Y,xtickL=0,ax=0):
     ''' expected data format: row-  subjects column- stimuli '''
     assert len(np.shape(Y))==2, '2d data is expected: observer*stimulus'
-    if newfig:
-       plt.figure()
-    plt.hist(np.nanmean(Y,1),color='darkred')
-    plt.xlabel(xtickL,fontsize=14)
-    plt.ylabel('Num observers',fontsize=13)
+    if type(ax)==int:
+        fig,ax=plt.subplots()
+    ax.hist(np.nanmean(Y,1),color='darkred')
+    ax.set_xlabel(xtickL,fontsize=14)
+    ax.set_ylabel('Num observers',fontsize=13)
     return None
 
 
