@@ -3,7 +3,7 @@
 this is a library for eye-movement comparison
 
 
-The ultimate goal of the library is to make advanced fixation map statistics (eg: entropy) and scanpath comparison  accesible (hidden markov model based, and saccade angle based).
+The ultimate goal of the library is to make advanced fixation map statistics (eg: entropy) and scanpath comparison  accesible (hidden markov model based, and saccade direction based).
 
 The library also provides general descripitve statistics about eye-movements. It is intended to work with ordered fixation data. (a row for each fixation), that is loaded into a pandas dataframe.   
 
