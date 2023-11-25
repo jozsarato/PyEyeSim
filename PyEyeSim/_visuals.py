@@ -4,13 +4,11 @@ from scipy import stats,ndimage
 import pandas as pd
 import matplotlib.pyplot as plt
 import copy 
-import pickle
 import xarray as xr
 import matplotlib.ticker as ticker
 from math import atan2, degrees
-import hmmlearn.hmm  as hmm
+
 from matplotlib.patches import Ellipse
-import platform
 #%%
 
 def MySaccadeVis(self,ax,XYdat,lengths,title='',alpha=1):
@@ -117,4 +115,35 @@ def VisScanPath(self,stimn,ax=False,alpha=.5,allS=True,col='salmon',visFix=False
     ax.set_ylim([self.y_size,0])
     ax.set_xticks([])
     ax.set_yticks([])
+
+def MyTrainTestVis(self, DatTr,DatTest,lenTrain,lenTest,totest=0):    
+    ''' make figure for training test - set visualization'''
+    fig,ax=plt.subplots(ncols=2,figsize=(8,3.5))
+    self.MySaccadeVis(ax[0],DatTr,lenTrain,title='training data',alpha=.3)
+    if type(totest)==int:
+        titStr=''
+    else:
+        if len(lenTest)==1:
+            titStr='subj '+str(int(self.suseHMM[totest][0]))
+        else:
+            titStr='n subj '+str(len(totest))
+
+    self.MySaccadeVis(ax[1],DatTest,lenTest,title='test data '+titStr)
+    return 
+          
+def MySaccadeVis(self,ax,XYdat,lengths,title='',alpha=1):
+    ''' saccade visualization, on input ax, based on combined data 2d array, and lengths 1d array'''
+    ax.set_title(title)
+    ax.set_xlim([0,self.x_size])
+    ax.set_ylim([self.y_size,0])
+    ax.scatter(XYdat[:,0],XYdat[:,1],c=np.arange(len(XYdat[:,0])),alpha=alpha)
+    Idxs=np.cumsum(lengths)
+    for ci in range(len(lengths)):
+        if ci==0:
+            start=0
+        else:
+            start=Idxs[ci-1]
+        ax.plot(XYdat[start:Idxs[ci],0],XYdat[start:Idxs[ci],1],alpha=alpha)
+    return
+        
 
