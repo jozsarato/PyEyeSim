@@ -20,8 +20,9 @@ import hmmlearn.hmm  as hmm
 from matplotlib.patches import Ellipse
 import platform
 #%%
-from .visualhelper import VisBinnedProg,PlotDurProg,JointBinnedPlot,MeanPlot
-from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,SaccadeLine,CalcSim
+from .visualhelper import VisBinnedProg,PlotDurProg,JointBinnedPlot,MeanPlot,draw_ellipse,HistPlot
+from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,SaccadeLine,CalcSim ,CheckCorr
+from .statshelper import SaliencyMapFilt,SaccadesTrial,ScanpathL,StatEntropy
 
 
 class EyeData:
@@ -1254,92 +1255,3 @@ def FitScoreHMMGauss(ncomp,xx,xxt,lenx,lenxxt,covar='full'):
 
 
 
-def HistPlot(Y,xtickL=0,ax=0):
-    ''' expected data format: row-  subjects column- stimuli '''
-    assert len(np.shape(Y))==2, '2d data is expected: observer*stimulus'
-    if type(ax)==int:
-        fig,ax=plt.subplots()
-    ax.hist(np.nanmean(Y,1),color='darkred')
-    ax.set_xlabel(xtickL,fontsize=14)
-    ax.set_ylabel('Num observers',fontsize=13)
-    return None
-
-
-
-def SaliencyMapFilt(Fixies,SD=25,Ind=0):
-    ''' Gaussian filter of fixations counts, Ind=1 for individual, Ind=0 for group '''
-    if Ind==0:
-        Smap=ndimage.filters.gaussian_filter(np.mean(Fixies,0),SD)
-    else:
-        Smap=ndimage.filters.gaussian_filter(Fixies,SD)
-    return Smap
-
-
-def SaccadesTrial(TrialX,TrialY):
-    ''' transform 2 arrays of fixations x-y positions, into approximate saccaddes
-    with start and end locations '''
-    StartTrialX=TrialX[0:-1]
-    StartTrialY=TrialY[0:-1]     
-    EndTrialX=TrialX[1:]
-    EndTrialY=TrialY[1:]
-    return StartTrialX,StartTrialY,EndTrialX,EndTrialY
-
-
-
-
-def ScanpathL(x,y):
-    ''' input 2 arrays for x and y ordered fixations
-    output 1: average amplitude of  saccacdes
-    output 2: total  length of scanpath'''
-    x1,y1,x2,y2=SaccadesTrial(x,y)
-    lengths=np.sqrt((x2-x1)**2+(y2-y1)**2)
-    return np.mean(lengths),np.sum(lengths)
-
-
-
-def CheckCor(AOIs,FixLoc):
-    """ to check if fixation coordinates are within AOI """  
-    for coor in range(len(AOIs)-1):
-        if FixLoc>AOIs[coor] and FixLoc<=AOIs[coor+1]:
-            AOI=coor
-            break
-        else: # if gaze out of screen
-            AOI=np.NAN                      
-    return AOI 
-
-
-def StatEntropy(StatP): 
-    """Calculate entropy of probability distribution
-    without nans, result should be the same as scipy.stats.entropy with base=2"""
-    LogP=np.log2(StatP)   
-    LogP[np.isfinite(LogP)==0]=0   # replace nans with zeros    
-    return -np.sum(StatP*LogP)
-
-
-
-
-
-
-def draw_ellipse(position, covariance, ax=None, **kwargs):
-    """Draw an ellipse with a given position and covariance
-    source:
-    https://jakevdp.github.io/PythonDataScienceHandbook/05.12-gaussian-mixtures.html """
-    ax = ax or plt.gca()
-    
-    # Convert covariance to principal axes
-    if covariance.shape == (2, 2):
-        U, s, Vt = np.linalg.svd(covariance)
-        angle = np.degrees(np.arctan2(U[1, 0], U[0, 0]))
-        width, height = 2 * np.sqrt(s)
-    else:
-        angle = 0
-        width, height = 2 * np.sqrt(covariance)
-    
-    # Draw the Ellipse
-    for nsig in range(1, 2):
-        ax.add_patch(Ellipse(position, nsig * width, nsig * height,
-                             angle, **kwargs))
-        
-
-
-                

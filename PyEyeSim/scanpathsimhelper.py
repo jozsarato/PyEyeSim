@@ -6,6 +6,17 @@ import pandas as pd
 
 
 
+def CheckCorr(AOIs,FixLoc):
+    ''' to check if fixation coordinates are within AOI'''  
+    for coor in range(len(AOIs)-1):
+        if (FixLoc>AOIs[coor]) and (FixLoc<=AOIs[coor+1]):
+            AOI=coor
+            break
+        else: # if gaze out of screen
+            AOI=np.NAN                      
+    return AOI 
+
+
 def AOIbounds(start,end,nDiv):  
     ''' calcuale AOI bounds, linearly spaced from: start to: end, for nDiv number of divisions'''
     return np.linspace(start,end,nDiv+1)  
@@ -108,4 +119,5 @@ def CalcSim(saccades1,saccades2,Thr=5):
     A[A<180]+=180                                       
     simsacn+=np.sum(np.abs(A-B)<Thr) 
     return simsacn
+
 

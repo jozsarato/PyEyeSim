@@ -23,6 +23,19 @@ def MeanPlot(N,Y,yLab=0,xtickL=0,color='darkred',label=None,ax=0):
     return None
 
 
+
+def HistPlot(Y,xtickL=0,ax=0):
+    ''' expected data format: row-  subjects column- stimuli '''
+    assert len(np.shape(Y))==2, '2d data is expected: observer*stimulus'
+    if type(ax)==int:
+        fig,ax=plt.subplots()
+    ax.hist(np.nanmean(Y,1),color='darkred')
+    ax.set_xlabel(xtickL,fontsize=14)
+    ax.set_ylabel('Num observers',fontsize=13)
+    return None
+
+
+    
 def VisBinnedProg(bins,Y,ylabel,col='navy',label='',axin=0):
     if type(axin)==int:
         fig,axin=plt.subplots()
@@ -59,3 +72,30 @@ def JointBinnedPlot(bins,y1,y2,col1='olive',col2='orange',ylabel1='',ylabel2='')
     ax2.yaxis.set_major_locator(ticker.MaxNLocator(5))
 
     return ax1,ax2
+
+
+
+
+def draw_ellipse(position, covariance, ax=None, **kwargs):
+    """Draw an ellipse with a given position and covariance
+    source:
+    https://jakevdp.github.io/PythonDataScienceHandbook/05.12-gaussian-mixtures.html """
+    ax = ax or plt.gca()
+    
+    # Convert covariance to principal axes
+    if covariance.shape == (2, 2):
+        U, s, Vt = np.linalg.svd(covariance)
+        angle = np.degrees(np.arctan2(U[1, 0], U[0, 0]))
+        width, height = 2 * np.sqrt(s)
+    else:
+        angle = 0
+        width, height = 2 * np.sqrt(covariance)
+    
+    # Draw the Ellipse
+    for nsig in range(1, 2):
+        ax.add_patch(Ellipse(position, nsig * width, nsig * height,
+                             angle, **kwargs))
+        
+
+
+                
