@@ -1,7 +1,6 @@
 # PyEyeSim
 
-this is a library for eye-movement comparison
-
+this is a Python library for eye-movement analysis, visualizatiom and comparison.
 
 The ultimate goal of the library is to make advanced fixation map statistics (eg: entropy) and scanpath comparison  accesible (hidden markov model based, and saccade direction based).
 
