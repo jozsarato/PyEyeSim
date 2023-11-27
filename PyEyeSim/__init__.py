@@ -16,19 +16,20 @@ import pickle
 import xarray as xr
 import matplotlib.ticker as ticker
 from math import atan2, degrees
-import hmmlearn.hmm  as hmm
 from matplotlib.patches import Ellipse
 import platform
 #%%
 from .visualhelper import VisBinnedProg,PlotDurProg,JointBinnedPlot,MeanPlot,draw_ellipse,HistPlot
 from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,SaccadeLine,CalcSim ,CheckCorr
 from .statshelper import SaliencyMapFilt,SaccadesTrial,ScanpathL,StatEntropy
+from .hmmhelper import DiffCompsHMM,FitScoreHMMGauss
 
 
 class EyeData:
     from ._visuals import VisScanPath,MySaccadeVis,VisLOOHMM,VisHMM,MyTrainTestVis,MySaccadeVis
-    from ._dataproc import GetParams,GetStimuli,GetFixationData,GetDurations,GetGroups,GetCats,GetSaccades,SaccadeSel
-
+    from ._dataproc import GetParams,GetStimuli,GetFixationData,GetDurations,GetGroups,GetCats,GetSaccades,SaccadeSel,GetEntropies,InferSize
+    from ._stats import AngleCalc,AngtoPix,PixdoDeg,Entropy,FixDurProg,BinnedCount
+	
     def __init__(self, name, design,data,x_size,y_size,fixdata=1):
         ''' initalizing eye data object:
         provide name, design, data, and screen size info
@@ -61,7 +62,7 @@ class EyeData:
                 data[DefColumns[df]]
                 print('column found: ', df,' default: ',DefColumns[df])
             except:
-                print(df," not found !!, provide column as", df,"=YourColumn default",DefColumns[df])
+                print(df," not found !!, provide column as", df,"=YourColumn , default: ",DefColumns[df])
     def info(self):
         ''' return dataset, name design info 
         print screen info '''
@@ -76,21 +77,21 @@ class EyeData:
     
     
     
-    def DataInfo(self,StimName='Stimulus',SubjName='subjectID',mean_x='mean_x',mean_y='mean_y',FixDuration=0,StimPath=0,StimExt='.jpg'):
+    def DataInfo(self,Stimulus='Stimulus',subjectID='subjectID',mean_x='mean_x',mean_y='mean_y',FixDuration=0,StimPath=0,StimExt='.jpg'):
         ''' the library expects column names Stimulus, subjectID, mean_x and mean_y, if you data is not in this format, this function will rename your columns accordingly 
          optionally, with FixDuration you can name your column of fixations lengths, which will be called duration afterwards'''
        # print(type(FixDuration))
        
         if self.fixdata:
             if type(FixDuration)!='int':
-                self.data=self.data.rename(columns={StimName:'Stimulus',SubjName:'subjectID',mean_x: 'mean_x',mean_y: 'mean_y',FixDuration: 'duration'})
+                self.data=self.data.rename(columns={Stimulus:'Stimulus',subjectID:'subjectID',mean_x: 'mean_x',mean_y: 'mean_y',FixDuration: 'duration'})
             else:
-                self.data=self.data.rename(columns={StimName:'Stimulus',SubjName:'subjectID',mean_x: 'mean_x',mean_y: 'mean_y'})
+                self.data=self.data.rename(columns={Stimulus:'Stimulus',subjectID:'subjectID',mean_x: 'mean_x',mean_y: 'mean_y'})
         else:
             if type(FixDuration)!='int':
-                self.data=self.data.rename(columns={StimName:'Stimulus',SubjName:'subjectID',FixDuration: 'duration'})
+                self.data=self.data.rename(columns={Stimulus:'Stimulus',subjectID:'subjectID',FixDuration: 'duration'})
             else:
-                self.data=self.data.rename(columns={StimName:'Stimulus',SubjName:'subjectID'})
+                self.data=self.data.rename(columns={Stimulus:'Stimulus',subjectID:'subjectID'})
         
         try:
             subjs,stims=self.GetParams()
@@ -112,29 +113,7 @@ class EyeData:
     
     
     
-    def InferSize(self,Interval=99):
-        ''' Infer stimulus size as central Interval % fixations data'''
-        BoundsX=np.zeros((len(self.stimuli),2))
-        BoundsY=np.zeros((len(self.stimuli),2))
-        for cp,p in enumerate(self.stimuli):
-            Idx=np.nonzero(self.data['Stimulus'].to_numpy()==p)[0]
-            BoundsX[cp,:]=np.percentile(self.data['mean_x'].to_numpy()[Idx],[(100-Interval)/2,Interval+(100-Interval)/2])
-            BoundsY[cp,:]=np.percentile(self.data['mean_y'].to_numpy()[Idx],[(100-Interval)/2,Interval+(100-Interval)/2])
-            
-            if BoundsX[cp,0]<0:  
-                BoundsX[cp,0]=0. ## out of area bounds are replaced with screen size
-            if BoundsY[cp,0]<0:
-                BoundsY[cp,0]=0  ## out of area bounds are replaced with screen size
-            if BoundsX[cp,1]>self.x_size:
-                BoundsX[cp,1]=self.x_size  ## out of area bounds are replaced with screen size
-            if BoundsY[cp,1]>self.y_size:
-                BoundsY[cp,1]=self.y_size  ## out of area bounds are replaced with screen size
-        BoundsX=np.intp(np.round(BoundsX))
-        BoundsY=np.intp(np.round(BoundsY))
-        #self.boundsX=BoundsX
-        #self.boundsY=BoundsY
-        return BoundsX,BoundsY
-    
+   
     
 
     def RunDescriptiveFix(self,Visual=0,duration=0):
@@ -288,80 +267,8 @@ class EyeData:
     
   
     
-    def BinnedCount(self,Fixcounts,Stim,fixs=1,binsize_h=50,binsize_v=None):
-        ''' makes a grid of binsize_h*binsize_v pixels, and counts the num of fixies for each
-        fixs==1 : used the full screen size   
-        fixs==0, use infered bounds '''
-        
-        assert len(np.shape(Fixcounts))==2, '2d input expected'
-        if binsize_v==None:
-            binsize_v=binsize_h
-            
-        if fixs==1:
-            x_size=self.x_size
-            y_size=self.y_size
-            x_size_start=0
-            y_size_start=0
-        else: 
-            x_size_start=np.intp(self.bounds['BoundX1'][self.bounds['Stimulus']==Stim])
-            x_size=np.intp(self.bounds['BoundX2'][self.bounds['Stimulus']==Stim])
-            y_size_start=np.intp(self.bounds['BoundY1'][self.bounds['Stimulus']==Stim])
-            y_size=np.intp(self.bounds['BoundY2'][self.bounds['Stimulus']==Stim])
-
-        assert binsize_h>=2,'binsize_h must be at least 2'
-        assert binsize_v>=2,'binsize_v must be at least 2'
-        assert binsize_h<(x_size-x_size_start)/2,'too large horizontal bin, must be below screen widht/2'
-        assert binsize_v<(y_size-y_size_start)/2,'too large vertical bin, must be below screen height/2'
-    
-        BinsH=np.arange(binsize_h+x_size_start,x_size,binsize_h) 
-        BinsV=np.arange(binsize_v+y_size_start,y_size,binsize_v) 
-        BinnedCount=np.zeros((len(BinsV),len(BinsH)))
-        for cx,x in enumerate(BinsH):
-            for cy,y in enumerate(BinsV):
-                BinnedCount[cy,cx]=np.sum(Fixcounts[int(y_size_start+cy*binsize_v):int(y),int(x_size_start+cx*binsize_h):int(x)])
-        return BinnedCount
-    
-    
-    def Entropy(self,BinnedCount,base=None):
-        ''' from binned 2d fixation counts calculate entropy,  
-        default natural log based calculation, this can be changed by base= optional arguments
-        output 1: entorpy
-        output 2: maximum possibe entropy for number of bins -- from uniform probability distribution'''
-        assert len(np.shape(BinnedCount))==2,'2d data input expected'
-        size=np.shape(BinnedCount)[0]*np.shape(BinnedCount)[1]
-        entrMax=stats.entropy(1/size*np.ones(size),base=base)
-        EntrBinned=stats.entropy(BinnedCount.flatten(),base=base)
-        return EntrBinned,entrMax
-    
-    
-    def GetEntropies(self,fixsize=0,binsize_h=50):
-        ''' calcualte grid based entropy for all stimuli 
-        if fixsize=0, bounds are inferred from range of fixations
-        output 1: entropy for stimulus across partcipants
-        output 2: max possible entropy for each stimulus-- assuming different stimulus sizes
-        output 3: individual entropies for each stimlus (2d array: subjects*stimuli)
-        
-        '''
-        self.entropies=np.zeros(self.np)
-        self.entropmax=np.zeros(self.np)
-        self.entropies_ind=np.zeros((self.ns,self.np))
-        # self.fixcounts={}
-        # for ci,i in enumerate(self.stimuli):
-        #     self.fixcounts[i]=[]
-        
-        for cp,p in enumerate(self.stimuli):
-            FixCountInd=self.FixCountCalc(p)
-           # self.fixcounts[p]=FixCountInd
-            binnedcount=self.BinnedCount(np.sum(FixCountInd,0),p,fixs=fixsize,binsize_h=binsize_h)
-            self.entropies[cp],self.entropmax[cp]=self.Entropy(binnedcount)
-            for cs,s in enumerate(self.subjects):
-                binnedc_ind=self.BinnedCount(FixCountInd[cs,:,:],p,fixs=fixsize)
-                self.entropies_ind[cs,cp],EntroMax=self.Entropy(binnedc_ind)
-            
-            print(cp,p,np.round(self.entropies[cp],2),'maximum entropy',np.round(self.entropmax[cp],2))
-        return self.entropies,self.entropmax,self.entropies_ind
-    
-
+   
+  
    
 
     def CompareGroupsFix(self,betwcond):
@@ -516,37 +423,7 @@ class EyeData:
             print('')
         return
      
-    def FixDurProg(self,nfixmax=10,Stim=0,Vis=1):
-        ''' within trial fixation duration progression
-        nfixmax controls the first n fixations to compare'''
-        self.durprog=np.zeros((self.ns,self.np,nfixmax))
-        self.durprog[:]=np.NAN
-        for cs,s in enumerate(self.subjects):
-            for cp,p in enumerate(self.stimuli):      
-                Durs=self.GetDurations(s,p)
-                if len(Durs)<nfixmax:
-                    self.durprog[cs,cp,0:len(Durs)]=Durs
-                else:
-                    self.durprog[cs,cp,:]=Durs[0:nfixmax]
-      
-        if Stim==0:
-            Y=np.nanmean(np.nanmean(self.durprog,1),0)
-            Err=stats.sem(np.nanmean(self.durprog,1),axis=0,nan_policy='omit')
-            if Vis:
-                PlotDurProg(nfixmax,Y,Err)
-                plt.title('All stimuli')
-            
-        else:
-            Y=np.nanmean(self.durprog[:,self.stimuli==Stim,:],0).flatten()
-       
-            Err=stats.sem(self.durprog[:,self.stimuli==Stim,:],axis=0,nan_policy='omit').flatten()
-
-            if Vis: 
-                PlotDurProg(nfixmax,Y,Err)
-                plt.title(Stim)
-            
-        return None
-    
+   
     
     
     def FixDurProgGroups(self,withinColName,nfixmax=10):
@@ -789,24 +666,7 @@ class EyeData:
         
         
         
-    def AngleCalc(self,ycm,viewD):
-        ''' calculate visual angle from vertical screen size (cm), viewing distance (cm) and resolution (pixel)  
-        since y pixel size is already provided at initialization, does not have to be provided here'''
-        self.pixdeg=degrees(atan2(.5*ycm, viewD)) / (.5*self.y_size)
-        return self.pixdeg
-    def AngtoPix(self,Deg):
-        ''' angle to pixel transform '''
-        if hasattr(self, 'pixdeg')==False:
-            print('please provide ycm (vertical screen size), and viewD, viewing distance for AngleCalc first')
-
-        return  Deg / self.pixdeg
-
-    def PixdoDeg(self,pix):
-         ''' pixel to degrees of visual angle transform '''
-         if hasattr(self, 'pixdeg')==False:
-             print('please provide ycm (vertical screen size), and viewD, viewing distance for AngleCalc first')
-         return self.pixdeg*pix
-
+    
      # hmm related functions start here
     def DataArrayHmm(self,stim,group=-1,tolerance=20,verb=True):
         ''' HMM data arrangement, for the format required by hmmlearn
@@ -1047,47 +907,5 @@ class EyeData:
 
 
 #  class ends here    
-
-def DiffCompsHMM(datobj,stim=0,ncomps=np.arange(2,6),NRep=10,NTest=3,covar='full'):
-    ''' fit and cross validate HMM for a number of different hidden state numbers, as defined by ncomps'''
-    if len(ncomps)<7:
-        fig,ax=plt.subplots(ncols=3,nrows=2,figsize=(13,6))
-    elif len(ncomps)<12:
-        fig,ax=plt.subplots(ncols=4,nrows=3,figsize=(14,8))
-  
-    fig,ax2=plt.subplots()
-    
-    scoretrain,scoretest=np.zeros((NRep,len(ncomps))),np.zeros((NRep,len(ncomps)))
-    for cc,nc in enumerate(ax.flat):
-        if cc<len(ncomps):
-            print('num comps: ',ncomps[cc],' num:', cc+1,'/', len(ncomps))
-            for rep in range(NRep):
-                if rep==NRep-1:
-                    vis=True
-                else:
-                    vis=False
-                hmm,scoretrain[rep,cc],scoretest[rep,cc]=datobj.FitVisHMM(datobj.stimuli[stim],ncomps[cc],covar=covar,ax=nc,ax2=ax2,vis=vis,NTest=NTest,verb=False)
-
-    plt.legend(['train','test'])
-    plt.tight_layout()
-    
-    fig,ax=plt.subplots()
-    ax.errorbar(ncomps,np.mean(scoretrain,0),stats.sem(scoretrain,0),color='g',label='train',marker='o')
-    ax.errorbar(ncomps,np.mean(scoretest,0),stats.sem(scoretest,0),color='r',label='test',marker='o')
-    ax.set_xlabel('num of components')
-    ax.set_ylabel('log(likelihood)')
-    ax.legend()
-    return 
-
-
-    
-
-def FitScoreHMMGauss(ncomp,xx,xxt,lenx,lenxxt,covar='full'):
-    HMM=hmm.GaussianHMM(n_components=ncomp, covariance_type=covar)
-    HMM.fit(xx,lenx)
-    sctr=HMM.score(xx,lenx)/np.sum(lenx)
-    scte=HMM.score(xxt,lenxxt)/np.sum(lenxxt)
-    return HMM,sctr,scte
-
 
 

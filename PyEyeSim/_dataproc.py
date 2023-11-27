@@ -3,19 +3,50 @@ import numpy as np
 from numpy import matlib
 from scipy import stats,ndimage
 import pandas as pd
+import matplotlib.pyplot as plt
+from .statshelper import SaliencyMapFilt,SaccadesTrial,ScanpathL,StatEntropy
+from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,SaccadeLine,CalcSim ,CheckCorr
 
 
 def GetParams(self):
     """ Get stimulus and subject info of dataset """  
+    assert  'subjectID' in self.data.columns , 'subjectID column not found- DataInfo(subjectID=Your Column)'
+    assert  'Stimulus' in self.data.columns, 'Stimulus column not found- DataInfo(Stimulus=Your Column'
+
     self.subjects=np.unique(self.data['subjectID'].to_numpy())
     self.stimuli=np.unique(self.data['Stimulus'].to_numpy())
 
     self.ns,self.np=len(self.subjects),len(self.stimuli)
     return  self.subjects,self.stimuli
 
+def InferSize(self,Interval=99):
+    ''' Infer stimulus size as central Interval % fixations data'''
+    BoundsX=np.zeros((len(self.stimuli),2))
+    BoundsY=np.zeros((len(self.stimuli),2))
+    for cp,p in enumerate(self.stimuli):
+        Idx=np.nonzero(self.data['Stimulus'].to_numpy()==p)[0]
+        BoundsX[cp,:]=np.percentile(self.data['mean_x'].to_numpy()[Idx],[(100-Interval)/2,Interval+(100-Interval)/2])
+        BoundsY[cp,:]=np.percentile(self.data['mean_y'].to_numpy()[Idx],[(100-Interval)/2,Interval+(100-Interval)/2])
+        
+        if BoundsX[cp,0]<0:  
+            BoundsX[cp,0]=0. ## out of area bounds are replaced with screen size
+        if BoundsY[cp,0]<0:
+            BoundsY[cp,0]=0  ## out of area bounds are replaced with screen size
+        if BoundsX[cp,1]>self.x_size:
+            BoundsX[cp,1]=self.x_size  ## out of area bounds are replaced with screen size
+        if BoundsY[cp,1]>self.y_size:
+            BoundsY[cp,1]=self.y_size  ## out of area bounds are replaced with screen size
+    BoundsX=np.intp(np.round(BoundsX))
+    BoundsY=np.intp(np.round(BoundsY))
+    #self.boundsX=BoundsX
+    #self.boundsY=BoundsY
+    return BoundsX,BoundsY
 
 def GetStimuli(self,extension,path=0):
     ''' load stimuulus files from path'''
+    #assert 'Stimulus' in self.data.columns, 'stimulus column not found'
+    assert len(self.stimuli)>0, '!stimuli not loaded!  provide: DataInfo(Stimulus=Your Column)'
+
     self.images={}
     if path=='infer':
         if 'category' in self.data:
@@ -73,7 +104,7 @@ def GetDurations(self,s,p):
     durations=np.array(self.data['duration'].iloc[TrialSubIdx]) # get y data for trial
     return durations
 
- def GetGroups(self,betwcond):
+def GetGroups(self,betwcond):
     ''' Between group comparison- 2 groups expected
     get conditions from between group column, check if mapping of participants to conditions is unique'''
     self.Conds=np.unique(self.data[betwcond])
@@ -174,6 +205,34 @@ def SaccadeSel(self,SaccadeObj,nDiv):
                     else:
                         Saccades[s,p,h,v]=np.array([])
     return Saccades
+
+
+def GetEntropies(self,fixsize=0,binsize_h=50):
+    ''' calcualte grid based entropy for all stimuli 
+    if fixsize=0, bounds are inferred from range of fixations
+    output 1: entropy for stimulus across partcipants
+    output 2: max possible entropy for each stimulus-- assuming different stimulus sizes
+    output 3: individual entropies for each stimlus (2d array: subjects*stimuli)
+    
+    '''
+    self.entropies=np.zeros(self.np)
+    self.entropmax=np.zeros(self.np)
+    self.entropies_ind=np.zeros((self.ns,self.np))
+    # self.fixcounts={}
+    # for ci,i in enumerate(self.stimuli):
+    #     self.fixcounts[i]=[]
+    
+    for cp,p in enumerate(self.stimuli):
+        FixCountInd=self.FixCountCalc(p)
+       # self.fixcounts[p]=FixCountInd
+        binnedcount=self.BinnedCount(np.sum(FixCountInd,0),p,fixs=fixsize,binsize_h=binsize_h)
+        self.entropies[cp],self.entropmax[cp]=self.Entropy(binnedcount)
+        for cs,s in enumerate(self.subjects):
+            binnedc_ind=self.BinnedCount(FixCountInd[cs,:,:],p,fixs=fixsize)
+            self.entropies_ind[cs,cp],EntroMax=self.Entropy(binnedc_ind)
+        
+        print(cp,p,np.round(self.entropies[cp],2),'maximum entropy',np.round(self.entropmax[cp],2))
+    return self.entropies,self.entropmax,self.entropies_ind
 
 
 
