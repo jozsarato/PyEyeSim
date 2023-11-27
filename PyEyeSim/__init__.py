@@ -27,7 +27,7 @@ from .statshelper import SaliencyMapFilt,SaccadesTrial,ScanpathL,StatEntropy
 
 class EyeData:
     from ._visuals import VisScanPath,MySaccadeVis,VisLOOHMM,VisHMM,MyTrainTestVis,MySaccadeVis
-    from ._dataproc import GetParams,GetStimuli,GetFixationData,GetDurations
+    from ._dataproc import GetParams,GetStimuli,GetFixationData,GetDurations,GetGroups,GetCats,GetSaccades,SaccadeSel
 
     def __init__(self, name, design,data,x_size,y_size,fixdata=1):
         ''' initalizing eye data object:
@@ -362,42 +362,7 @@ class EyeData:
         return self.entropies,self.entropmax,self.entropies_ind
     
 
-    def GetGroups(self,betwcond):
-        ''' Between group comparison- 2 groups expected
-        get conditions from between group column, check if mapping of participants to conditions is unique'''
-        self.Conds=np.unique(self.data[betwcond])
-        print('Conditions',self.Conds)
-       
-      #  assert len(self.Conds)==2, 'you need 2 groups'
-        WhichC=np.zeros(self.ns)
-        WhichCN=[]
-        for cs,s in enumerate(self.subjects):
-            for cc,c in enumerate(self.Conds):
-                PPc=np.unique(self.data[betwcond][self.data['subjectID']==s])
-                assert len(PPc)==1,'participant condition mapping not unique'
-                if PPc==self.Conds[cc]:
-                    WhichC[cs]=cc
-                    WhichCN.append(c)
-        self.whichC=WhichC
-        return WhichC,np.array(WhichCN)
-
-    def GetCats(self,condColumn):
-        ''' Between group comparison- 2 groups expected
-        get conditions from between group column, check if mapping of participants to conditions is unique'''
-        self.WithinConds=np.unique(self.data[condColumn])
-        print('Conditions',self.WithinConds)
-        WhichCat=[]# np.zeros(self.np)
-
-        for cp,p in enumerate(self.stimuli):
-            AssignCat=np.unique(self.data[condColumn][self.data['Stimulus']==p])
-           # print(cp,p,AssignCat)
-            #assert len(AssignCat)==1, ' category mapping not unique for a stimulus'
-            WhichCat.append(AssignCat)
-        WhichCat=np.array(WhichCat)
-        assert len(np.unique(WhichCat))==len(np.unique(self.WithinConds)), 'stimulus category mapping problem'
-        return WhichCat
-    
-
+   
 
     def CompareGroupsFix(self,betwcond):
         '''run set of between group fixation comparisons, makes plots and prints descriptive stats'''
@@ -1021,73 +986,7 @@ class EyeData:
         return ScoresTrain, ScoresTest
     
         
-    def GetSaccades(self):
-        ''' from fixations, make approximate saccades, and store it as saccade objects'''
-        SaccadeObj=[]
-        
-        self.nsac=np.zeros((self.ns,self.np))
-        self.saccadelenghts=np.zeros((self.ns,self.np))
-        for cs,s in enumerate(self.subjects):
-                SaccadeObj.append([])        
-                for cp,p in enumerate(self.stimuli):
-                    SaccadeObj[cs].append([])
-                    FixTrialX,FixTrialY=self.GetFixationData(s,p)
-                    StartTrialX,StartTrialY,EndTrialX,EndTrialY=SaccadesTrial(FixTrialX,FixTrialY)
-                    SaccadesSubj=np.column_stack((StartTrialX,StartTrialY,EndTrialX,EndTrialY)) 
-                    csac=0
-                    for sac in range(len(StartTrialX)):
-                        if np.isfinite(SaccadesSubj[sac,0])==True:
-                            SaccadeObj[cs][cp].append(SaccadeLine(SaccadesSubj[sac,:]))  # store saccades as list of  objects 
-                            self.saccadelenghts[cs,cp]+=SaccadeObj[cs][cp][-1].length()   
-                            csac+=1
-                    self.nsac[cs,cp]=csac  # num of saccades for each participant and painting
-                    if csac>0:
-                        self.saccadelenghts[cs,cp]/=csac
-                
-                    else:
-                        self.saccadelenghts[cs,cp]=np.NAN
-        return SaccadeObj
-        
-    def SaccadeSel(self,SaccadeObj,nDiv): 
-        ''' select saccades for angle comparison method'''
-        nH,nV=nDiv,nDiv
-        SaccadeAOIAngles=[]
-        SaccadeAOIAnglesCross=[]
-        
-        AOIRects=CreatAoiRects(nH,nV,self.boundsX,self.boundsY)
-        Saccades=np.zeros((((self.ns,self.np,nH,nV))),dtype=np.ndarray)  # store an array of saccades that cross the cell, for each AOI rectangle of each trial for each partiicpant
-        for s in np.arange(self.ns):
-            SaccadeAOIAngles.append([])
-            SaccadeAOIAnglesCross.append([])
-            for p in range(self.np):
-                SaccadeAOIAngles[s].append(np.zeros(((int(self.nsac[s,p]),nH,nV))))
-               # print(s,p,NSac[s,p])
-                SaccadeAOIAngles[s][p][:]=np.NAN
-                SaccadeAOIAnglesCross[s].append(np.zeros(((int(self.nsac[s,p]),nH,nV))))
-                SaccadeAOIAnglesCross[s][p][:]=np.NAN
-                for sac in range(len(SaccadeObj[s][p])):
-                    SaccadeDots=SaccadeObj[s][p][sac].LinePoints()
-                    
-                    
-                    for h in range(nH):
-                        for v in range(nV):
-                           # print(h,v)
-                            if AOIRects[p][h][v].Cross(SaccadeDots)==True:
-                              #  print(h,v,SaccadeObj[s][p][sac].Angle())
-                                SaccadeAOIAngles[s][p][sac,h,v]=SaccadeObj[s][p][sac].Angle()  # get the angle of the sacccade
     
-                    if np.sum(SaccadeAOIAngles[s][p][sac,:,:]>0)>1:  # select saccaded that use multiple cells
-                        #print('CrossSel',SaccadeAOIAngles[s][p][sac,:,:])
-                        SaccadeAOIAnglesCross[s][p][sac,:,:]=SaccadeAOIAngles[s][p][sac,:,:]
-    
-                for h in range(nH):
-                    for v in range(nV):
-                        if np.sum(np.isfinite(SaccadeAOIAnglesCross[s][p][:,h,v]))>0:
-                            Saccades[s,p,h,v]=np.array(SaccadeAOIAnglesCross[s][p][~np.isnan(SaccadeAOIAnglesCross[s][p][:,h,v]),h,v])
-                        else:
-                            Saccades[s,p,h,v]=np.array([])
-        return Saccades
-
 
     
     def SacSim1Group(self,Saccades,nDiv,Thr=5):
