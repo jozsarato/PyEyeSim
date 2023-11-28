@@ -6,6 +6,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from .statshelper import SaliencyMapFilt,SaccadesTrial,ScanpathL,StatEntropy
 from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,SaccadeLine,CalcSim ,CheckCorr
+import platform
 
 
 def GetParams(self):
@@ -43,7 +44,7 @@ def InferSize(self,Interval=99):
     return BoundsX,BoundsY
 
 def GetStimuli(self,extension,path=0):
-    ''' load stimuulus files from path'''
+    ''' load stimulus files from path'''
     #assert 'Stimulus' in self.data.columns, 'stimulus column not found'
     assert len(self.stimuli)>0, '!stimuli not loaded!  provide: DataInfo(Stimulus=Your Column)'
 

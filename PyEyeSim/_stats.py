@@ -97,6 +97,25 @@ def BinnedCount(self,Fixcounts,Stim,fixs=1,binsize_h=50,binsize_v=None):
         for cy,y in enumerate(BinsV):
             BinnedCount[cy,cx]=np.sum(Fixcounts[int(y_size_start+cy*binsize_v):int(y),int(x_size_start+cx*binsize_h):int(x)])
     return BinnedCount
+def CalcStatPs(self,nHor,nVer,MinFix=20,InferS=1):
+    ''' for a dataset, return number of fixation and static probability matrix, for given divisions
+    returns StatPMat: nsubject*nstimulus*nvertical*nhorizontal '''
+   
+    statPMat=np.zeros((((self.ns,self.np,nVer,nHor))))
+    statEntropyMat=np.zeros((self.ns,self.np,))
+    
+    for cs,s in enumerate(self.subjects):
+        for cp,p in enumerate(self.stimuli):      
+            FixTrialX,FixTrialY=self.GetFixationData(s,p)  
+            
+            if self.nfixations[cs,cp]>MinFix:
+                NFixy,StatPtrial,StatNtrial=self.AOIFix(cp,FixTrialX,FixTrialY,nHor,nVer,InferS=InferS)
+                statPMat[cs,cp,:,:]=StatPtrial.reshape(nVer,nHor)
+                statEntropyMat[cs,cp]=StatEntropy(statPMat[cs,cp,:,:].reshape(-1,1))
+            else:
+                statEntropyMat[cs,cp]=np.NAN
+                statPMat[cs,cp,:,:]=np.NAN
+            
+    return statPMat,statEntropyMat
 
-    
-    
+
