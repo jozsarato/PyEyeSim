@@ -5,7 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import copy 
 from .hmmhelper import DiffCompsHMM,FitScoreHMMGauss
-
+from .visualhelper import draw_ellipse
 import hmmlearn.hmm  as hmm
  # hmm related functions start here
 def DataArrayHmm(self,stim,group=-1,tolerance=20,verb=True):

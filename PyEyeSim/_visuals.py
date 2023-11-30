@@ -10,6 +10,7 @@ from math import atan2, degrees
 
 from matplotlib.patches import Ellipse
 #%%
+from .visualhelper import draw_ellipse
 
 def MySaccadeVis(self,ax,XYdat,lengths,title='',alpha=1):
     ''' saccade visualization, on input ax, based on combined data 2d array, and lengths 1d array'''

@@ -43,26 +43,25 @@ def InferSize(self,Interval=99):
     #self.boundsY=BoundsY
     return BoundsX,BoundsY
 
-def GetStimuli(self,extension,path=0):
+def GetStimuli(self,extension,path=0,infersubpath=False):
     ''' load stimulus files from path'''
     #assert 'Stimulus' in self.data.columns, 'stimulus column not found'
     assert len(self.stimuli)>0, '!stimuli not loaded!  provide: DataInfo(Stimulus=Your Column)'
 
     self.images={}
-    if path=='infer':
+    if infersubpath==True:
         if 'category' in self.data:
             self.data.rename(columns={'category':'Category'},inplace=True)
         print('infer path from database categeory')
-
     for cs,s in enumerate(self.stimuli):
-        if path=='infer':
+        if infersubpath==True:
             cat=int(np.unique(self.data['Category'][self.data['Stimulus']==s])[0])
             if platform.platform().find('mac')>-1:
                 p=str(cat)+'/'
             else:
                 p=str(cat)+'\\'
             print(cs,s,p)
-            Stim=plt.imread(p+str(int(s))+extension)
+            Stim=plt.imread(path+p+str(int(s))+extension)
 
         else:
             if type(s)==str:

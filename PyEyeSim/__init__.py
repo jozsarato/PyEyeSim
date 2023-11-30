@@ -77,7 +77,7 @@ class EyeData:
     
     
     
-    def DataInfo(self,Stimulus='Stimulus',subjectID='subjectID',mean_x='mean_x',mean_y='mean_y',FixDuration=0,StimPath=0,StimExt='.jpg'):
+    def DataInfo(self,Stimulus='Stimulus',subjectID='subjectID',mean_x='mean_x',mean_y='mean_y',FixDuration=0,StimPath=0,StimExt='.jpg',infersubpath=False):
         ''' the library expects column names Stimulus, subjectID, mean_x and mean_y, if you data is not in this format, this function will rename your columns accordingly 
          optionally, with FixDuration you can name your column of fixations lengths, which will be called duration afterwards'''
        # print(type(FixDuration))
@@ -104,7 +104,7 @@ class EyeData:
             print('Stim path not provided')
         else:
          #  try: 
-            self.GetStimuli(StimExt,StimPath)
+            self.GetStimuli(StimExt,StimPath,infersubpath=infersubpath)
             print('stimuli loaded succesfully, access as self.images')
           # except:   
            #    print('stimuli not found')
