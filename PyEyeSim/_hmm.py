@@ -147,7 +147,7 @@ def FitVisHMMGroups(self,stim,betwcond,ncomp=3,covar='full',ax=0,ax2=0,NTest=3,s
         for cgr,gr in enumerate(Grs):
             HMMfitted,meanscore,meanscoreTe=FitScoreHMMGauss(ncomp,XXTrain[cgr],XXTest[cgr],LengthsTrain[cgr],LengthsTest[cgr],covar=covar)
             if rep==0:
-                self.VisHMM(XXTrain[cgr],HMMfitted,ax=ax[cgr],showim=showim,stim=stim)
+                self.VisHMM(XXTrain[cgr],HMMfitted,ax=ax[cgr],showim=showim,stim=stim,lengths=LengthsTrain[cgr])
                 if type(groupnames)==int:
                     ax[cgr].set_title(cgr)
 
@@ -158,9 +158,12 @@ def FitVisHMMGroups(self,stim,betwcond,ncomp=3,covar='full',ax=0,ax2=0,NTest=3,s
                 ScoresTest[rep,cgr2,cgr]=HMMfitted.score(XXTest[cgr2],LengthsTest[cgr2])/np.sum(LengthsTest[cgr2])
 
     im=ax2[0].pcolor(np.mean(ScoresTrain,0))
+    ax2[0].scatter(np.arange(len(Grs))+.5,np.argmax(np.mean(ScoresTrain,0),0)+.5,color='k')  # mark most likely for each group
     ax2[0].set_title('training')
 #       plt.colorbar(im1)
     im=ax2[1].pcolor(np.mean(ScoresTest,0))
+    ax2[1].scatter(np.arange(len(Grs))+.5,np.argmax(np.mean(ScoresTest,0),0)+.5,color='k')  # mark most likely for each group
+
 #        plt.colorbar(im2)
     ax2[1].set_title('test')
     ax2[0].set_ylabel('tested')
