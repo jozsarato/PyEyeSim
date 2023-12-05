@@ -91,7 +91,7 @@ def VisScanPath(self,stimn,ax=False,alpha=.5,allS=True,col='salmon',visFix=False
     ax: if not provided, makes new figure
     alpha: transparency
     allS:  if not provided all participants, otherise it is a number/index of a participant
-    col: Color
+    col: Color, default color is salmon
     VisFix: visualize fixations
 
     '''
