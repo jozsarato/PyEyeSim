@@ -21,8 +21,8 @@ The library started to develop for use in art perception studies, therefore, the
 #### Installation:
 if you cloned the library and are in the root folder of the library using the terminal (mac) or anaconda prompt (windows), you can install it, using the command: 
 
-** pip install -e .
-**
+
+**" pip install -e . "**
 
 #### Demo:
 for examples of using the library, see the PyEyeDemoBasic.ipynb in the Notebooks folder
