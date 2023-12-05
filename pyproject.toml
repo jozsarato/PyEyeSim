@@ -1,12 +1,12 @@
 [project]
 name = "pyeyesim"
 version = "0.1"
+requires-python = ">=3.8"
 authors = [
   { name="Jozsef Arato", email="jozsef.arato@gmail.com" },
 ]
 description = "Eye movement analysis and visualization package, with a focus on scanpath similarity"
 readme = "README.md"
-requires= ["setuptools","numpy","scipy","pandas","matplotlib"]
 classifiers = [
     "Programming Language :: Python :: 3"]
 
