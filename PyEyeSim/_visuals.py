@@ -96,6 +96,8 @@ def VisScanPath(self,stimn,ax=False,alpha=.5,allS=True,col='salmon',visFix=False
     allS:  Default=True, visualize scan paths for all participants; otherwise specify participant index.
     col: Color for the scan path, default color is salmon
     VisFix: Default=False. If True, Visualize fixations with scatter points.
+
+    Returns:
     '''
 
     if ax==False:
