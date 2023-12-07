@@ -87,13 +87,15 @@ def VisHMM(self,dat,hmmfitted,ax=0,showim=1,stim=0,lengths=0,incol=False):
 
 def VisScanPath(self,stimn,ax=False,alpha=.5,allS=True,col='salmon',visFix=False):
     ''' 
-    stimn: stimulus index
-    ax: if not provided, makes new figure
-    alpha: transparency
-    allS:  if not provided all participants, otherise it is a number/index of a participant
-    col: Color, default color is salmon
-    VisFix: visualize fixations
+    Description: Visualize scan path for a given stimulus.
 
+    Arguments:
+    stimn: stimulus index.
+    ax: if not provided, a new figure is created.
+    alpha: Transparency level for scan path. Defaults to 0.5.
+    allS:  Default=True, visualize scan paths for all participants; otherwise specify participant index.
+    col: Color for the scan path, default color is salmon
+    VisFix: Default=False. If True, Visualize fixations with scatter points.
     '''
 
     if ax==False:
