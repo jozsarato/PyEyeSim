@@ -83,97 +83,54 @@ def VisHMM(self,dat,hmmfitted,ax=0,showim=1,stim=0,lengths=0,incol=False):
     ax.set_yticks([])
     ax.set_xticks([])   
 
+
 def VisScanPath(self, stimn, ax=None, alpha=0.5, allS=True, scan_path_col='salmon', fixation_col='blue', visFix=False, num_fixations=None):
-        ''' 
-        Description: Visualize scan path for a given stimulus.
+    ''' 
+    Description: Visualize scan path for a given stimulus.
+    Arguments:
+    stimn: stimulus index.
+    ax: if not provided, a new figure is created.
+    alpha: Transparency level for scan path. Defaults to 0.5.
+    allS:  Default=True, visualize scan paths for all participants; otherwise specify participant index.
+    scan_path_col: Color for the scan path. Defaults to 'salmon'.
+    fixation_col: Color for fixation points. Defaults to 'blue'.
+    VisFix: Default=False. If True, Visualize fixations with scatter points.
+    num_fixations: Number of fixations to visualize. If not provided all fixations will be enumerated.
+    Returns:
+    '''
+    if ax is None:
+        fig, ax = plt.subplots()
+    ax.imshow(self.images[self.stimuli[stimn]])
 
-        Arguments:
-        - stimn (int): Index of the stimulus.
-        - ax (matplotlib.axes._subplots.AxesSubplot, optional): If provided, the scan path will be plotted on the specified axis; 
-          otherwise, a new figure and axis will be created.
-        - alpha (float, optional): Transparency level for the scan path. Defaults to 0.5.
-        - allS (bool or int, optional): If True (default), visualize scan paths for all participants; 
-          otherwise, specify the participant index as an integer.
-        - scan_path_col (str, optional): Color for the scan path. Defaults to 'salmon'.
-        - fixation_col (str, optional): Color for fixation points. Defaults to 'blue'.
-        - visFix (bool, optional): If True, visualize fixations with scatter points. Defaults to False.
-        - num_fixations (int, optional): Number of fixations to visualize. 
-          If not provided or set to None, all fixations will be enumerated.
-
-        Returns:
-        None
-        '''
-        if ax is None:
-            fig, ax = plt.subplots()
-        
-        ax.imshow(self.images[self.stimuli[stimn]])
-
-        if type(allS) == bool:
-            for cs in range(self.ns):
-                fixx, fixy = self.GetFixationData(self.subjects[cs], self.stimuli[stimn])
-                ax.plot(fixx, fixy, alpha=alpha, color=scan_path_col)
-                if visFix:
-                    ax.scatter(fixx, fixy, color=fixation_col, alpha=alpha)
-
-                # Enumerate all fixations by default
-                num_fixations = len(fixx) if num_fixations is None else num_fixations
-
-                for i, (x, y) in enumerate(zip(fixx[:num_fixations], fixy[:num_fixations])):
-                    ax.text(x, y, str(i + 1), color=fixation_col, fontsize=8, ha='center', va='center')
-
-        else:
-            fixx, fixy = self.GetFixationData(self.subjects[allS], self.stimuli[stimn])
+    if type(allS) == bool:
+        for cs in range(self.ns):
+            fixx, fixy = self.GetFixationData(self.subjects[cs], self.stimuli[stimn])
             ax.plot(fixx, fixy, alpha=alpha, color=scan_path_col)
             if visFix:
-                ax.scatter(fixx, fixy, color=fixation_col, alpha=alpha)
+                ax.scatter(fixx, fixy, color=fixation_col, alpha=alpha, s=20)
 
             # Enumerate all fixations by default
             num_fixations = len(fixx) if num_fixations is None else num_fixations
 
             for i, (x, y) in enumerate(zip(fixx[:num_fixations], fixy[:num_fixations])):
-                ax.text(x, y, str(i + 1), color=fixation_col, fontsize=8, ha='center', va='center')
+                ax.text(x, y, str(i + 1), color="white", fontsize=10, ha='center', va='center')
 
-        ax.set_xlim([0, self.x_size])
-        ax.set_ylim([self.y_size, 0])
-        ax.set_xticks([])
-        ax.set_yticks([])
+    else:
+        fixx, fixy = self.GetFixationData(self.subjects[allS], self.stimuli[stimn])
+        ax.plot(fixx, fixy, alpha=alpha, color=scan_path_col)
+        if visFix:
+            ax.scatter(fixx, fixy, color=fixation_col, alpha=alpha, s=20)
 
-        
-# def VisScanPath(self,stimn,ax=False,alpha=.5,allS=True,col='salmon',visFix=False):
-#     ''' 
-#     Description: Visualize scan path for a given stimulus.
+        # Enumerate all fixations by default
+        num_fixations = len(fixx) if num_fixations is None else num_fixations
 
-#     Arguments:
-#     stimn: stimulus index.
-#     ax: if not provided, a new figure is created.
-#     alpha: Transparency level for scan path. Defaults to 0.5.
-#     allS:  Default=True, visualize scan paths for all participants; otherwise specify participant index.
-#     col: Color for the scan path, default color is salmon
-#     VisFix: Default=False. If True, Visualize fixations with scatter points.
+        for i, (x, y) in enumerate(zip(fixx[:num_fixations], fixy[:num_fixations])):
+            ax.text(x, y, str(i + 1), color="white", fontsize=10, ha='center', va='center')
 
-#     Returns:
-#     '''
-
-#     if ax==False:
-#         fig,ax=plt.subplots()
-#     ax.imshow(self.images[self.stimuli[stimn]])  
-#     if type(allS)==bool:
-#         for cs in range(self.ns):
-#             fixx,fixy=self.GetFixationData(self.subjects[cs],self.stimuli[stimn])
-#             ax.plot(fixx,fixy,alpha=alpha,color=col)
-#             if visFix:
-#                 ax.scatter(fixx,fixy,color='gray',alpha=alpha)
-        
-#     else:
-#         fixx,fixy=self.GetFixationData(self.subjects[allS],self.stimuli[stimn])
-#         ax.plot(fixx,fixy,alpha=alpha,color=col)
-#         if visFix:
-#             ax.scatter(fixx,fixy,color='gray',alpha=alpha)
-#     ax.set_xlim([0,self.x_size])
-        
-#     ax.set_ylim([self.y_size,0])
-#     ax.set_xticks([])
-#     ax.set_yticks([])
+    ax.set_xlim([0, self.x_size])
+    ax.set_ylim([self.y_size, 0])
+    ax.set_xticks([])
+    ax.set_yticks([])
 
 def MyTrainTestVis(self, DatTr,DatTest,lenTrain,lenTest,totest=0):    
     ''' make figure for training test - set visualization'''
@@ -206,3 +163,5 @@ def MySaccadeVis(self,ax,XYdat,lengths,title='',alpha=1):
     return
         
 
+
+# %%
