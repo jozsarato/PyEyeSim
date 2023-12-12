@@ -53,11 +53,11 @@ def VisHMM(self,dat,hmmfitted,ax=0,showim=1,stim=0,lengths=0,incol=False):
        fig,ax= plt.subplots()
     if showim:
         ax.imshow(self.images[stim])
-        alph=.5
+        alph=.8
     else:
-        alph=.2
+        alph=.8
     if np.shape(dat)[0]>200:
-        alph=.1
+        alph=.6
 
     preds=hmmfitted.predict(dat,lengths)
 

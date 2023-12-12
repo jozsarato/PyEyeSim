@@ -25,8 +25,9 @@ from .statshelper import SaliencyMapFilt,SaccadesTrial,ScanpathL,StatEntropy
 
 
 class EyeData:
-    from ._visuals import VisScanPath,MySaccadeVis,VisLOOHMM,VisHMM,MyTrainTestVis,MySaccadeVis
-    from ._dataproc import GetParams,GetStimuli,GetFixationData,GetDurations,GetGroups,GetCats,GetSaccades,SaccadeSel,GetEntropies,InferSize
+	
+    from ._visuals import VisScanPath,MySaccadeVis,VisLOOHMM,VisHMM,MyTrainTestVis
+    from ._dataproc import GetParams,GetStimuli,GetFixationData,GetDurations,GetGroups,GetCats,GetSaccades,SaccadeSel,GetEntropies,InferSize,Heatmap
     from ._stats import AngleCalc,AngtoPix,PixdoDeg,Entropy,FixDurProg,BinnedCount
     try: 
     	from ._hmm import DataArrayHmm,MyTrainTest,FitLOOHMM,FitVisHMM,FitVisHMMGroups,HMMSimPipeline
@@ -209,65 +210,7 @@ class EyeData:
             FixCountInd=FixCountInd[:,int(np.round(self.boundsY[stimn,0])):int(np.round(self.boundsY[stimn,1])),:] # cut Y
         return FixCountInd
    
-    
-    def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax=False,alpha=.5,center=0):
-        ''' Pipeline for  heatmap calculation, FixCounts are calculated for stimulus, or passed pre-calcualted as optional parameter
-        output: heatmap for a stimulus
-        cutarea option: 1 only use active area (99% percentile of fixations), 0- use all of the area 
-        cutoff=median: median cutoff, otherwise percetile of values to replace with nans, goal--> clear visualization
-        center, if pixel coordinates dont match, painting presented centrally, but gaze coors are zero based'''
-      #  if hasattr(self,'fixcounts'):
-       #     FixCountIndie=self.fixcounts['Stim']
-        #else:    
-        stimn=np.nonzero(self.stimuli==Stim)[0]
-        if hasattr(self,'boundsX')==False:
-            print('run RunDescriptiveFix first- without visuals')
-            self.RunDescriptiveFix()
-        if type(FixCounts)==int:
-            if CutArea:
-                FixCounts=self.FixCountCalc(Stim,CutAct=1) 
-            else:
-                FixCounts=self.FixCountCalc(Stim,CutAct=0) 
-        assert np.sum(FixCounts)>0,'!!no fixations found'
- 
-        if np.sum(FixCounts)<10:
-            print('WARNING NUM FIX FOUND: ',np.sum(FixCounts))
-        if Ind==0:
-            smap=SaliencyMapFilt(FixCounts,SD=SD,Ind=0)
-            if cutoff=='median':
-                 cutThr=np.median(smap)
-            elif cutoff>0:
-                 cutThr=np.percentile(smap,cutoff) 
-            else:
-                cutThr=0
-            if CutArea:
-                smapall=np.zeros((self.y_size,self.x_size))
-                smapall[int(self.boundsY[stimn,0]):int(self.boundsY[stimn,1]),int(self.boundsX[stimn,0]):int(self.boundsX[stimn,1])]=smap
-            else:
-                smapall=np.copy(smap)
-        else:
-            smap=np.zeros_like(FixCounts)
-            for cs,s in enumerate(self.subjects):
-                smap[cs,:,:]=SaliencyMapFilt(FixCounts[cs,:,:],SD=SD,Ind=1)       
-        if Vis:
-            smapall[smapall<cutThr]=np.NAN  # replacing below threshold with NAN
-            xs1=(self.x_size-np.shape(self.images[Stim])[1])/2
-            xs2=self.x_size-xs1
-            ys1=(self.y_size-np.shape(self.images[Stim])[0])/2
-            ys2=self.y_size-ys1
-            if ax==False:
-                fig,ax=plt.subplots()
-            if center:
-                ax.imshow(self.images[Stim],extent=[xs1,xs2,ys2,ys1])
-            else:
-                ax.imshow(self.images[Stim])
-            ax.imshow(smapall,alpha=.5) 
-            ax.set_xticks([])
-            ax.set_yticks([])
-
-                
-        return smapall
-    
+  
   
     
    

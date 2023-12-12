@@ -87,7 +87,7 @@ def FitLOOHMM(self,ncomp,stim,covar='full',verb=False):
         HMMfitted,sctr,scte=FitScoreHMMGauss(ncomp,DatTr,DatTest,lenTrain,lenTest,covar=covar)
         ScoresLOO[cs]=scte
     return Dat,lengths,ScoresLOO
-def FitVisHMM(self,stim,ncomp=3,covar='full',ax=0,ax2=0,NTest=5,showim=True,verb=True,incol=False,vis=True):
+def FitVisHMM(self,stim,ncomp=3,covar='full',ax=0,ax2=0,NTest=5,showim=True,verb=False,incol=False,vis=True):
     ''' fit and visualize HMM -- beta version
     different random train - test split for each iteration-- noisy results'''
     xx,yy,lengths=self.DataArrayHmm(stim,tolerance=80,verb=verb)
@@ -106,10 +106,11 @@ def FitVisHMM(self,stim,ncomp=3,covar='full',ax=0,ax2=0,NTest=5,showim=True,verb
             fig,ax2=plt.subplots()
         self.VisHMM(DatTr,HMMfitted,ax=ax,showim=showim,stim=stim,lengths=lenTrain,incol=incol)
         ax.set_title('n: '+str(ncomp)+' train ll: '+str(np.round(meanscore,2))+' test ll: '+str(np.round(meanscoreTe,2)),fontsize=9)
-        ax2.scatter(ncomp,meanscore,color='g')
-        ax2.scatter(ncomp,meanscoreTe,color='r')
+        ax2.scatter(ncomp,meanscore,color='g',label='training')
+        ax2.scatter(ncomp,meanscoreTe,color='r',label='test')
         ax2.set_xlabel('num components')
         ax2.set_ylabel('log likelihood')
+        ax2.legend()
 
   
     return HMMfitted,meanscore,meanscoreTe
