@@ -25,6 +25,9 @@ from .statshelper import SaliencyMapFilt,SaccadesTrial,ScanpathL,StatEntropy
 
 
 class EyeData:
+	''' initalizing eye data object:
+        provide name, design, data, and screen size info
+        fixdata=1, fixation data expected for most functionalities, otherwise saccade data '''
     from ._visuals import VisScanPath,MySaccadeVis,VisLOOHMM,VisHMM,MyTrainTestVis
     from ._dataproc import GetParams,GetStimuli,GetFixationData,GetDurations,GetGroups,GetCats,GetSaccades,SaccadeSel,GetEntropies,InferSize,Heatmap
     from ._stats import AngleCalc,AngtoPix,PixdoDeg,Entropy,FixDurProg,BinnedCount
@@ -34,9 +37,7 @@ class EyeData:
     	print('hmmlearn not found, hidden markov model functionality will not work')
 
     def __init__(self, name, design,data,x_size,y_size,fixdata=1):
-        ''' initalizing eye data object:
-        provide name, design, data, and screen size info
-        fixdata=1, fixation data expected for most functionalities, otherwise saccade data '''
+        
         self.name = name
         self.design = design
         self.data=data
