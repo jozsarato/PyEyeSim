@@ -3,6 +3,9 @@ import numpy as np
 from numpy import matlib
 from scipy import stats,ndimage
 import pandas as pd
+import matplotlib.pyplot as plt
+from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,SaccadeLine,CalcSim ,CheckCoor
+from .statshelper import SaliencyMapFilt,SaccadesTrial,ScanpathL,StatEntropy
 
 
 
@@ -97,6 +100,8 @@ def BinnedCount(self,Fixcounts,Stim,fixs=1,binsize_h=50,binsize_v=None):
         for cy,y in enumerate(BinsV):
             BinnedCount[cy,cx]=np.sum(Fixcounts[int(y_size_start+cy*binsize_v):int(y),int(x_size_start+cx*binsize_h):int(x)])
     return BinnedCount
+
+
 def CalcStatPs(self,nHor,nVer,MinFix=20,InferS=1):
     ''' for a dataset, return number of fixation and static probability matrix, for given divisions
     returns StatPMat: nsubject*nstimulus*nvertical*nhorizontal '''
@@ -117,5 +122,99 @@ def CalcStatPs(self,nHor,nVer,MinFix=20,InferS=1):
                 statPMat[cs,cp,:,:]=np.NAN
             
     return statPMat,statEntropyMat
+
+    
+def StatPDiffInd1(self,statPMat):
+    StatIndDiff=np.zeros(((self.np,self.ns,self.ns)))
+    for cp,p in enumerate(self.stimuli):   
+        for cs1,s1 in enumerate(self.subjects):
+            for cs2,s2 in enumerate(self.subjects):
+                  StatIndDiff[cp,cs1,cs2]=np.nansum((statPMat[cs1,cp,:,:]-statPMat[cs2,cp,:,:])**2)
+    return StatIndDiff
+ 
+def StatPDiffInd2(self,BindAll):
+    StatIndDiff=np.zeros(((self.np,self.ns,self.ns)))
+    for cp,p in enumerate(self.stimuli):   
+        for cs1,s1 in enumerate(self.subjects):
+            for cs2,s2 in enumerate(self.subjects):
+                 StatIndDiff[cp,cs1,cs2]=np.nansum((BindAll[cp][cs1,:,:]-BindAll[cp][cs2,:,:])**2)
+    return StatIndDiff
+
+
+def GetInddiff(self,nHor,nVer,Vis=0,zscore=0,InferS=1):
+    ''' N DIVISION BASED. calculate individual similarity between all pairs of participants for all stimuli, for a given division'''
+    statPMat,statEntropyMat=self.CalcStatPs(nHor,nVer,InferS=InferS)
+ 
+    Inddiff=self.StatPDiffInd1(statPMat)
+    Indmean=np.nanmean(Inddiff,2)
+    SD=np.nanstd(Indmean,1)
+    Indmean=np.nanmean(Indmean,1)
+    if Vis:
+        fig,ax=plt.subplots(figsize=(self.ns/4,4))
+        if zscore:
+            ax.scatter(np.arange(self.np),(Indmean-np.mean(Indmean))/np.std(Indmean),marker='o')
+        else:
+            ax.scatter(np.arange(self.np),Indmean,marker='o')
+        ax.set_xticks(np.arange(self.np),self.stimuli,rotation=80,fontsize=12)
+        ax.set_xlabel('Stimuli',fontsize=14)
+        if zscore==1:
+            ax.set_ylabel('fixation map relative difference',fontsize=14)
+        else:
+            ax.set_ylabel('fixation map difference',fontsize=14)
+    return Indmean
+  
+
+def GetInddiff_v2(self,size=50,Vis=0,fixs=0):
+    ''' PIXEl; NUMBER BASED; calculate individual similarity between all pairs of participants for all stimuli, for a given division'''
+    statPMat=self.GetBinnedStimFixS(size=size,fixs=fixs)
+    Inddiff=self.StatPDiffInd2(statPMat)
+    Indmean=np.nanmean(Inddiff,2)
+    SD=np.nanstd(Indmean,1)
+    Indmean=np.nanmean(Indmean,1)
+    if Vis:
+        fig,ax=plt.subplots(figsize=(self.ns/4,4))
+
+        #plt.errorbar(np.arange(self.np),Indmean,SD,marker='o',linestyle='none')
+        ax.scatter(np.arange(self.np),Indmean,marker='o')
+        ax.set_xticks(np.arange(self.np),self.stimuli,rotation=80,fontsize=12)
+        ax.set_xlabel('Stimuli',fontsize=14)
+        ax.set_ylabel('fixation map difference',fontsize=14)
+    return Indmean
+  
+
+def GetBinnedStimFixS(self,size=50,fixs=1):
+    ''' fixs=1: use full stimulus area
+    fixs=0: use active area with 99% fixations '''
+    BindAll=[]
+    for cp,p in enumerate(self.stimuli):
+        Fixcounts=self.FixCountCalc(p,CutAct=0)
+        print('array size',np.round((Fixcounts.nbytes/1024)/1024,2),'MB')
+        binIndC=self.BinnedCount(Fixcounts[0],p,fixs=fixs,binsize_h=size)
+        BinDims=np.shape(binIndC)
+       # print(cp,BinDims)
+        BindAll.append(np.zeros(((self.ns,BinDims[0],BinDims[1]))))
+        for cs,s in enumerate(self.subjects):
+            BindAll[cp][cs,:,:]=self.BinnedCount(Fixcounts[cs],p,fixs=fixs,binsize_h=size)    
+            BindAll[cp][cs,:,:]/=np.sum(BindAll[cp][cs,:,:])
+    return BindAll
+
+
+def RunDiffDivs(self,mindiv,maxdiv,Vis=1):
+    ''' run grid based fixation map comparison from 
+    mindiv*mindiv 
+    to maxdiv *maxdiv number of divisions
+    vis=1: visualized mean similarity'''
+    if Vis:
+        fig,ax=plt.subplots()
+       # plt.figure()
+    DiffsRaw=np.zeros((self.np,maxdiv-mindiv))
+    DiffsZscore=np.zeros((self.np,maxdiv-mindiv))
+    for cdiv,divs in enumerate(np.arange(mindiv,maxdiv)):
+        DiffsRaw[:,cdiv]=self.GetInddiff(divs,divs,Vis=Vis,zscore=1)
+        DiffsZscore[:,cdiv]=(DiffsRaw[:,cdiv]-np.mean(DiffsRaw[:,cdiv]))/np.std(DiffsRaw[:,cdiv])
+    if Vis:
+        ax.errorbar(np.arange(self.np),np.mean(DiffsZscore,1),np.std(DiffsZscore,1),linestyle='none',color='k',marker='o',markersize=5)
+    return DiffsZscore,DiffsRaw
+
 
 
