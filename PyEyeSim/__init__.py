@@ -78,8 +78,20 @@ class EyeData:
     
     
     def DataInfo(self,Stimulus='Stimulus',subjectID='subjectID',mean_x='mean_x',mean_y='mean_y',FixDuration=0,StimPath=0,StimExt='.jpg',infersubpath=False):
-        ''' the library expects column names Stimulus, subjectID, mean_x and mean_y, if you data is not in this format, this function will rename your columns accordingly 
-         optionally, with FixDuration you can name your column of fixations lengths, which will be called duration afterwards'''
+        ''' 
+        Description: Provide information about amount of stimuli and subjects.
+        Arguments:
+        Stimulus (str): Column name for stimulus information in the eye-tracking data.
+        subjectID (str): Column name for subject ID information in the eye-tracking data.
+        mean_x (str): Column name for mean x-coordinate of fixations in the eye-tracking data.
+        mean_y (str): Column name for mean y-coordinate of fixations in the eye-tracking data.
+        FixDuration (int or str): Column name or integers for fixation duration in the eye-tracking data.
+            If an integer, fixation duration column is assumed absent. It will be renamed "duration" afterwards
+        StimPath (str): Path to stimuli. Set to 0 if not provided.
+        StimExt (str): File extension of stimuli (default: '.jpg').
+        infersubpath (bool): Flag to infer stimulus subpaths based on subject IDs (default: False).
+        '''
+
        # print(type(FixDuration))
        
         if self.fixdata:
@@ -109,15 +121,19 @@ class EyeData:
           # except:   
            #    print('stimuli not found')
         pass
-  
-    
-    
-    
    
     
 
     def RunDescriptiveFix(self,Visual=0,duration=0):
-        ''' for a dataset, return number of fixation, inferred stim boundaries and mean and SD of fixation locatios '''
+        '''
+        Description:  Calculate descriptive statistics for fixation data in dataset.
+
+        Arguments:
+        Visual (int): Flag indicating whether to generate visual plots (default: 0). Use 1 to show plots.
+        duration (int): Flag indicating whether fixation duration data is present (default: 0). Use one if fixation duration is present.  
+        
+        Returns: Mean fixation number, Number of valid fixations, inferred stim boundaries and mean and SD of fixation locations, mean Saccade amplitude, mean scanpath length.
+        '''
         
         Subjects,Stimuli=self.GetParams()
         print('Data for ',len(self.subjects),'observers and ', len(self.stimuli),' stimuli.')
@@ -208,11 +224,27 @@ class EyeData:
    
     
     def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax=False,alpha=.5,center=0):
-        ''' Pipeline for  heatmap calculation, FixCounts are calculated for stimulus, or passed pre-calcualted as optional parameter
+        '''
+        Description:  Generate a heatmap for a stimulus based on fixation data.
+        
+        Arguments:
+        Stim (str): The stimulus for which the heatmap is generated.
+        SD (int): Standard deviation for the Gaussian filter in the saliency map (default: 25).
+        Ind (int): Flag indicating whether to calculate individual subject saliency maps (default: 0).
+        Vis (int): Flag indicating whether to visualize the heatmap (default: 0).
+        FixCounts (array-like or int): Fixation counts data. If int, FixCounts are calculated for the stimulus.or passed pre-calcualted as optional parameter
+        cutoff (str or float): Cutoff method for the saliency map. Options: 'median', percentile value, or 0 for no cutoff (default: 'median').
+        CutArea (int): Flag indicating whether to use only the active area for fixation counts (default: 0). Use 1 only use active area (99% percentile of fixations).
+        ax (matplotlib.axes._subplots.AxesSubplot or bool): Matplotlib axes to use for visualization or False to create a new plot (default: False).
+        alpha (float): Alpha value for overlaying the heatmap on the stimulus image (default: 0.5).
+        center (int): Flag indicating whether to center the image if pixel coordinates don't match (default: 0).
+        
+        Pipeline for  heatmap calculation, FixCounts are calculated for stimulus, or passed pre-calcualted as optional parameter
         output: heatmap for a stimulus
         cutarea option: 1 only use active area (99% percentile of fixations), 0- use all of the area 
         cutoff=median: median cutoff, otherwise percetile of values to replace with nans, goal--> clear visualization
-        center, if pixel coordinates dont match, painting presented centrally, but gaze coors are zero based'''
+        center, if pixel coordinates dont match, painting presented centrally, but gaze coors are zero based
+        '''
       #  if hasattr(self,'fixcounts'):
        #     FixCountIndie=self.fixcounts['Stim']
         #else:    
@@ -687,3 +719,5 @@ class EyeData:
 #  class ends here    
 
 
+
+# %%

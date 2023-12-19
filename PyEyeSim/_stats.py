@@ -35,8 +35,14 @@ def Entropy(self,BinnedCount,base=None):
     return EntrBinned,entrMax
 
 def FixDurProg(self,nfixmax=10,Stim=0,Vis=1):
-    ''' within trial fixation duration progression
-    nfixmax controls the first n fixations to compare'''
+    '''
+    Description: Calculate and visualize fixation duration progression within trials. 
+    
+    Arguments: 
+    nfixmax (int): Controls the maximum number of fixations to consider in the progression (default: 10).
+    Stim (str or int): The stimulus for which to analyze fixation duration progression. If 0, analyze all stimuli (default: 0).
+    Vis (int): Flag indicating whether to visualize the fixation duration progression (default: 1).
+    '''
     self.durprog=np.zeros((self.ns,self.np,nfixmax))
     self.durprog[:]=np.NAN
     for cs,s in enumerate(self.subjects):
