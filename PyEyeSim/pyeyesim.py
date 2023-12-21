@@ -285,11 +285,27 @@ class EyeData:
    
     
     def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax=False,alpha=.5,center=0):
-        ''' Pipeline for  heatmap calculation, FixCounts are calculated for stimulus, or passed pre-calcualted as optional parameter
+        '''
+        Description:  Generate a heatmap for a stimulus based on fixation data.
+        
+        Arguments:
+        Stim (str): The stimulus for which the heatmap is generated.
+        SD (int): Standard deviation for the Gaussian filter in the saliency map (default: 25).
+        Ind (int): Flag indicating whether to calculate individual subject saliency maps (default: 0).
+        Vis (int): Flag indicating whether to visualize the heatmap (default: 0).
+        FixCounts (array-like or int): Fixation counts data. If int, FixCounts are calculated for the stimulus.or passed pre-calcualted as optional parameter
+        cutoff (str or float): Cutoff method for the saliency map. Options: 'median', percentile value, or 0 for no cutoff (default: 'median').
+        CutArea (int): Flag indicating whether to use only the active area for fixation counts (default: 0). For example use '1' to showactive area 99% percentile of fixations.
+        ax (matplotlib.axes._subplots.AxesSubplot or bool): Matplotlib axes to use for visualization or False to create a new plot (default: False).
+        alpha (float): Alpha value for overlaying the heatmap on the stimulus image (default: 0.5).
+        center (int): Flag indicating whether to center the image if pixel coordinates don't match (default: 0).
+        
+        Pipeline for  heatmap calculation, FixCounts are calculated for stimulus, or passed pre-calcualted as optional parameter
         output: heatmap for a stimulus
         cutarea option: 1 only use active area (99% percentile of fixations), 0- use all of the area 
         cutoff=median: median cutoff, otherwise percetile of values to replace with nans, goal--> clear visualization
-        center, if pixel coordinates dont match, painting presented centrally, but gaze coors are zero based'''
+        center, if pixel coordinates dont match, painting presented centrally, but gaze coors are zero based
+        '''
       #  if hasattr(self,'fixcounts'):
        #     FixCountIndie=self.fixcounts['Stim']
         #else:    

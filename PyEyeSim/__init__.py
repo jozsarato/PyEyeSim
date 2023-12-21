@@ -35,9 +35,17 @@ class EyeData:
     	print('hmmlearn not found, hidden markov model functionality will not work')
 
     def __init__(self, name, design,data,x_size,y_size,fixdata=1):
-        ''' initalizing eye data object:
-        provide name, design, data, and screen size info
-        fixdata=1, fixation data expected for most functionalities, otherwise saccade data '''
+        ''' 
+        Description: initalizing eye-tracking data object.
+        
+        Arguments:
+        name (str): A name associated with the eye-tracking data.
+        design (str): Information about the study design.
+        data (pandas.DataFrame): The eye-tracking data.
+        x_size (int): Screen size in pixels (width).
+        y_size (int): Screen size in pixels (height).
+        fixdata (int, optional): Indicator for fixation data (1) or saccade data (0). Default is 1 as fixation data are expected for most functionalities. 
+        '''
         self.name = name
         self.design = design
         self.data=data
@@ -68,22 +76,36 @@ class EyeData:
             except:
                 print(df," not found !!, provide column as", df,"=YourColumn , default: ",DefColumns[df])
     def info(self):
-        ''' return dataset, name design info 
-        print screen info '''
+        ''' 
+         Description: prints screen information, dataset name and study design. 
+        '''
         print('screen x_size',self.x_size)
         print('screen y_size',self.y_size)
         print(self.name)
         print(self.design,'design')
 
     def data(self):
-        ''' return data'''
+        ''' 
+        Description: shows dataset.
+        '''
         return self.data
     
     
     
     def DataInfo(self,Stimulus='Stimulus',subjectID='subjectID',mean_x='mean_x',mean_y='mean_y',FixDuration=0,StimPath=0,StimExt='.jpg',infersubpath=False):
-        ''' the library expects column names Stimulus, subjectID, mean_x and mean_y, if you data is not in this format, this function will rename your columns accordingly 
-         optionally, with FixDuration you can name your column of fixations lengths, which will be called duration afterwards'''
+        ''' 
+        Description: Provide information about amount of stimuli and subjects.
+        Arguments:
+        Stimulus (str): Column name for stimulus information in the eye-tracking data.
+        subjectID (str): Column name for subject ID information in the eye-tracking data.
+        mean_x (str): Column name for mean x-coordinate of fixations in the eye-tracking data.
+        mean_y (str): Column name for mean y-coordinate of fixations in the eye-tracking data.
+        FixDuration (int or str): Column name or integers for fixation duration in the eye-tracking data.
+            If an integer, fixation duration column is assumed absent. It will be renamed "duration" afterwards
+        StimPath (str): Path to stimuli. Set to 0 if not provided.
+        StimExt (str): File extension of stimuli (default: '.jpg').
+        infersubpath (bool): Flag to infer stimulus subpaths based on subject IDs (default: False).
+        '''
        # print(type(FixDuration))
        
         if self.fixdata:
@@ -121,7 +143,15 @@ class EyeData:
     
 
     def RunDescriptiveFix(self,Visual=0,duration=0):
-        ''' for a dataset, return number of fixation, inferred stim boundaries and mean and SD of fixation locatios '''
+        '''
+        Description:  Calculate descriptive statistics for fixation data in dataset.
+
+        Arguments:
+        Visual (int): Flag indicating whether to generate visual plots (default: 0). Use 1 to show plots.
+        duration (int): Flag indicating whether fixation duration data is present (default: 0). Use one if fixation duration is present.  
+        
+        Returns: Mean fixation number, Number of valid fixations, inferred stim boundaries and mean and SD of fixation locations, mean Saccade amplitude, mean scanpath length.
+        '''
         
         Subjects,Stimuli=self.GetParams()
         print('Data for ',len(self.subjects),'observers and ', len(self.stimuli),' stimuli.')
@@ -218,7 +248,12 @@ class EyeData:
    
 
     def CompareGroupsFix(self,betwcond):
-        '''run set of between group fixation comparisons, makes plots and prints descriptive stats'''
+        '''
+        Description: Run a set of between-group fixation comparisons, generate plots, and print descriptive statistics.
+        
+        Arguments: 
+        betwcond (str): Name of the conditions for between-group fixation comparisons.
+        '''
         
         WhichC,WhichCN=self.GetGroups(betwcond)
         if hasattr(self,'entropies')==False:   # check if entropy has already been calculated
@@ -276,11 +311,18 @@ class EyeData:
     
     
     def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0):
-        ''' visualize group heatmap, along with heatmap difference 
-        SD optional parameter of heatmap smoothness, in pixels!
-        CutArea==1: use central area only with 99% of fixations
-        Conds==0: use automatically detected conditions conditions, as provided in betweencond column
-        othewise Conds=['MyCond1' MyCond2'], if we want to specify the order of access for betweencond column '''
+        ''' 
+        Description: visualize group heatmap, along with heatmap difference.
+
+        Arguments:
+        Stim (str): The stimulus for which the heatmap is generated.
+        betwcond (str): The condition for between-group heatmap comparison.
+        StimPath (str, optional): Path to the stimulus. Default is an empty string.
+        SD (int, optional): Optional parameter for heatmap smoothness, in pixels. Default is 25.
+        CutArea (int, optional): Cut fixations. For example if you use '1', it shows 99% percentile of fixations. Default is 0.
+        Conds (int or list, optional): use automatically detected conditions conditions, as provided in betweencond column
+            othewise Conds=['MyCond1' MyCond2'], if we want to specify the order of access for betweencond column.
+        '''
         WhichC,WhichCN=self.GetGroups(betwcond)
         if hasattr(self,'subjects')==0:
             self.GetParams()    
@@ -336,8 +378,12 @@ class EyeData:
     
     
     def CompareWithinGroupsFix(self,withinColName):
-        '''run set of within group fixation comparisons, makes plots and prints descriptive stats
-        THIS IS IMPCOMPLETE EXPLANATION'''
+        '''
+        Description: Run fixation comparisons within groups defined by a category column. Makes plots and prints descriptive stats.
+        
+        Arguments:
+        withinColName (str): The name of the categorical column defining groups for analysis.
+        '''
         
         WhichC=self.GetCats(withinColName)
 
@@ -373,7 +419,12 @@ class EyeData:
     
     
     def FixDurProgGroups(self,withinColName,nfixmax=10):
-        ''' ADD DOCSTRING
+        ''' 
+        Description: Calculate and visualize fixation duration progression within groups defined by a category column.
+
+        Arguments:
+        withinColName (str): The name of the category column defining groups for analysis.
+        nfixmax (int): The maximum number of fixations to consider in the progression (default: 10).
         '''
         self.FixDurProg(nfixmax=nfixmax,Stim=0,Vis=0)
         WhichC=self.GetCats(withinColName)
