@@ -6,7 +6,8 @@ import pandas as pd
 
 
 
-def CheckCorr(AOIs,FixLoc):
+
+def CheckCoor(AOIs,FixLoc):
     ''' to check if fixation coordinates are within AOI'''  
     for coor in range(len(AOIs)-1):
         if (FixLoc>AOIs[coor]) and (FixLoc<=AOIs[coor+1]):

@@ -20,14 +20,15 @@ from matplotlib.patches import Ellipse
 import platform
 #%%
 from .visualhelper import VisBinnedProg,PlotDurProg,JointBinnedPlot,MeanPlot,draw_ellipse,HistPlot
-from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,SaccadeLine,CalcSim ,CheckCorr
+from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,SaccadeLine,CalcSim, CheckCoor
 from .statshelper import SaliencyMapFilt,SaccadesTrial,ScanpathL,StatEntropy
 
 
 class EyeData:
-    from ._visuals import VisScanPath,MySaccadeVis,VisLOOHMM,VisHMM,MyTrainTestVis,MySaccadeVis
-    from ._dataproc import GetParams,GetStimuli,GetFixationData,GetDurations,GetGroups,GetCats,GetSaccades,SaccadeSel,GetEntropies,InferSize
-    from ._stats import AngleCalc,AngtoPix,PixdoDeg,Entropy,FixDurProg,BinnedCount
+	
+    from ._visuals import VisScanPath,MySaccadeVis,VisLOOHMM,VisHMM,MyTrainTestVis
+    from ._dataproc import GetParams,GetStimuli,GetFixationData,GetDurations,GetGroups,GetCats,GetSaccades,SaccadeSel,GetEntropies,InferSize,Heatmap
+    from ._stats import AngleCalc,AngtoPix,PixdoDeg,Entropy,FixDurProg,BinnedCount,GetInddiff,GetInddiff_v2,RunDiffDivs,GetBinnedStimFixS,StatPDiffInd2,StatPDiffInd1,CalcStatPs
     try: 
     	from ._hmm import DataArrayHmm,MyTrainTest,FitLOOHMM,FitVisHMM,FitVisHMMGroups,HMMSimPipeline
     except:
@@ -209,65 +210,7 @@ class EyeData:
             FixCountInd=FixCountInd[:,int(np.round(self.boundsY[stimn,0])):int(np.round(self.boundsY[stimn,1])),:] # cut Y
         return FixCountInd
    
-    
-    def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax=False,alpha=.5,center=0):
-        ''' Pipeline for  heatmap calculation, FixCounts are calculated for stimulus, or passed pre-calcualted as optional parameter
-        output: heatmap for a stimulus
-        cutarea option: 1 only use active area (99% percentile of fixations), 0- use all of the area 
-        cutoff=median: median cutoff, otherwise percetile of values to replace with nans, goal--> clear visualization
-        center, if pixel coordinates dont match, painting presented centrally, but gaze coors are zero based'''
-      #  if hasattr(self,'fixcounts'):
-       #     FixCountIndie=self.fixcounts['Stim']
-        #else:    
-        stimn=np.nonzero(self.stimuli==Stim)[0]
-        if hasattr(self,'boundsX')==False:
-            print('run RunDescriptiveFix first- without visuals')
-            self.RunDescriptiveFix()
-        if type(FixCounts)==int:
-            if CutArea:
-                FixCounts=self.FixCountCalc(Stim,CutAct=1) 
-            else:
-                FixCounts=self.FixCountCalc(Stim,CutAct=0) 
-        assert np.sum(FixCounts)>0,'!!no fixations found'
- 
-        if np.sum(FixCounts)<10:
-            print('WARNING NUM FIX FOUND: ',np.sum(FixCounts))
-        if Ind==0:
-            smap=SaliencyMapFilt(FixCounts,SD=SD,Ind=0)
-            if cutoff=='median':
-                 cutThr=np.median(smap)
-            elif cutoff>0:
-                 cutThr=np.percentile(smap,cutoff) 
-            else:
-                cutThr=0
-            if CutArea:
-                smapall=np.zeros((self.y_size,self.x_size))
-                smapall[int(self.boundsY[stimn,0]):int(self.boundsY[stimn,1]),int(self.boundsX[stimn,0]):int(self.boundsX[stimn,1])]=smap
-            else:
-                smapall=np.copy(smap)
-        else:
-            smap=np.zeros_like(FixCounts)
-            for cs,s in enumerate(self.subjects):
-                smap[cs,:,:]=SaliencyMapFilt(FixCounts[cs,:,:],SD=SD,Ind=1)       
-        if Vis:
-            smapall[smapall<cutThr]=np.NAN  # replacing below threshold with NAN
-            xs1=(self.x_size-np.shape(self.images[Stim])[1])/2
-            xs2=self.x_size-xs1
-            ys1=(self.y_size-np.shape(self.images[Stim])[0])/2
-            ys2=self.y_size-ys1
-            if ax==False:
-                fig,ax=plt.subplots()
-            if center:
-                ax.imshow(self.images[Stim],extent=[xs1,xs2,ys2,ys1])
-            else:
-                ax.imshow(self.images[Stim])
-            ax.imshow(smapall,alpha=.5) 
-            ax.set_xticks([])
-            ax.set_yticks([])
-
-                
-        return smapall
-    
+  
   
     
    
@@ -466,8 +409,8 @@ class EyeData:
         WhichAOIH=np.zeros(NFix)
         WhichAOIV=np.zeros(NFix)
         for x in range(NFix):
-            WhichAOIH[x]=CheckCor(AOIboundsH,FixTrialX[x]) # store which horizontal AOI each fixation is
-            WhichAOIV[x]=CheckCor(AOIboundsV,FixTrialY[x]) # store which vertical AOI each fixation is
+            WhichAOIH[x]=CheckCoor(AOIboundsH,FixTrialX[x]) # store which horizontal AOI each fixation is
+            WhichAOIV[x]=CheckCoor(AOIboundsV,FixTrialY[x]) # store which vertical AOI each fixation is
     
         WhichAOI=np.zeros(NFix)
         WhichAOI[:]=np.NAN
@@ -481,98 +424,6 @@ class EyeData:
     
     
    
-    
-    def StatPDiffInd1(self,statPMat):
-        StatIndDiff=np.zeros(((self.np,self.ns,self.ns)))
-        for cp,p in enumerate(self.stimuli):   
-            for cs1,s1 in enumerate(self.subjects):
-                for cs2,s2 in enumerate(self.subjects):
-                      StatIndDiff[cp,cs1,cs2]=np.nansum((statPMat[cs1,cp,:,:]-statPMat[cs2,cp,:,:])**2)
-        return StatIndDiff
-     
-    def StatPDiffInd2(self,BindAll):
-        StatIndDiff=np.zeros(((self.np,self.ns,self.ns)))
-        for cp,p in enumerate(self.stimuli):   
-            for cs1,s1 in enumerate(self.subjects):
-                for cs2,s2 in enumerate(self.subjects):
-                     StatIndDiff[cp,cs1,cs2]=np.nansum((BindAll[cp][cs1,:,:]-BindAll[cp][cs2,:,:])**2)
-        return StatIndDiff
-    
-    
-    def GetInddiff(self,nHor,nVer,Vis=0,zscore=0,InferS=1):
-        ''' N DIVISION BASED. calculate individual similarity between all pairs of participants for all stimuli, for a given division'''
-        statPMat,statEntropyMat=self.CalcStatPs(nHor,nVer,InferS=InferS)
-     
-        Inddiff=self.StatPDiffInd1(statPMat)
-        Indmean=np.nanmean(Inddiff,2)
-        SD=np.nanstd(Indmean,1)
-        Indmean=np.nanmean(Indmean,1)
-        if Vis:
-            #plt.errorbar(np.arange(self.np),Indmean,SD,marker='o',linestyle='none')
-            if zscore:
-                plt.scatter(np.arange(self.np),(Indmean-np.mean(Indmean))/np.std(Indmean),marker='o')
-            else:
-                plt.scatter(np.arange(self.np),Indmean,marker='o')
-            plt.xticks(np.arange(self.np),self.stimuli,rotation=80,fontsize=12)
-            plt.xlabel('Stimuli',fontsize=14)
-            if zscore==1:
-                plt.ylabel('fixation map relative difference',fontsize=14)
-            else:
-                plt.ylabel('fixation map difference',fontsize=14)
-        return Indmean
-      
-    
-    def GetInddiff_v2(self,size=50,Vis=0,fixs=0):
-        ''' PIXEl; NUMBER BASED; calculate individual similarity between all pairs of participants for all stimuli, for a given division'''
-        statPMat=self.GetBinnedStimFixS(size=size,fixs=fixs)
-        Inddiff=self.StatPDiffInd2(statPMat)
-        Indmean=np.nanmean(Inddiff,2)
-        SD=np.nanstd(Indmean,1)
-        Indmean=np.nanmean(Indmean,1)
-        if Vis:
-            #plt.errorbar(np.arange(self.np),Indmean,SD,marker='o',linestyle='none')
-            plt.scatter(np.arange(self.np),Indmean,marker='o')
-            plt.xticks(np.arange(self.np),self.stimuli,rotation=80,fontsize=12)
-            plt.xlabel('Stimuli',fontsize=14)
-            plt.ylabel('fixation map difference',fontsize=14)
-        return Indmean
-      
-
-    def GetBinnedStimFixS(self,size=50,fixs=1):
-        ''' fixs=1: use full stimulus area
-        fixs=0: use active area with 99% fixations '''
-        BindAll=[]
-        for cp,p in enumerate(self.stimuli):
-            Fixcounts=self.FixCountCalc(p,CutAct=0)
-            print('array size',np.round((Fixcounts.nbytes/1024)/1024,2),'MB')
-            binIndC=self.BinnedCount(Fixcounts[0],p,fixs=fixs,binsize_h=size)
-            BinDims=np.shape(binIndC)
-           # print(cp,BinDims)
-            BindAll.append(np.zeros(((self.ns,BinDims[0],BinDims[1]))))
-            for cs,s in enumerate(self.subjects):
-                BindAll[cp][cs,:,:]=self.BinnedCount(Fixcounts[cs],p,fixs=fixs,binsize_h=size)    
-                BindAll[cp][cs,:,:]/=np.sum(BindAll[cp][cs,:,:])
-        return BindAll
-    
-    
-    def RunDiffDivs(self,mindiv,maxdiv,Vis=1):
-        ''' run grid based fixation map comparison from 
-        mindiv*mindiv 
-        to maxdiv *maxdiv number of divisions
-        vis=1: visualized mean similarity'''
-        if Vis:
-            fig,ax=plt.subplots()
-           # plt.figure()
-        DiffsRaw=np.zeros((self.np,maxdiv-mindiv))
-        DiffsZscore=np.zeros((self.np,maxdiv-mindiv))
-        for cdiv,divs in enumerate(np.arange(mindiv,maxdiv)):
-            DiffsRaw[:,cdiv]=self.GetInddiff(divs,divs,Vis=Vis,zscore=1)
-            DiffsZscore[:,cdiv]=(DiffsRaw[:,cdiv]-np.mean(DiffsRaw[:,cdiv]))/np.std(DiffsRaw[:,cdiv])
-        if Vis:
-            ax.errorbar(np.arange(self.np),np.mean(DiffsZscore,1),np.std(DiffsZscore,1),linestyle='none',color='k',marker='o',markersize=5)
-        return DiffsZscore,DiffsRaw
-    
-    
     
     
     
