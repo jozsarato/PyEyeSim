@@ -5,8 +5,9 @@ from scipy import stats,ndimage
 import pandas as pd
 import matplotlib.pyplot as plt
 from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,SaccadeLine,CalcSim ,CheckCoor
-from .statshelper import SaliencyMapFilt,SaccadesTrial,ScanpathL,StatEntropy
-
+from .statshelper import SaliencyMapFilt,SaccadesTrial,ScanpathL,StatEntropy,DiffMat
+from math import atan2, degrees
+from matplotlib.patches import  Circle
 
 
 def AngleCalc(self,ycm,viewD):
@@ -217,4 +218,48 @@ def RunDiffDivs(self,mindiv,maxdiv,Vis=1):
     return DiffsZscore,DiffsRaw
 
 
+def CalcRets(self,fixx,fixy,threshold,Vis=0,ax=0):
+    ''' this function calcualates return eye movements, immediate or later to a previously visited location, with a criterion, 
+    that distance from fix current to return location should be smaller, that distance of fix  1 back  and retun location..
+    it is only a return it is close, and closer than previous. (only relevant for late returns)'''
+    nr=0
+    xdiff=DiffMat(fixx)
+    ydiff=DiffMat(fixy)
+    difm=np.sqrt(xdiff+ydiff)
+    difm[np.tril_indices(len(fixx))]=np.NAN
+    smaller=difm<self.AngtoPix(threshold)
+    for ci in np.arange(2,len(fixx)):
+        smidx=np.nonzero(smaller[:,ci]==True)[0]
+        if len(smidx)>0:
+            Ret=False
+            for c in smidx:
+                if (difm[c,ci-1]>difm[c,ci])  and ((ci-c)>1):
+                    Ret=True     
+            if Ret:
+                nr+=1
+                if Vis:
+                    ax.scatter(fixx[ci],fixy[ci],color='r')
+    return nr
 
+def CalcImmRets(self,fixx,fixy,threshold,Vis=0,ax=0):
+    ''' this function calcualtes immediate return eye movements, additionaly as a control measure
+    it calcualtes the number of eye movements that are further away than threshold from fixation 1'''
+    nr=0
+    
+    pixthr=self.AngtoPix(threshold)
+    Dist1=np.sum(np.sqrt((fixx[1:]-fixx[0])**2+(fixy[1:]-fixy[0])**2)>pixthr)
+    Dist1Back=np.sqrt((fixx[1:]-fixx[:-1])**2+(fixy[1:]-fixy[:-1])**2)
+    Dist1Back=Dist1Back[1:]
+    Dist2Back=np.sqrt((fixx[2:]-fixx[:-2])**2+(fixy[2:]-fixy[:-2])**2)
+    
+    
+    immret=(Dist2Back<pixthr)&(Dist1Back>pixthr)
+    if Vis:
+        ax.scatter(fixx[2:][immret],fixy[2:][immret],color='m')
+        if np.sum(immret)==1:
+            circ=Circle((fixx[2:][immret],fixy[2:][immret]),radius=self.AngtoPix(threshold),edgecolor='b',facecolor='none',linestyle='--')
+            ax.add_patch(circ)
+        elif np.sum(immret)>1:
+            circ=Circle((fixx[2:][immret][0],fixy[2:][immret][0]),radius=pixthr,edgecolor='b',facecolor='none',linestyle='--')
+            ax.add_patch(circ)
+    return np.sum(immret),Dist1

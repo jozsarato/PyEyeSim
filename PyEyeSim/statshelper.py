@@ -48,3 +48,10 @@ def StatEntropy(StatP):
     return -np.sum(StatP*LogP)
 
 
+
+
+def DiffMat(x):
+    XX1=np.tile(x,len(x)).reshape(len(x),len(x))
+    XX2=np.repeat(x,len(x)).reshape(len(x),len(x))
+    return (XX1-XX2)**2
+
