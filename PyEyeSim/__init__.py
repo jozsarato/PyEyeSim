@@ -17,7 +17,8 @@ import xarray as xr
 import matplotlib.ticker as ticker
 from matplotlib.patches import Ellipse
 import platform
-#%%
+#% import  library helper functions
+
 from .visualhelper import VisBinnedProg,PlotDurProg,JointBinnedPlot,MeanPlot,draw_ellipse,HistPlot
 from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,SaccadeLine,CalcSim, CheckCoor
 from .statshelper import SaliencyMapFilt,SaccadesTrial,ScanpathL,StatEntropy
@@ -28,7 +29,7 @@ class EyeData:
     from ._visuals import VisScanPath,MySaccadeVis,VisLOOHMM,VisHMM,MyTrainTestVis
     from ._dataproc import GetParams,GetStimuli,GetFixationData,GetDurations,GetGroups,GetCats,GetSaccades,SaccadeSel,GetEntropies,InferSize,Heatmap
     from ._stats import AngleCalc,AngtoPix,PixdoDeg,Entropy,FixDurProg,BinnedCount,GetInddiff,GetInddiff_v2,RunDiffDivs,GetBinnedStimFixS,StatPDiffInd2,StatPDiffInd1,CalcStatPs,CalcRets,CalcImmRets
-    from ._comparegroups import CompareGroupsFix,CompareGroupsHeatmap,CompareWithinGroupsFix,FixDurProgGroups
+    from ._comparegroups import CompareGroupsFix,CompareGroupsHeatmap,CompareWithinGroupsFix,FixDurProgGroups,BinnedDescriptivesGroups
 
     try: 
     	from ._hmm import DataArrayHmm,MyTrainTest,FitLOOHMM,FitVisHMM,FitVisHMMGroups,HMMSimPipeline
@@ -339,36 +340,22 @@ class EyeData:
        ## function still missing
 
 
-    def BinnedDescriptivesGroups(self,withinColName):
-        ''' time-binned within trial descriptive progression, groups of stimuli'''
-        if hasattr(self,'binFixL')==False: 
-            print('run BinnedDescriptives first, than call this function for group wise visualization')
-        WhichC=self.GetCats(withinColName)
-        Colors=['navy','salmon','olive','orange','gray']
-        fig,ax=plt.subplots(nrows=3,ncols=1,figsize=(4,10))
-        for cc,c in enumerate(self.WithinConds):
-            Idx=np.nonzero(WhichC==c)[0]
-            axout=VisBinnedProg(self.tbins,np.nanmean(self.binFixL[:,Idx,:],1),'fixation duration (ms)',col=Colors[cc],label=c,axin=ax[0])
-            axout=VisBinnedProg(self.tbins,np.nanmean(self.saccadeAmp[:,Idx,:],1),'saccade ampl (pixel)',col=Colors[cc],label=c,axin=ax[1])
-            axout=VisBinnedProg(self.tbins,np.nanmean(self.totLscanpath[:,Idx,:],1),'scanpath length (pixel)',col=Colors[cc],label=c,axin=ax[2])
-            
-            ax1,ax2=JointBinnedPlot(self.tbins,np.nanmean(self.binFixL[:,Idx,:],1),np.nanmean(self.saccadeAmp[:,Idx,:],1),ylabel1='fixation duration (ms)',ylabel2='saccade ampl (pixel)')
-            ax1.set_title(c)
-            
+    def SacSimPipeline(self,divs=[4,5,7,9],Thr=5):
+        SaccadeObj=self.GetSaccades()
+        StimSims=np.zeros((len(divs),self.np))
+        StimSimsInd=np.zeros((len(divs),self.ns,self.np))
 
-        ax[0].legend()
-        ax[1].legend()
-        ax[2].legend()
-        plt.tight_layout()      
-        
-        
-        
-    
+        for cd,ndiv in enumerate(divs):
+            sacDivSel=self.SaccadeSel(SaccadeObj,ndiv)
+            SimSacP=self.SacSim1Group(sacDivSel,ndiv,Thr=Thr)
+            StimSimsInd[cd,:,:]=np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0)
+            StimSims[cd,:]=np.nanmean(np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0),0)
+        return StimSims,np.nanmean(StimSimsInd,0)
+   
 
-        
-    
 
-    
+
+
     def SacSim1Group(self,Saccades,nDiv,Thr=5):
         ''' calculate saccade similarity for each stimulus, betwween each pair of participants '''
         nHor,nVer=nDiv,nDiv
@@ -386,19 +373,8 @@ class EyeData:
                                         simsacn=CalcSim(Saccades[s1,p1,h,v],Saccades[s2,p1,h,v],Thr=Thr)
                                         SimSacP[s1,s2,p1,h,v]=simsacn/(len(Saccades[s1,p1,h,v])+len(Saccades[s2,p1,h,v]))
         return SimSacP
-    
-    def SacSimPipeline(self,divs=[4,5,7,9],Thr=5):
-        SaccadeObj=self.GetSaccades()
-        StimSims=np.zeros((len(divs),self.np))
-        StimSimsInd=np.zeros((len(divs),self.ns,self.np))
 
-        for cd,ndiv in enumerate(divs):
-            sacDivSel=self.SaccadeSel(SaccadeObj,ndiv)
-            SimSacP=self.SacSim1Group(sacDivSel,ndiv,Thr=Thr)
-            StimSimsInd[cd,:,:]=np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0)
-            StimSims[cd,:]=np.nanmean(np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0),0)
-        return StimSims,np.nanmean(StimSimsInd,0)
-   
+
 
 #  class ends here    
 
