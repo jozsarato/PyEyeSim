@@ -80,7 +80,7 @@ def CompareGroupsFix(self,betwcond):
     return 
 
     
-def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,Center=0):
+def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,Center=0,substring=False):
     ''' 
     Description: visualize group heatmap, along with heatmap difference.
 
@@ -94,17 +94,28 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
         othewise Conds=['MyCond1' MyCond2'], if we want to specify the order of access for betweencond column.
     center: if stimulus area does not start at pixel 0
     '''
+    if substring:
+        self.stimuli=self.stimuli.astype('str')
+        stimn=np.char.find(self.stimuli,Stim)
+        Stims=self.stimuli[stimn>-1]
+        stimn=np.nonzero(stimn>-1)[0]
+        stimShow=Stims[0]
+    else:
+        stimShow=Stim
+
+
+
     WhichC,WhichCN=self.GetGroups(betwcond)
     if hasattr(self,'subjects')==0:
         self.GetParams()    
     #Cols=['darkred','cornflowerblue']
-    plt.figure(figsize=(10,5))
+    fig,ax=plt.subplots(ncols=2,nrows=2,figsize=(10,8)) 
    # FixCounts=self.FixCountCalc(Stim)
     
     if CutArea:
-        FixCounts=self.FixCountCalc(Stim,CutAct=1) 
+        FixCounts=self.FixCountCalc(Stim,CutAct=1,substring=substring) 
     else:
-        FixCounts=self.FixCountCalc(Stim,CutAct=0) 
+        FixCounts=self.FixCountCalc(Stim,CutAct=0,substring=substring) 
     assert np.sum(FixCounts)>0,'!!no fixations found'
     hmaps=[]
     
@@ -115,34 +126,43 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
         Conditions=np.copy(Conds)
     for cc,c in enumerate(Conditions):
         Idx=np.nonzero(WhichCN==c)[0]   
-        plt.subplot(2,2,cc+1)
-        hmap=self.Heatmap(Stim,SD=SD,Ind=0,Vis=1,FixCounts=FixCounts[Idx,:,:],CutArea=CutArea,center=Center)
-        plt.title(c)
-        plt.colorbar()
+        hmap=self.Heatmap(Stim,SD=SD,Ind=0,Vis=1,FixCounts=FixCounts[Idx,:,:],CutArea=CutArea,center=Center,substring=substring,ax=ax[0,cc])
+        ax[0,cc].set_title(c)
+       # ax[0,cc].colorbar()
         hmaps.append(hmap)
-    plt.subplot(2,2,3)
     if hasattr(self,'images'):
-        plt.imshow( self.images[Stim])
+        
+        if Center:
+            xs1=(self.x_size-np.shape(self.images[stimShow])[1])/2
+            xs2=self.x_size-xs1
+            ys1=(self.y_size-np.shape(self.images[stimShow])[0])/2
+            ys2=self.y_size-ys1
+            ax[1,0].imshow(self.images[stimShow],extent=[xs1,xs2,ys2,ys1])
+
+        else:
+            ax[1,0].imshow( self.images[stimShow])
 
     Diff=hmaps[0]-hmaps[1]
     #plt.imshow(Diff,cmap='RdBu',alpha=.5)
     
-    plt.imshow(Diff,cmap='RdBu', vmin=-np.nanmax(np.abs(Diff)), vmax=np.nanmax(np.abs(Diff)),alpha=.5)
-    plt.xticks([])
-    plt.yticks([])
-    plt.title(str(Conditions[0])+' - '+str(Conditions[1]))
-    cbar=plt.colorbar()
+    im=ax[1,0].imshow(Diff,cmap='RdBu', vmin=-np.nanmax(np.abs(Diff)), vmax=np.nanmax(np.abs(Diff)),alpha=.5)
+    ax[1,0].set_xticks([])
+    ax[1,0].set_yticks([])
+    ax[1,0].set_title(str(Conditions[0])+' - '+str(Conditions[1]))
+    cbar=plt.colorbar(im,ax=ax[1,0])
     cbar.ax.get_yaxis().set_ticks([])
     cbar.ax.get_yaxis().labelpad = 15
     cbar.ax.set_ylabel(str(Conditions[0])+'<---->'+str(Conditions[1]), rotation=270)
-    plt.subplot(2,2,4)
     if hasattr(self,'images'):
-        plt.imshow( self.images[Stim])
-    plt.imshow(np.abs(Diff), vmin=0, vmax=np.nanmax(np.abs(Diff)),alpha=.5)
-    plt.xticks([])
-    plt.yticks([])
-    plt.colorbar()
-    plt.title('Absolute diff: '+str(np.round(np.nansum(np.abs(Diff)),3)))
+        if Center:
+            ax[1,1].imshow( self.images[stimShow],extent=[xs1,xs2,ys2,ys1])
+        else:
+            ax[1,1].imshow( self.images[stimShow])
+    im=ax[1,1].imshow(np.abs(Diff), vmin=0, vmax=np.nanmax(np.abs(Diff)),alpha=.5)
+    ax[1,1].set_xticks([])
+    ax[1,1].set_yticks([])
+    plt.colorbar(im,ax=ax[1,1])
+    ax[1,1].set_title('Absolute diff: '+str(np.round(np.nansum(np.abs(Diff)),3)))
     plt.tight_layout()
     return 
 

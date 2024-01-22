@@ -95,30 +95,38 @@ def FixCountCalc(self,Stim,CutAct=1,substring=False):
     if substring==False:
         assert np.sum(self.data['Stimulus']==Stim)>0, 'stimulus not found'
         stimn=np.nonzero(self.stimuli==Stim)[0]
-    elif substring==True:
+        print('stimns found:',stimn,Stim)
+
+    elif substring==True:  
         self.stimuli=self.stimuli.astype('str')
         stimn=np.char.find(self.stimuli,Stim)
-        Stims=self.stimuli[stimns>-1]
-        print('stimns found:',Stims)
-
+        Stims=self.stimuli[stimn>-1]
+        stimn=np.nonzero(stimn>-1)[0]
+        print('stimns found:',stimn,Stims)
 
     FixCountInd=np.zeros(((self.ns,self.y_size,self.x_size)))
-   # sizy=round(self.boundsY[stimn,1]-self.boundsY[stimn,0])
-   # sizx=round(self.boundsX[stimn,1]-self.boundsX[stimn,0])
-   # FixCountInd=np.zeros(((self.ns,sizy,sizx)))
+ 
     
     for cs,s in enumerate(self.subjects):
-        if len(stimn)>0:
+        if substring:
             x,y=np.intp(self.GetFixationData(s,Stims[0]))
-            if len(x)==0:
-                x,y=np.intp(self.GetFixationData(s,Stims[1]))
+            if len(x)==0: # if length of first match is zero
+                x,y=np.intp(self.GetFixationData(s,Stims[1])) # get second match
+                stimIdx=1
+            else:
+                stimIdx=0
+
+            Valid=np.nonzero((x<self.boundsX[stimn[stimIdx],1])&(x>self.boundsX[stimn[stimIdx],0])&(y>self.boundsY[stimn[stimIdx],0])&(y<self.boundsY[stimn[stimIdx],1]))[0]
+
         else:
             x,y=np.intp(self.GetFixationData(s,Stim))
-        Valid=np.nonzero((x<self.boundsX[stimn,1])&(x>self.boundsX[stimn,0])&(y>self.boundsY[stimn,0])&(y<self.boundsY[stimn,1]))[0]
+            Valid=np.nonzero((x<self.boundsX[stimn,1])&(x>self.boundsX[stimn,0])&(y>self.boundsY[stimn,0])&(y<self.boundsY[stimn,1]))[0]
         X,Y=x[Valid],y[Valid]
         FixCountInd[cs,Y,X]+=1
    # self.boundsX[stimn,0]:self.boundsX[stimn,1]
     if CutAct:
+        if len(stimn)>0:
+            stimn=stimn[0] # cut based on the bounds of the first if there are more matching stimuli
         FixCountInd=FixCountInd[:,:,int(np.round(self.boundsX[stimn,0])):int(np.round(self.boundsX[stimn,1]))]  # cut X
         FixCountInd=FixCountInd[:,int(np.round(self.boundsY[stimn,0])):int(np.round(self.boundsY[stimn,1])),:] # cut Y
     return FixCountInd
@@ -276,24 +284,35 @@ def GetEntropies(self,fixsize=0,binsize_h=50):
 
 
   
-def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax=False,alpha=.5,center=0):
+def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax=False,alpha=.5,center=0,substring=False):
     ''' Pipeline for  heatmap calculation, FixCounts are calculated for stimulus, or passed pre-calcualted as optional parameter
     output: heatmap for a stimulus
     cutarea option: 1 only use active area (99% percentile of fixations), 0- use all of the area 
     cutoff=median: median cutoff, otherwise percetile of values to replace with nans, goal--> clear visualization
-    center, if pixel coordinates dont match, painting presented centrally, but gaze coors are zero based'''
+    center, if pixel coordinates dont match, painting presented centrally, but gaze coors are zero based
+    substring: use part of file name (expected for mathcing paired files) '''
   #  if hasattr(self,'fixcounts'):
    #     FixCountIndie=self.fixcounts['Stim']
     #else:    
-    stimn=np.nonzero(self.stimuli==Stim)[0]
+    if substring==False:
+        stimn=np.nonzero(self.stimuli==Stim)[0]
+        stimShow=Stim[:]
+    else:
+        self.stimuli=self.stimuli.astype('str')
+        stimn=np.char.find(self.stimuli,Stim)
+        Stims=self.stimuli[stimn>-1]
+        stimn=np.nonzero(stimn>-1)[0]
+        stimShow=Stims[0]
+
+
     if hasattr(self,'boundsX')==False:
         print('run RunDescriptiveFix first- without visuals')
         self.RunDescriptiveFix()
     if type(FixCounts)==int:
         if CutArea:
-            FixCounts=self.FixCountCalc(Stim,CutAct=1) 
+            FixCounts=self.FixCountCalc(Stim,CutAct=1,substring=substring) 
         else:
-            FixCounts=self.FixCountCalc(Stim,CutAct=0) 
+            FixCounts=self.FixCountCalc(Stim,CutAct=0,substring=substring) 
     assert np.sum(FixCounts)>0,'!!no fixations found'
 
     if np.sum(FixCounts)<10:
@@ -308,6 +327,8 @@ def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax
             cutThr=0
         if CutArea:
             smapall=np.zeros((self.y_size,self.x_size))
+            if len(stimn)>0:
+                stimn=stimn[0]
             smapall[int(self.boundsY[stimn,0]):int(self.boundsY[stimn,1]),int(self.boundsX[stimn,0]):int(self.boundsX[stimn,1])]=smap
         else:
             smapall=np.copy(smap)
@@ -317,16 +338,16 @@ def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax
             smap[cs,:,:]=SaliencyMapFilt(FixCounts[cs,:,:],SD=SD,Ind=1)       
     if Vis:
         smapall[smapall<cutThr]=np.NAN  # replacing below threshold with NAN
-        xs1=(self.x_size-np.shape(self.images[Stim])[1])/2
+        xs1=(self.x_size-np.shape(self.images[stimShow])[1])/2
         xs2=self.x_size-xs1
-        ys1=(self.y_size-np.shape(self.images[Stim])[0])/2
+        ys1=(self.y_size-np.shape(self.images[stimShow])[0])/2
         ys2=self.y_size-ys1
         if ax==False:
             fig,ax=plt.subplots()
         if center:
-            ax.imshow(self.images[Stim],extent=[xs1,xs2,ys2,ys1])
+            ax.imshow(self.images[stimShow],extent=[xs1,xs2,ys2,ys1])
         else:
-            ax.imshow(self.images[Stim])
+            ax.imshow(self.images[stimShow])
         ax.imshow(smapall,alpha=.5) 
         ax.set_xticks([])
         ax.set_yticks([])
