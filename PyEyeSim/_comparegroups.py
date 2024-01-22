@@ -7,7 +7,7 @@ from numpy import matlib
 from scipy import stats,ndimage
 import pandas as pd
 import matplotlib.pyplot as plt
-
+import copy
 
 # import  library helper functions. 
 from .statshelper import SaliencyMapFilt,SaccadesTrial,ScanpathL,StatEntropy
@@ -100,12 +100,14 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
         Stims=self.stimuli[stimn>-1]
         stimn=np.nonzero(stimn>-1)[0]
         stimShow=Stims[0]
+        print('stimns found:',stimn,Stims)
     else:
-        stimShow=Stim
+        stimShow=copy.copy(Stim)
 
 
 
     WhichC,WhichCN=self.GetGroups(betwcond)
+
     if hasattr(self,'subjects')==0:
         self.GetParams()    
     #Cols=['darkred','cornflowerblue']
@@ -126,7 +128,15 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
         Conditions=np.copy(Conds)
     for cc,c in enumerate(Conditions):
         Idx=np.nonzero(WhichCN==c)[0]   
-        hmap=self.Heatmap(Stim,SD=SD,Ind=0,Vis=1,FixCounts=FixCounts[Idx,:,:],CutArea=CutArea,center=Center,substring=substring,ax=ax[0,cc])
+        if substring:
+            if np.sum(self.data.Stimulus[self.data['group']==self.Conds[cc]]==Stims[0])>0:
+                stims=Stims[0] # select which of the two  image files to show (assuming two similar named image files)
+            else:
+                stims=Stims[1]
+        else:
+            stims=copy.copy(Stim)
+        print(cc,c,stims)
+        hmap=self.Heatmap(stims,SD=SD,Ind=0,Vis=1,FixCounts=FixCounts[Idx,:,:],CutArea=CutArea,center=Center,substring=False,ax=ax[0,cc])
         ax[0,cc].set_title(c)
        # ax[0,cc].colorbar()
         hmaps.append(hmap)
