@@ -31,7 +31,7 @@ def CompareGroupsFix(self,betwcond):
         Entropies,self.entropmax,self.entropies_ind=self.GetEntropies()
     Cols=['darkred','cornflowerblue']
     #plt.figure(figsize=(8,8))
-    fig,ax=plt.subplots()
+    fig,ax=plt.subplots(ncols=2,nrows=2,figsize=(10,8))
     Entrs=[]
     Fixies=[]
     ScanpLs=[]
@@ -51,11 +51,10 @@ def CompareGroupsFix(self,betwcond):
         print(cc,c,'tot scanpath len = ',np.round(np.mean(np.nanmean(self.len_scanpath[Idx,:],1)),2),'+/-',np.round(np.std(np.nanmean(self.len_scanpath[Idx,:],1)),2),'pix')
         print(cc,c,'saccade amplitude = ',np.round(np.mean(np.nanmean(self.sacc_ampl[Idx,:],1)),2),'+/-',np.round(np.std(np.nanmean(self.sacc_ampl[Idx,:],1)),2),'pix')
 
-        MeanPlot(self.np,FixGr,yLab='Num Fixations',xtickL=self.stimuli,newfig=0,label=c,color=Cols[cc],ax=ax[0,0])
-        MeanPlot(self.np,EntrGr,yLab='Entropy',xtickL=self.stimuli,newfig=0,label=c,color=Cols[cc],ax=ax[0,1])
-        MeanPlot(self.np,self.len_scanpath[Idx,:],yLab='tot scanpath len (pix)',xtickL=self.stimuli,newfig=0,label=c,color=Cols[cc],ax=ax[1,0])
-        MeanPlot(self.np,self.sacc_ampl[Idx,:],yLab='saccade amplitude (pix)',xtickL=self.stimuli,newfig=0,label=c,color=Cols[cc],ax=ax[1,1])
-        
+        MeanPlot(self.np,FixGr,yLab='Num Fixations',xtickL=self.stimuli,label=c,color=Cols[cc],ax=ax[0,0])
+        MeanPlot(self.np,EntrGr,yLab='Entropy',xtickL=self.stimuli,label=c,color=Cols[cc],ax=ax[0,1])
+        MeanPlot(self.np,self.len_scanpath[Idx,:],yLab='tot scanpath len (pix)',xtickL=self.stimuli,label=c,color=Cols[cc],ax=ax[1,0])
+        MeanPlot(self.np,self.sacc_ampl[Idx,:],yLab='saccade amplitude (pix)',xtickL=self.stimuli,label=c,color=Cols[cc],ax=ax[1,1])
         
     t,p=stats.ttest_ind(Entrs[0],Entrs[1])
     print(' ')
@@ -104,15 +103,11 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
     else:
         stimShow=copy.copy(Stim)
 
-
-
     WhichC,WhichCN=self.GetGroups(betwcond)
-
     if hasattr(self,'subjects')==0:
         self.GetParams()    
     #Cols=['darkred','cornflowerblue']
     fig,ax=plt.subplots(ncols=2,nrows=2,figsize=(10,8)) 
-   # FixCounts=self.FixCountCalc(Stim)
     
     if CutArea:
         FixCounts=self.FixCountCalc(Stim,CutAct=1,substring=substring) 
@@ -141,19 +136,16 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
        # ax[0,cc].colorbar()
         hmaps.append(hmap)
     if hasattr(self,'images'):
-        
         if Center:
             xs1=(self.x_size-np.shape(self.images[stimShow])[1])/2
             xs2=self.x_size-xs1
             ys1=(self.y_size-np.shape(self.images[stimShow])[0])/2
             ys2=self.y_size-ys1
             ax[1,0].imshow(self.images[stimShow],extent=[xs1,xs2,ys2,ys1])
-
         else:
             ax[1,0].imshow( self.images[stimShow])
 
     Diff=hmaps[0]-hmaps[1]
-    #plt.imshow(Diff,cmap='RdBu',alpha=.5)
     
     im=ax[1,0].imshow(Diff,cmap='RdBu', vmin=-np.nanmax(np.abs(Diff)), vmax=np.nanmax(np.abs(Diff)),alpha=.5)
     ax[1,0].set_xticks([])
@@ -264,6 +256,19 @@ def BinnedDescriptivesGroups(self,withinColName):
     
         
     
-
+def CompareGroupsMat(self,group,indsimmat):
+    ''' 
+    calculates  average within and between group values from inividual matrix differences
+    group: expected column for between group comparison
+    indsimmat: individual differences in the format (stimulus*subject*subject) '''
+    groups,grarray=self.GetGroups(group)
+    grs=np.unique(groups)
+    print('groups: ',groups)
+    Diffs=np.zeros((self.np,len(grs),len(grs)))
+    for cg1,gr1 in enumerate(grs):
+        for cg2,gr2 in enumerate(grs):
+            for cs in range(self.np):
+                Diffs[cs,cg1,cg2]=np.nanmean(indsimmat[cs,groups==cg1,:][:,groups==cg2])
+    return Diffs
         
     

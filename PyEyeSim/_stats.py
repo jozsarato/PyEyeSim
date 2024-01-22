@@ -216,7 +216,7 @@ def RunDiffDivs(self,mindiv,maxdiv,Vis=1):
     if Vis:
         ax.errorbar(np.arange(self.np),np.mean(DiffsZscore,1),np.std(DiffsZscore,1),linestyle='none',color='k',marker='o',markersize=5)
         ax.set_ylabel('difference (z scored)')
-        ax.set_xticks(self.stimuli)
+        ax.set_xticks(np.arange(self.np),self.stimuli)
     return DiffsZscore,DiffsRaw
 
 
