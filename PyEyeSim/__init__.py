@@ -27,7 +27,7 @@ from .statshelper import SaliencyMapFilt,SaccadesTrial,ScanpathL,StatEntropy
 class EyeData:
 	
     from ._visuals import VisScanPath,MySaccadeVis,VisLOOHMM,VisHMM,MyTrainTestVis
-    from ._dataproc import GetParams,GetStimuli,GetFixationData,GetDurations,GetGroups,GetCats,GetSaccades,SaccadeSel,GetEntropies,InferSize,Heatmap
+    from ._dataproc import GetParams,GetStimuli,GetFixationData,GetDurations,GetGroups,GetCats,GetSaccades,SaccadeSel,GetEntropies,InferSize,Heatmap,FixCountCalc
     from ._stats import AngleCalc,AngtoPix,PixdoDeg,Entropy,FixDurProg,BinnedCount,GetInddiff,GetInddiff_v2,RunDiffDivs,GetBinnedStimFixS,StatPDiffInd2,StatPDiffInd1,CalcStatPs,CalcRets,CalcImmRets
     from ._comparegroups import CompareGroupsFix,CompareGroupsHeatmap,CompareWithinGroupsFix,FixDurProgGroups,BinnedDescriptivesGroups
 
@@ -217,31 +217,7 @@ class EyeData:
         self.bounds=Bounds
         return Stimuli,Subjects
     
-    
-    def FixCountCalc(self,Stim,CutAct=1):
-        ''' Pixelwise fixation count for each participant, but for single stimulus  (Stim) 
-        output: subjects*y*x --> num of fixaiton for each pixel
-        if CutAct==1 in the end, only the within bounds areas is returned for further calculations'''
-        assert np.sum(self.data['Stimulus']==Stim)>0, 'stimulus not found'
-       
-        stimn=np.nonzero(self.stimuli==Stim)[0]
-        FixCountInd=np.zeros(((self.ns,self.y_size,self.x_size)))
-       # sizy=round(self.boundsY[stimn,1]-self.boundsY[stimn,0])
-       # sizx=round(self.boundsX[stimn,1]-self.boundsX[stimn,0])
-
-       # FixCountInd=np.zeros(((self.ns,sizy,sizx)))
-        
-        for cs,s in enumerate(self.subjects):
-            x,y=np.intp(self.GetFixationData(s,Stim))
-            Valid=np.nonzero((x<self.boundsX[stimn,1])&(x>self.boundsX[stimn,0])&(y>self.boundsY[stimn,0])&(y<self.boundsY[stimn,1]))[0]
-            X,Y=x[Valid],y[Valid]
-            FixCountInd[cs,Y,X]+=1
-       # self.boundsX[stimn,0]:self.boundsX[stimn,1]
-        if CutAct:
-            FixCountInd=FixCountInd[:,:,int(np.round(self.boundsX[stimn,0])):int(np.round(self.boundsX[stimn,1]))]  # cut X
-            FixCountInd=FixCountInd[:,int(np.round(self.boundsY[stimn,0])):int(np.round(self.boundsY[stimn,1])),:] # cut Y
-        return FixCountInd
-   
+  
   
   
     

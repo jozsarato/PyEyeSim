@@ -85,6 +85,46 @@ def GetStimuli(self,extension,path=0,infersubpath=False):
         self.images[s]=Stim
     pass 
  
+
+  
+def FixCountCalc(self,Stim,CutAct=1,substring=False):
+    ''' Pixelwise fixation count for each participant, but for single stimulus  (Stim) 
+    output: subjects*y*x --> num of fixaiton for each pixel
+    if CutAct==1 in the end, only the within bounds areas is returned for further calculations
+    optional parameter, substring for stimulus names containing the same substring'''
+    if substring==False:
+        assert np.sum(self.data['Stimulus']==Stim)>0, 'stimulus not found'
+        stimn=np.nonzero(self.stimuli==Stim)[0]
+    elif substring==True:
+        self.stimuli=self.stimuli.astype('str')
+        stimn=np.char.find(self.stimuli,Stim)
+        Stims=self.stimuli[stimns>-1]
+        print('stimns found:',Stims)
+
+
+    FixCountInd=np.zeros(((self.ns,self.y_size,self.x_size)))
+   # sizy=round(self.boundsY[stimn,1]-self.boundsY[stimn,0])
+   # sizx=round(self.boundsX[stimn,1]-self.boundsX[stimn,0])
+   # FixCountInd=np.zeros(((self.ns,sizy,sizx)))
+    
+    for cs,s in enumerate(self.subjects):
+        if len(stimn)>0:
+            x,y=np.intp(self.GetFixationData(s,Stims[0]))
+            if len(x)==0:
+                x,y=np.intp(self.GetFixationData(s,Stims[1]))
+        else:
+            x,y=np.intp(self.GetFixationData(s,Stim))
+        Valid=np.nonzero((x<self.boundsX[stimn,1])&(x>self.boundsX[stimn,0])&(y>self.boundsY[stimn,0])&(y<self.boundsY[stimn,1]))[0]
+        X,Y=x[Valid],y[Valid]
+        FixCountInd[cs,Y,X]+=1
+   # self.boundsX[stimn,0]:self.boundsX[stimn,1]
+    if CutAct:
+        FixCountInd=FixCountInd[:,:,int(np.round(self.boundsX[stimn,0])):int(np.round(self.boundsX[stimn,1]))]  # cut X
+        FixCountInd=FixCountInd[:,int(np.round(self.boundsY[stimn,0])):int(np.round(self.boundsY[stimn,1])),:] # cut Y
+    return FixCountInd
+
+
+
 def GetFixationData(self,subj,stim):
     """get X,Y fixation sequence for a subject and stimulus
     output 1: array of pixel x for sequence of fixations
