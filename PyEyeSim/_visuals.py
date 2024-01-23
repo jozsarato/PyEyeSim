@@ -84,7 +84,7 @@ def VisHMM(self,dat,hmmfitted,ax=0,showim=1,stim=0,lengths=0,incol=False):
     ax.set_xticks([])   
 
 
-def VisScanPath(self, stimn, ax=None, alpha=0.5, allS=True, scan_path_col='salmon', fixation_col='blue', visFix=False, num_fixations=None):
+def VisScanPath(self, stimn, ax=None, alpha=0.5, allS=True, scan_path_col='salmon', fixation_col='blue', visFix=False, num_fixations=None,center=False):
     ''' 
     Description: Visualize scan path for a given stimulus.
     Arguments:
@@ -100,7 +100,14 @@ def VisScanPath(self, stimn, ax=None, alpha=0.5, allS=True, scan_path_col='salmo
     '''
     if ax is None:
         fig, ax = plt.subplots()
-    ax.imshow(self.images[self.stimuli[stimn]])
+    if center:
+        xs1=(self.x_size-np.shape(self.images[self.stimuli[stimn]])[1])/2
+        xs2=self.x_size-xs1
+        ys1=(self.y_size-np.shape(self.images[self.stimuli[stimn]])[0])/2
+        ys2=self.y_size-ys1
+        ax.imshow(self.images[self.stimuli[stimn]],extent=[xs1,xs2,ys2,ys1])
+    else:
+        ax.imshow(self.images[self.stimuli[stimn]])
 
     if type(allS) == bool:
         for cs in range(self.ns):
@@ -147,20 +154,7 @@ def MyTrainTestVis(self, DatTr,DatTest,lenTrain,lenTest,totest=0):
     self.MySaccadeVis(ax[1],DatTest,lenTest,title='test data '+titStr)
     return 
           
-def MySaccadeVis(self,ax,XYdat,lengths,title='',alpha=1):
-    ''' saccade visualization, on input ax, based on combined data 2d array, and lengths 1d array'''
-    ax.set_title(title)
-    ax.set_xlim([0,self.x_size])
-    ax.set_ylim([self.y_size,0])
-    ax.scatter(XYdat[:,0],XYdat[:,1],c=np.arange(len(XYdat[:,0])),alpha=alpha)
-    Idxs=np.cumsum(lengths)
-    for ci in range(len(lengths)):
-        if ci==0:
-            start=0
-        else:
-            start=Idxs[ci-1]
-        ax.plot(XYdat[start:Idxs[ci],0],XYdat[start:Idxs[ci],1],alpha=alpha)
-    return
+
         
 
 
