@@ -232,7 +232,24 @@ def BinnedDescriptivesGroups(self,withinColName):
     plt.tight_layout()      
     
     
+         
+    
+def CompareGroupsMat(self,group,indsimmat):
+    ''' 
+    calculates  average within and between group values from inividual matrix differences
+    group: expected column for between group comparison
+    indsimmat: individual differences in the format (stimulus*subject*subject) '''
+    groups,grarray=self.GetGroups(group)
+    grs=np.unique(groups)
+    print('groups: ',groups)
+    Diffs=np.zeros((self.np,len(grs),len(grs)))
+    for cg1,gr1 in enumerate(grs):
+        for cg2,gr2 in enumerate(grs):
+            for cs in range(self.np):
+                Diffs[cs,cg1,cg2]=np.nanmean(indsimmat[cs,groups==cg1,:][:,groups==cg2])
+    return Diffs
         
+          
     
 
         
