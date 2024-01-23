@@ -162,7 +162,7 @@ def GetInddiff(self,nHor,nVer,Vis=0,zscore=0,InferS=1):
             ax.set_ylabel('fixation map relative difference',fontsize=14)
         else:
             ax.set_ylabel('fixation map difference',fontsize=14)
-    return Indmean
+    return Indmean,Inddiff
   
 
 def GetInddiff_v2(self,size=50,Vis=0,fixs=0):
@@ -211,10 +211,12 @@ def RunDiffDivs(self,mindiv,maxdiv,Vis=1):
     DiffsRaw=np.zeros((self.np,maxdiv-mindiv))
     DiffsZscore=np.zeros((self.np,maxdiv-mindiv))
     for cdiv,divs in enumerate(np.arange(mindiv,maxdiv)):
-        DiffsRaw[:,cdiv]=self.GetInddiff(divs,divs,Vis=Vis,zscore=1)
+        DiffsRaw[:,cdiv],all2all=self.GetInddiff(divs,divs,Vis=Vis,zscore=1)
         DiffsZscore[:,cdiv]=(DiffsRaw[:,cdiv]-np.mean(DiffsRaw[:,cdiv]))/np.std(DiffsRaw[:,cdiv])
     if Vis:
         ax.errorbar(np.arange(self.np),np.mean(DiffsZscore,1),np.std(DiffsZscore,1),linestyle='none',color='k',marker='o',markersize=5)
+        ax.set_ylabel('difference (z scored)')
+        ax.set_xticks(np.arange(self.np),self.stimuli)
     return DiffsZscore,DiffsRaw
 
 
