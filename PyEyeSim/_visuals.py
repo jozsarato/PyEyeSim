@@ -154,20 +154,7 @@ def MyTrainTestVis(self, DatTr,DatTest,lenTrain,lenTest,totest=0):
     self.MySaccadeVis(ax[1],DatTest,lenTest,title='test data '+titStr)
     return 
           
-def MySaccadeVis(self,ax,XYdat,lengths,title='',alpha=1):
-    ''' saccade visualization, on input ax, based on combined data 2d array, and lengths 1d array'''
-    ax.set_title(title)
-    ax.set_xlim([0,self.x_size])
-    ax.set_ylim([self.y_size,0])
-    ax.scatter(XYdat[:,0],XYdat[:,1],c=np.arange(len(XYdat[:,0])),alpha=alpha)
-    Idxs=np.cumsum(lengths)
-    for ci in range(len(lengths)):
-        if ci==0:
-            start=0
-        else:
-            start=Idxs[ci-1]
-        ax.plot(XYdat[start:Idxs[ci],0],XYdat[start:Idxs[ci],1],alpha=alpha)
-    return
+
         
 
 
