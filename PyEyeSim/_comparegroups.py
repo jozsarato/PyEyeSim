@@ -20,6 +20,15 @@ from .visualhelper import VisBinnedProg,PlotDurProg,JointBinnedPlot,MeanPlot,dra
 def CompareGroupsFix(self,betwcond):
     '''
     Description: Run a set of between-group fixation comparisons, generate plots, and print descriptive statistics.
+    should work for 2-4 groups
+    calculates:
+    - number of fixations
+    - entropy of fixations (potentially long run time)
+    - total scanpath length
+    - saccade amplitude
+
+    prints descriptive stats of the above
+    print pairwise comparison of groups with the above measures
     
     Arguments: 
     betwcond (str): Name of the conditions for between-group fixation comparisons.
@@ -29,7 +38,7 @@ def CompareGroupsFix(self,betwcond):
     if hasattr(self,'entropies')==False:   # check if entropy has already been calculated
         print('Calculating entropy')
         Entropies,self.entropmax,self.entropies_ind=self.GetEntropies()
-    Cols=['darkred','cornflowerblue']
+    Cols=['darkred','cornflowerblue','orange','salmon']
     #plt.figure(figsize=(8,8))
     fig,ax=plt.subplots(ncols=2,nrows=2,figsize=(10,8))
     Entrs=[]
@@ -45,37 +54,45 @@ def CompareGroupsFix(self,betwcond):
         ScanpLs.append(np.nanmean(self.len_scanpath[Idx,:],1))
         SaccAmpls.append(np.nanmean(self.sacc_ampl[Idx,:],1))
      
-        
+        print(cc,c,'num participants: ',len(Idx))
+
         print(cc,c,'Num fix= ',np.round(np.mean(np.nanmean(FixGr,1)),2),'+/-',np.round(np.std(np.nanmean(FixGr,1)),2))
         print(cc,c,'Entropy= ',np.round(np.mean(np.nanmean(EntrGr,1)),2),'+/-',np.round(np.std(np.nanmean(EntrGr,1)),2))
         print(cc,c,'tot scanpath len = ',np.round(np.mean(np.nanmean(self.len_scanpath[Idx,:],1)),2),'+/-',np.round(np.std(np.nanmean(self.len_scanpath[Idx,:],1)),2),'pix')
         print(cc,c,'saccade amplitude = ',np.round(np.mean(np.nanmean(self.sacc_ampl[Idx,:],1)),2),'+/-',np.round(np.std(np.nanmean(self.sacc_ampl[Idx,:],1)),2),'pix')
-
+        print('')
         MeanPlot(self.np,FixGr,yLab='Num Fixations',xtickL=self.stimuli,label=c,color=Cols[cc],ax=ax[0,0])
         MeanPlot(self.np,EntrGr,yLab='Entropy',xtickL=self.stimuli,label=c,color=Cols[cc],ax=ax[0,1])
         MeanPlot(self.np,self.len_scanpath[Idx,:],yLab='tot scanpath len (pix)',xtickL=self.stimuli,label=c,color=Cols[cc],ax=ax[1,0])
         MeanPlot(self.np,self.sacc_ampl[Idx,:],yLab='saccade amplitude (pix)',xtickL=self.stimuli,label=c,color=Cols[cc],ax=ax[1,1])
-        
-    t,p=stats.ttest_ind(Entrs[0],Entrs[1])
-    print(' ')
-    print('Overall group differences: ')
-    print('Entropy t=',np.round(t,4),', p=',np.round(p,4))
-    #if pglib:
-     #   pg.ttest(Fixies[0],Fixies[1],paired=False)
-    #else:
-    t,p=stats.ttest_ind(Fixies[0],Fixies[1])
-    print('Num Fix t=',np.round(t,4),', p= ',np.round(p,4))
-    t,p=stats.ttest_ind(ScanpLs[0],ScanpLs[1])
     
-
-    print('Scanpath lengths t=',np.round(t,4),', p=',np.round(p,4))
-    t,p=stats.ttest_ind(SaccAmpls[0],SaccAmpls[1])
-
-    print('Saccade amplitudes t=',np.round(t,4),', p=',np.round(p,4))
-
-
+    
     plt.legend()
     plt.tight_layout()
+    
+    for gr1 in range(len(self.Conds)):
+        for gr2 in range(len(self.Conds)):
+            if gr1 <gr2:
+                print()
+                t,p=stats.ttest_ind(Entrs[gr1],Entrs[gr2])
+                print(' ')
+                print('Overall group differences: ',self.Conds[gr1],'vs',self.Conds[gr2] )
+                print('Entropy t=',np.round(t,4),', p=',np.round(p,4))
+                #if pglib:
+                 #   pg.ttest(Fixies[0],Fixies[1],paired=False)
+                #else:
+                t,p=stats.ttest_ind(Fixies[gr1],Fixies[gr2])
+                print('Num Fix t=',np.round(t,4),', p= ',np.round(p,4))
+                t,p=stats.ttest_ind(ScanpLs[gr1],ScanpLs[gr2])
+                
+            
+                print('Scanpath lengths t=',np.round(t,4),', p=',np.round(p,4))
+                t,p=stats.ttest_ind(SaccAmpls[gr1],SaccAmpls[gr2])
+            
+                print('Saccade amplitudes t=',np.round(t,4),', p=',np.round(p,4))
+                print(' ')
+
+    
     return 
 
     
