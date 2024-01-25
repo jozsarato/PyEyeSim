@@ -28,7 +28,7 @@ class EyeData:
 	
     from ._visuals import VisScanPath,MySaccadeVis,VisLOOHMM,VisHMM,MyTrainTestVis
     from ._dataproc import GetParams,GetStimuli,GetFixationData,GetDurations,GetGroups,GetCats,GetSaccades,SaccadeSel,GetEntropies,InferSize,Heatmap,FixCountCalc
-    from ._stats import AngleCalc,AngtoPix,PixdoDeg,Entropy,FixDurProg,BinnedCount,GetInddiff,GetInddiff_v2,RunDiffDivs,GetBinnedStimFixS,StatPDiffInd2,StatPDiffInd1,CalcStatPs,CalcRets,CalcImmRets
+    from ._stats import AngleCalc,AngtoPix,PixdoDeg,Entropy,FixDurProg,BinnedCount,GetInddiff,GetInddiff_v2,RunDiffDivs,GetBinnedStimFixS,StatPDiffInd2,StatPDiffInd1,CalcStatPs,CalcRets,CalcImmRets,BinnedDescriptives
     from ._comparegroups import CompareGroupsFix,CompareGroupsHeatmap,CompareWithinGroupsFix,FixDurProgGroups,BinnedDescriptivesGroups,CompareGroupsMat
 
     try: 
@@ -262,57 +262,7 @@ class EyeData:
         return NFix,StatPtrial,StatNtrial
     
     
-   
-    
-    
-    
-    def BinnedDescriptives(self,length,binsize,timecol,durcol,startime=0):
-        ''' time-binned within trial descriptive progression
-        INPUTS
-        length: maximum trial length of interest in ms
-        binsize: length of timebin 
-        timecol: name of column with time length information
-        durcol: name of column with fixation duration information '''
-        Bins=np.arange(startime,length+binsize,binsize)
-        print(f'Bins {Bins}')
-        self.tbins=Bins
-        self.binFixL=np.zeros((self.ns,self.np,len(Bins)-1))
-        self.saccadeAmp=np.zeros((self.ns,self.np,len(Bins)-1))
-        self.totLscanpath=np.zeros((self.ns,self.np,len(Bins)-1))
-       
-        cb=0
-        for bs,be in zip(Bins[0:-1],Bins[1:]):
-            BindIdx=(self.data[timecol]>bs) & (self.data[timecol]<be)
-            print(f'from {bs} to {be} found: ',np.sum(BindIdx))
-            for cs,s in enumerate(self.subjects):
-                 SubjIdx=self.data['subjectID']==s
-                 for cp,p in enumerate(self.stimuli):
-                     Idx=((self.data['Stimulus']==p) & BindIdx & SubjIdx)
-                     if np.sum(Idx)>0:
-                        self.binFixL[cs,cp,cb]=np.mean(self.data[durcol][Idx])
-                        self.saccadeAmp[cs,cp,cb],self.totLscanpath[cs,cp,cb]=ScanpathL(self.data['mean_x'][Idx].to_numpy(), self.data['mean_y'][Idx].to_numpy())
-
-            cb+=1
-        
-        self.saccadeAmp[self.saccadeAmp==0]=np.NAN
-        self.totLscanpath[self.totLscanpath==0]=np.NAN
-        self.binFixL[self.binFixL==0]=np.NAN
-
-        VisBinnedProg(Bins,np.nanmean(self.binFixL,1),'fixation duration (ms)')  
-        VisBinnedProg(Bins,np.nanmean(self.saccadeAmp,1),'saccade ampl (pixel)')  
-        VisBinnedProg(Bins,np.nanmean(self.totLscanpath,1),'scanpath length (pixel)')  
-        
-        JointBinnedPlot(Bins,np.nanmean(self.binFixL,1),np.nanmean(self.saccadeAmp,1),ylabel1='fixation duration (ms)',ylabel2='saccade ampl (pixel)')
-        
-        
-        return 
-
-
-
-    def BinnedDescStim(self,stimuli):
-        if hasattr(self,'binFixL')==False: 
-            print('run BinnedDescriptives first, than call this function fo r')
-                    
+         
        ## function still missing
 
 
