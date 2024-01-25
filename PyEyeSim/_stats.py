@@ -6,6 +6,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,SaccadeLine,CalcSim ,CheckCoor
 from .statshelper import SaliencyMapFilt,SaccadesTrial,ScanpathL,StatEntropy,DiffMat
+from .visualhelper import PlotDurProg
+
 from math import atan2, degrees
 from matplotlib.patches import  Circle
 
@@ -246,8 +248,7 @@ def CalcRets(self,fixx,fixy,threshold,Vis=0,ax=0):
 def CalcImmRets(self,fixx,fixy,threshold,Vis=0,ax=0):
     ''' this function calcualtes immediate return eye movements, additionaly as a control measure
     it calcualtes the number of eye movements that are further away than threshold from fixation 1'''
-    nr=0
-    
+
     pixthr=self.AngtoPix(threshold)
     Dist1=np.sum(np.sqrt((fixx[1:]-fixx[0])**2+(fixy[1:]-fixy[0])**2)>pixthr)
     Dist1Back=np.sqrt((fixx[1:]-fixx[:-1])**2+(fixy[1:]-fixy[:-1])**2)

@@ -228,21 +228,37 @@ def CompareWithinGroupsFix(self,withinColName):
    
     
     
-def FixDurProgGroups(self,withinColName,nfixmax=10):
+def FixDurProgGroups(self,colName,nfixmax=10,between=0):
     ''' 
-    Description: Calculate and visualize fixation duration progression within groups defined by a category column.
+    Description: Calculate and visualize fixation duration progression within or between groups defined by a category column, for the first x number of fixations of each trial
 
     Arguments:
-    withinColName (str): The name of the category column defining groups for analysis.
+    colName (str): The name of the category column defining groups for analysis.
     nfixmax (int): The maximum number of fixations to consider in the progression (default: 10).
+    between: if True between group comparison, by default expects within group comparison (for groups of stimuli)
     '''
     self.FixDurProg(nfixmax=nfixmax,Stim=0,Vis=0)
-    WhichC=self.GetCats(withinColName)
+    print(np.shape(self.durprog))
+    fig,ax=plt.subplots()
+    
+    if between:
+        WhichC,WhichCN=self.GetGroups(colName)
+    else:
+        WhichC=self.GetCats(colName)
     for cc,c in enumerate(self.WithinConds):
-        Idx=np.nonzero(WhichC==c)[0]
-        Y=np.nanmean(np.nanmean(self.durprog[:,Idx],1),0)
-        Err=stats.sem(np.nanmean(self.durprog[:,Idx],1),axis=0,nan_policy='omit')
-        PlotDurProg(nfixmax,Y,Err,c)
+        if between:
+            Idx=np.nonzero(WhichC==cc)[0]
+        else:
+            Idx=np.nonzero(WhichC==c)[0]
+
+        print('group',cc,c)
+        if between:
+            Y=np.nanmean(np.nanmean(self.durprog[Idx,:,:],1),0)
+            Err=stats.sem(np.nanmean(self.durprog[Idx,:,:],1),0,nan_policy='omit')
+        else:
+            Y=np.nanmean(np.nanmean(self.durprog[:,Idx,:],1),0)
+            Err=stats.sem(np.nanmean(self.durprog[:,Idx,:],1),0,nan_policy='omit')
+        PlotDurProg(nfixmax,Y,Err,c,ax=ax)
     plt.legend()
 
 
@@ -288,21 +304,5 @@ def CompareGroupsMat(self,group,indsimmat):
                 Diffs[cs,cg1,cg2]=np.nanmean(indsimmat[cs,groups==cg1,:][:,groups==cg2])
     return Diffs
         
-          
-    
-def CompareGroupsMat(self,group,indsimmat):
-    ''' 
-    calculates  average within and between group values from inividual matrix differences
-    group: expected column for between group comparison
-    indsimmat: individual differences in the format (stimulus*subject*subject) '''
-    groups,grarray=self.GetGroups(group)
-    grs=np.unique(groups)
-    print('groups: ',groups)
-    Diffs=np.zeros((self.np,len(grs),len(grs)))
-    for cg1,gr1 in enumerate(grs):
-        for cg2,gr2 in enumerate(grs):
-            for cs in range(self.np):
-                Diffs[cs,cg1,cg2]=np.nanmean(indsimmat[cs,groups==cg1,:][:,groups==cg2])
-    return Diffs
-        
+  
     
