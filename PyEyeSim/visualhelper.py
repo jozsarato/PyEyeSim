@@ -47,12 +47,14 @@ def VisBinnedProg(bins,Y,ylabel,col='navy',label='',axin=0):
 
 
 
-def PlotDurProg(nmax,Y,error,label=''):
-    plt.fill_between(np.arange(1,nmax+1),Y-error,Y+error,alpha=.5)
-    plt.plot(np.arange(1,nmax+1),Y,label=label)
-    plt.xticks(np.intp(np.linspace(1,nmax,5)),np.intp(np.linspace(1,nmax,5)))
-    plt.xlabel('fixation number',fontsize=14)
-    plt.ylabel('fixation duration (ms)',fontsize=14)
+def PlotDurProg(nmax,Y,error,label='',ax=0):
+    if type(ax)==int:
+        fig,ax=plt.subplots()
+    ax.fill_between(np.arange(1,nmax+1),Y-error,Y+error,alpha=.5)
+    ax.plot(np.arange(1,nmax+1),Y,label=label)
+    ax.set_xticks(np.intp(np.linspace(1,nmax,5)),np.intp(np.linspace(1,nmax,5)))
+    ax.set_xlabel('fixation number',fontsize=14)
+    ax.set_ylabel('fixation duration (ms)',fontsize=14)
     return 
 
 

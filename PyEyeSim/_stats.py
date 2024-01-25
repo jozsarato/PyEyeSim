@@ -6,6 +6,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,SaccadeLine,CalcSim ,CheckCoor
 from .statshelper import SaliencyMapFilt,SaccadesTrial,ScanpathL,StatEntropy,DiffMat
+from .visualhelper import PlotDurProg,VisBinnedProg,JointBinnedPlot
+
 from math import atan2, degrees
 from matplotlib.patches import  Circle
 
@@ -246,8 +248,7 @@ def CalcRets(self,fixx,fixy,threshold,Vis=0,ax=0):
 def CalcImmRets(self,fixx,fixy,threshold,Vis=0,ax=0):
     ''' this function calcualtes immediate return eye movements, additionaly as a control measure
     it calcualtes the number of eye movements that are further away than threshold from fixation 1'''
-    nr=0
-    
+
     pixthr=self.AngtoPix(threshold)
     Dist1=np.sum(np.sqrt((fixx[1:]-fixx[0])**2+(fixy[1:]-fixy[0])**2)>pixthr)
     Dist1Back=np.sqrt((fixx[1:]-fixx[:-1])**2+(fixy[1:]-fixy[:-1])**2)
@@ -265,3 +266,56 @@ def CalcImmRets(self,fixx,fixy,threshold,Vis=0,ax=0):
             circ=Circle((fixx[2:][immret][0],fixy[2:][immret][0]),radius=pixthr,edgecolor='b',facecolor='none',linestyle='--')
             ax.add_patch(circ)
     return np.sum(immret),Dist1
+
+
+
+    
+    
+
+def BinnedDescriptives(self,length,binsize,timecol,durcol,startime=0):
+    ''' time-binned within trial descriptive progression
+    INPUTS
+    length: maximum trial length of interest in ms
+    binsize: length of timebin 
+    timecol: name of column with time length information
+    durcol: name of column with fixation duration information '''
+    Bins=np.arange(startime,length+binsize,binsize)
+    print(f'Bins {Bins}')
+    self.tbins=Bins
+    self.binFixL=np.zeros((self.ns,self.np,len(Bins)-1))
+    self.saccadeAmp=np.zeros((self.ns,self.np,len(Bins)-1))
+    self.totLscanpath=np.zeros((self.ns,self.np,len(Bins)-1))
+   
+    cb=0
+    for bs,be in zip(Bins[0:-1],Bins[1:]):
+        BindIdx=(self.data[timecol]>bs) & (self.data[timecol]<be)
+        print(f'from {bs} to {be} found: ',np.sum(BindIdx))
+        for cs,s in enumerate(self.subjects):
+             SubjIdx=self.data['subjectID']==s
+             for cp,p in enumerate(self.stimuli):
+                 Idx=((self.data['Stimulus']==p) & BindIdx & SubjIdx)
+                 if np.sum(Idx)>0:
+                    self.binFixL[cs,cp,cb]=np.mean(self.data[durcol][Idx])
+                    self.saccadeAmp[cs,cp,cb],self.totLscanpath[cs,cp,cb]=ScanpathL(self.data['mean_x'][Idx].to_numpy(), self.data['mean_y'][Idx].to_numpy())
+
+        cb+=1
+    
+    self.saccadeAmp[self.saccadeAmp==0]=np.NAN
+    self.totLscanpath[self.totLscanpath==0]=np.NAN
+    self.binFixL[self.binFixL==0]=np.NAN
+
+    VisBinnedProg(Bins,np.nanmean(self.binFixL,1),'fixation duration (ms)')  
+    VisBinnedProg(Bins,np.nanmean(self.saccadeAmp,1),'saccade ampl (pixel)')  
+    VisBinnedProg(Bins,np.nanmean(self.totLscanpath,1),'scanpath length (pixel)')  
+    
+    JointBinnedPlot(Bins,np.nanmean(self.binFixL,1),np.nanmean(self.saccadeAmp,1),ylabel1='fixation duration (ms)',ylabel2='saccade ampl (pixel)')
+    
+    
+    return 
+
+
+
+def BinnedDescStim(self,stimuli):
+    if hasattr(self,'binFixL')==False: 
+        print('run BinnedDescriptives first, than call this function for')
+          
