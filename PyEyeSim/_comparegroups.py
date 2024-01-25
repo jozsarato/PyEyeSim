@@ -242,8 +242,11 @@ def FixDurProgGroups(self,colName,nfixmax=10,between=0):
     fig,ax=plt.subplots()
     
     if between:
+        print('running between group comparison')
         WhichC,WhichCN=self.GetGroups(colName)
     else:
+        print('running within group comparison, provide between=True for between group comparisons')
+
         WhichC=self.GetCats(colName)
     for cc,c in enumerate(self.WithinConds):
         if between:
@@ -264,20 +267,40 @@ def FixDurProgGroups(self,colName,nfixmax=10,between=0):
 
 
 
-def BinnedDescriptivesGroups(self,withinColName):
-    ''' time-binned within trial descriptive progression, groups of stimuli'''
+def BinnedDescriptivesGroups(self,colName,between=0):
+    ''' time-binned within trial descriptive progression, groups of stimuli or between groups of participants'''
     if hasattr(self,'binFixL')==False: 
         print('run BinnedDescriptives first, than call this function for group wise visualization')
-    WhichC=self.GetCats(withinColName)
+    if between:
+         print('running between group comparison')
+
+         WhichC,WhichCN=self.GetGroups(colName)
+    else:
+         print('running within group comparison, provide between=True for between group comparisons')
+
+         WhichC=self.GetCats(colName)
+ #   print(WhichC)
     Colors=['navy','salmon','olive','orange','gray']
     fig,ax=plt.subplots(nrows=3,ncols=1,figsize=(4,10))
     for cc,c in enumerate(self.WithinConds):
-        Idx=np.nonzero(WhichC==c)[0]
-        axout=VisBinnedProg(self.tbins,np.nanmean(self.binFixL[:,Idx,:],1),'fixation duration (ms)',col=Colors[cc],label=c,axin=ax[0])
-        axout=VisBinnedProg(self.tbins,np.nanmean(self.saccadeAmp[:,Idx,:],1),'saccade ampl (pixel)',col=Colors[cc],label=c,axin=ax[1])
-        axout=VisBinnedProg(self.tbins,np.nanmean(self.totLscanpath[:,Idx,:],1),'scanpath length (pixel)',col=Colors[cc],label=c,axin=ax[2])
-        
-        ax1,ax2=JointBinnedPlot(self.tbins,np.nanmean(self.binFixL[:,Idx,:],1),np.nanmean(self.saccadeAmp[:,Idx,:],1),ylabel1='fixation duration (ms)',ylabel2='saccade ampl (pixel)')
+        if between:
+            Idx=np.nonzero(WhichC==cc)[0]
+            print(Idx)
+        else:
+            Idx=np.nonzero(WhichC==c)[0]
+            
+        if between:
+            axout=VisBinnedProg(self.tbins,np.nanmean(self.binFixL[Idx,:,:],1),'fixation duration (ms)',col=Colors[cc],label=c,axin=ax[0])
+            axout=VisBinnedProg(self.tbins,np.nanmean(self.saccadeAmp[Idx,:,:],1),'saccade ampl (pixel)',col=Colors[cc],label=c,axin=ax[1])
+            axout=VisBinnedProg(self.tbins,np.nanmean(self.totLscanpath[Idx,:,:],1),'scanpath length (pixel)',col=Colors[cc],label=c,axin=ax[2])
+          
+            ax1,ax2=JointBinnedPlot(self.tbins,np.nanmean(self.binFixL[Idx,:,:],1),np.nanmean(self.saccadeAmp[Idx,:,:],1),ylabel1='fixation duration (ms)',ylabel2='saccade ampl (pixel)')
+        else:
+            axout=VisBinnedProg(self.tbins,np.nanmean(self.binFixL[:,Idx,:],1),'fixation duration (ms)',col=Colors[cc],label=c,axin=ax[0])
+            axout=VisBinnedProg(self.tbins,np.nanmean(self.saccadeAmp[:,Idx,:],1),'saccade ampl (pixel)',col=Colors[cc],label=c,axin=ax[1])
+            axout=VisBinnedProg(self.tbins,np.nanmean(self.totLscanpath[:,Idx,:],1),'scanpath length (pixel)',col=Colors[cc],label=c,axin=ax[2])
+            
+            ax1,ax2=JointBinnedPlot(self.tbins,np.nanmean(self.binFixL[:,Idx,:],1),np.nanmean(self.saccadeAmp[:,Idx,:],1),ylabel1='fixation duration (ms)',ylabel2='saccade ampl (pixel)')
         ax1.set_title(c)
         
 
