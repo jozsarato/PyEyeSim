@@ -1,11 +1,11 @@
 
 import numpy as np
 from numpy import matlib
-from scipy import stats,ndimage
+#from scipy import stats,ndimage
 import pandas as pd
 import matplotlib.pyplot as plt
-from .statshelper import SaliencyMapFilt,SaccadesTrial,ScanpathL,StatEntropy
-from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,SaccadeLine,CalcSim ,CheckCoor
+from .statshelper import SaliencyMapFilt,SaccadesTrial
+from .scanpathshelpdebug import CreatAoiRects,SaccadeLine
 import platform
 
 
@@ -296,6 +296,9 @@ def GetEntropies(self,fixsize=0,binsize_h=50):
 def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax=False,center=0,substring=False,cmap='plasma',alpha=.5):
     ''' Pipeline for  heatmap calculation, FixCounts are calculated for stimulus, or passed pre-calcualted as optional parameter
     output: heatmap for a stimulus
+    
+    Vis:  if 1 Heatmap visual shows up- otherwise no visualization, but returns the heatmap values
+    
     cutarea option: 1 only use active area (99% percentile of fixations), 0- use all of the area - set it to 1, if stimulus does not cover the whole screen
     cutoff=median: median cutoff, otherwise percetile of values to replace with nans, goal--> clear visualization
     center: if set to 1, if pixel coordinates dont match, painting presented centrally, but gaze coors are zero based

@@ -176,8 +176,8 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
         else:
             ax[1,0].imshow( self.images[stimShow])
 
-    Diff=hmaps[0]-hmaps[1]
     
+    Diff=hmaps[0]-hmaps[1]
     im=ax[1,0].imshow(Diff,cmap='RdBu', vmin=-np.nanmax(np.abs(Diff)), vmax=np.nanmax(np.abs(Diff)),alpha=alpha)
     ax[1,0].set_xticks([])
     ax[1,0].set_yticks([])
@@ -186,6 +186,20 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
     cbar.ax.get_yaxis().set_ticks([])
     cbar.ax.get_yaxis().labelpad = 15
     cbar.ax.set_ylabel(str(Conditions[0])+'<---->'+str(Conditions[1]), rotation=270)
+    
+    N1=np.sum(WhichCN==Conditions[0])
+    N2=np.sum(WhichCN==Conditions[1])
+    
+    ### calculate permuted difference heatmaps
+    Nrand=8
+    DiffPerm=np.zeros(Nrand)
+    for n in range(Nrand):
+        Idxs=np.random.permutation(N1+N2)
+        hmap1=self.Heatmap(stims,SD=SD,Ind=0,Vis=0,FixCounts=FixCounts[Idxs[0:N1],:,:],CutArea=CutArea)
+        hmap2=self.Heatmap(stims,SD=SD,Ind=0,Vis=0,FixCounts=FixCounts[Idxs[N1:],:,:],CutArea=CutArea)
+        DiffPerm[n]=np.nansum(np.abs(hmap1-hmap2))
+    
+    
     if hasattr(self,'images'):
         if center:
             ax[1,1].imshow( self.images[stimShow],extent=[xs1,xs2,ys2,ys1])
@@ -197,6 +211,12 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
     plt.colorbar(im,ax=ax[1,1], shrink=.6)
     ax[1,1].set_title('Absolute diff: '+str(np.round(np.nansum(np.abs(Diff)),3)))
     plt.tight_layout()
+    
+    
+    # visualize permuted difference heatmap distribution
+    fig,ax2=plt.subplots()
+    ax2.hist(DiffPerm)
+    ax2.axvlines(np.nansum(np.abs(Diff)))
     return 
 
     

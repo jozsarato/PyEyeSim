@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Jan 30 14:25:59 2024
+
+@author: aratoj87
+"""
+
 
 import numpy as np
 from numpy import matlib
