@@ -96,7 +96,7 @@ def CompareGroupsFix(self,betwcond):
     return 
 
     
-def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,center=0,substring=False,cmap='plasma'):
+def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,center=0,substring=False,cmap='plasma',alpha=.5):
     ''' 
     Description: visualize group heatmap, along with heatmap difference.
 
@@ -148,7 +148,7 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
         else:
             stims=copy.copy(Stim)
         print(cc,c,stims)
-        hmap=self.Heatmap(stims,SD=SD,Ind=0,Vis=1,FixCounts=FixCounts[Idx,:,:],CutArea=CutArea,center=center,substring=False,ax=ax[0,cc],cmap=cmap)
+        hmap=self.Heatmap(stims,SD=SD,Ind=0,Vis=1,FixCounts=FixCounts[Idx,:,:],CutArea=CutArea,center=center,substring=False,ax=ax[0,cc],cmap=cmap,alpha=alpha)
         ax[0,cc].set_title(c)
        # ax[0,cc].colorbar()
         hmaps.append(hmap)
@@ -168,7 +168,7 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
     ax[1,0].set_xticks([])
     ax[1,0].set_yticks([])
     ax[1,0].set_title(str(Conditions[0])+' - '+str(Conditions[1]))
-    cbar=plt.colorbar(im,ax=ax[1,0])
+    cbar=plt.colorbar(im,ax=ax[1,0], shrink=.6)
     cbar.ax.get_yaxis().set_ticks([])
     cbar.ax.get_yaxis().labelpad = 15
     cbar.ax.set_ylabel(str(Conditions[0])+'<---->'+str(Conditions[1]), rotation=270)
@@ -180,7 +180,7 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
     im=ax[1,1].imshow(np.abs(Diff), vmin=0, vmax=np.nanmax(np.abs(Diff)),alpha=.5)
     ax[1,1].set_xticks([])
     ax[1,1].set_yticks([])
-    plt.colorbar(im,ax=ax[1,1])
+    plt.colorbar(im,ax=ax[1,1], shrink=.6)
     ax[1,1].set_title('Absolute diff: '+str(np.round(np.nansum(np.abs(Diff)),3)))
     plt.tight_layout()
     return 
