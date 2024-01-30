@@ -96,7 +96,7 @@ def CompareGroupsFix(self,betwcond):
     return 
 
     
-def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,Center=0,substring=False):
+def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,center=0,substring=False,cmap='plasma'):
     ''' 
     Description: visualize group heatmap, along with heatmap difference.
 
@@ -148,12 +148,12 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
         else:
             stims=copy.copy(Stim)
         print(cc,c,stims)
-        hmap=self.Heatmap(stims,SD=SD,Ind=0,Vis=1,FixCounts=FixCounts[Idx,:,:],CutArea=CutArea,center=Center,substring=False,ax=ax[0,cc])
+        hmap=self.Heatmap(stims,SD=SD,Ind=0,Vis=1,FixCounts=FixCounts[Idx,:,:],CutArea=CutArea,center=center,substring=False,ax=ax[0,cc],cmap=cmap)
         ax[0,cc].set_title(c)
        # ax[0,cc].colorbar()
         hmaps.append(hmap)
     if hasattr(self,'images'):
-        if Center:
+        if center:
             xs1=(self.x_size-np.shape(self.images[stimShow])[1])/2
             xs2=self.x_size-xs1
             ys1=(self.y_size-np.shape(self.images[stimShow])[0])/2
@@ -173,7 +173,7 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
     cbar.ax.get_yaxis().labelpad = 15
     cbar.ax.set_ylabel(str(Conditions[0])+'<---->'+str(Conditions[1]), rotation=270)
     if hasattr(self,'images'):
-        if Center:
+        if center:
             ax[1,1].imshow( self.images[stimShow],extent=[xs1,xs2,ys2,ys1])
         else:
             ax[1,1].imshow( self.images[stimShow])

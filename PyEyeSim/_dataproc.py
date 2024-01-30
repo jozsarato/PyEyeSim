@@ -54,6 +54,7 @@ def GetStimuli(self,extension,path=0,infersubpath=False):
             self.data.rename(columns={'category':'Category'},inplace=True)
         print('infer path from database categeory')
     for cs,s in enumerate(self.stimuli):
+        
         if infersubpath==True:
             cat=int(np.unique(self.data['Category'][self.data['Stimulus']==s])[0])
             if platform.platform().find('mac')>-1:
@@ -66,10 +67,18 @@ def GetStimuli(self,extension,path=0,infersubpath=False):
         else:
             if type(s)==str:
               #  print(path+s+extension)
-                Stim=plt.imread(path+s+extension)
+                try: 
+                    Stim=plt.imread(path+s+extension)
+                except:  # because sometimes stimulus name already contains the extension
+                    Stim=plt.imread(path+s)
+
             else:   
                # print(path+str(int(s))+extension)
-                Stim=plt.imread(path+str(int(s))+extension)
+                try:
+                    Stim=plt.imread(path+str(int(s))+extension)
+                except:  # because sometimes stimulus name already contains the extension
+                    Stim=plt.imread(path+str(int(s)))
+
 
        # else:
         #    if type(s)!=str:
@@ -284,13 +293,16 @@ def GetEntropies(self,fixsize=0,binsize_h=50):
 
 
   
-def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax=False,alpha=.5,center=0,substring=False):
+def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax=False,center=0,substring=False,cmap='plasma',alpha=.5):
     ''' Pipeline for  heatmap calculation, FixCounts are calculated for stimulus, or passed pre-calcualted as optional parameter
     output: heatmap for a stimulus
     cutarea option: 1 only use active area (99% percentile of fixations), 0- use all of the area 
     cutoff=median: median cutoff, otherwise percetile of values to replace with nans, goal--> clear visualization
     center, if pixel coordinates dont match, painting presented centrally, but gaze coors are zero based
-    substring: use part of file name (expected for mathcing paired files) '''
+    substring: use part of file name (expected for mathcing paired files)
+    cmap=colormap (see matplotlib colormaps for options: https://matplotlib.org/stable/users/explain/colors/colormaps.html)
+    alpha= transparency- 0-1 higher values less transparent
+    '''
   #  if hasattr(self,'fixcounts'):
    #     FixCountIndie=self.fixcounts['Stim']
     #else:    
@@ -348,7 +360,7 @@ def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax
             ax.imshow(self.images[stimShow],extent=[xs1,xs2,ys2,ys1])
         else:
             ax.imshow(self.images[stimShow])
-        ax.imshow(smapall,alpha=.5) 
+        ax.imshow(smapall,alpha=alpha,cmap=cmap) 
         ax.set_xticks([])
         ax.set_yticks([])
 
