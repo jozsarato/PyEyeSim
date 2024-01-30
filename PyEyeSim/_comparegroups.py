@@ -141,7 +141,8 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
 
     WhichC,WhichCN=self.GetGroups(betwcond)
       
-   
+    if hasattr(self,'boundsX')==0:
+        self.RunDescriptiveFix()
     
     if hasattr(self,'subjects')==0:
         self.GetParams()    
@@ -226,9 +227,9 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
     
     if hasattr(self,'images'):
         if center:
-            ax[1,1].imshow( self.images[stimShow],extent=[xs1,xs2,ys2,ys1])
+            ax[1,1].imshow(self.images[stimShow],extent=[xs1,xs2,ys2,ys1])
         else:
-            ax[1,1].imshow( self.images[stimShow])
+            ax[1,1].imshow(self.images[stimShow])
     im=ax[1,1].imshow(np.abs(Diff), vmin=0, vmax=np.nanmax(np.abs(Diff)),alpha=alpha)
     ax[1,1].set_xticks([])
     ax[1,1].set_yticks([])
@@ -244,7 +245,7 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
         ax2.hist(DiffPerm)
         ax2.axvline(np.nansum(np.abs(DiffRed)),color='k')
         ax2.text(truereddiff,0,'true difference')
-        ax2.set_title(f' {Stim} permuted vs true diff: {Nrand} permutations {np.sum(DiffPerm>truereddiff)/Nrand}')
+        ax2.set_title(f' {Stim} permuted {Nrand} vs true diff - p={np.sum(DiffPerm>truereddiff)/Nrand}')
         ax2.set_xlabel('group difference')
     return np.nansum(np.abs(Diff)),truereddiff,DiffPerm
 
