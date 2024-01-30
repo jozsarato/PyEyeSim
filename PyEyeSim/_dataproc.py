@@ -296,9 +296,9 @@ def GetEntropies(self,fixsize=0,binsize_h=50):
 def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax=False,center=0,substring=False,cmap='plasma',alpha=.5):
     ''' Pipeline for  heatmap calculation, FixCounts are calculated for stimulus, or passed pre-calcualted as optional parameter
     output: heatmap for a stimulus
-    cutarea option: 1 only use active area (99% percentile of fixations), 0- use all of the area 
+    cutarea option: 1 only use active area (99% percentile of fixations), 0- use all of the area - set it to 1, if stimulus does not cover the whole screen
     cutoff=median: median cutoff, otherwise percetile of values to replace with nans, goal--> clear visualization
-    center, if pixel coordinates dont match, painting presented centrally, but gaze coors are zero based
+    center: if set to 1, if pixel coordinates dont match, painting presented centrally, but gaze coors are zero based
     substring: use part of file name (expected for mathcing paired files)
     cmap=colormap (see matplotlib colormaps for options: https://matplotlib.org/stable/users/explain/colors/colormaps.html)
     alpha= transparency- 0-1 higher values less transparent

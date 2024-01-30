@@ -96,19 +96,33 @@ def CompareGroupsFix(self,betwcond):
     return 
 
     
-def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,center=0,substring=False,cmap='plasma',alpha=.5):
+def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,center=0,substring=False,cmap='plasma',alpha=.5,cutoff='median'):
     ''' 
-    Description: visualize group heatmap, along with heatmap difference.
+    DESCRIPTION: visualize  heatmap fopr two groups, 
+    subplot 1: group 1
+    subplot 2: group 2
+    subplot 3: difference heatmap (raw value)
+    subplot 4: difference heatmap (absolute value)
+    
 
-    Arguments:
+    ARGUMENTS:
+    
     Stim (str): The stimulus for which the heatmap is generated.
     betwcond (str): The condition for between-group heatmap comparison.
-    StimPath (str, optional): Path to the stimulus. Default is an empty string.
+    
+    
+    OPTIONAL PARAMETERS
+    StimPath (str, optional): Path to the stimulus. Default is an empty string. if stimuli loaded before, this is not necessary
     SD (int, optional): Optional parameter for heatmap smoothness, in pixels. Default is 25.
-    CutArea (int, optional): Cut fixations. For example if you use '1', it shows 99% percentile of fixations. Default is 0.
+    CutArea (int, optional): Cut fixations. For example if you use '1', it shows 99% percentile of fixations. Default is 0. SEt to 1, if stimulus does not cover the screen size eg: for  portrait orientation
     Conds (int or list, optional): use automatically detected conditions conditions, as provided in betweencond column
         othewise Conds=['MyCond1' MyCond2'], if we want to specify the order of access for betweencond column.
-    center: if stimulus area does not start at pixel 0
+    center: if stimulus area does not start at pixel 0, shifts image display using the plt.imshow(image, extent=)
+    cmap=colormap (see matplotlib colormaps for options: https://matplotlib.org/stable/users/explain/colors/colormaps.html)
+    alpha= transparency- 0-1 higher values less transparent
+    cutoff: shows areas below this threshold as blank
+    substring: match stimuli based on part of string --- if we want to compare two differently named stimuli, with part of the stimulus name matching
+    
     '''
     if substring:
         self.stimuli=self.stimuli.astype('str')
@@ -148,7 +162,7 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
         else:
             stims=copy.copy(Stim)
         print(cc,c,stims)
-        hmap=self.Heatmap(stims,SD=SD,Ind=0,Vis=1,FixCounts=FixCounts[Idx,:,:],CutArea=CutArea,center=center,substring=False,ax=ax[0,cc],cmap=cmap,alpha=alpha)
+        hmap=self.Heatmap(stims,SD=SD,Ind=0,Vis=1,FixCounts=FixCounts[Idx,:,:],CutArea=CutArea,center=center,substring=False,ax=ax[0,cc],cmap=cmap,alpha=alpha,cutoff=cutoff)
         ax[0,cc].set_title(c)
        # ax[0,cc].colorbar()
         hmaps.append(hmap)
@@ -164,7 +178,7 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
 
     Diff=hmaps[0]-hmaps[1]
     
-    im=ax[1,0].imshow(Diff,cmap='RdBu', vmin=-np.nanmax(np.abs(Diff)), vmax=np.nanmax(np.abs(Diff)),alpha=.5)
+    im=ax[1,0].imshow(Diff,cmap='RdBu', vmin=-np.nanmax(np.abs(Diff)), vmax=np.nanmax(np.abs(Diff)),alpha=alpha)
     ax[1,0].set_xticks([])
     ax[1,0].set_yticks([])
     ax[1,0].set_title(str(Conditions[0])+' - '+str(Conditions[1]))
@@ -177,7 +191,7 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
             ax[1,1].imshow( self.images[stimShow],extent=[xs1,xs2,ys2,ys1])
         else:
             ax[1,1].imshow( self.images[stimShow])
-    im=ax[1,1].imshow(np.abs(Diff), vmin=0, vmax=np.nanmax(np.abs(Diff)),alpha=.5)
+    im=ax[1,1].imshow(np.abs(Diff), vmin=0, vmax=np.nanmax(np.abs(Diff)),alpha=alpha)
     ax[1,1].set_xticks([])
     ax[1,1].set_yticks([])
     plt.colorbar(im,ax=ax[1,1], shrink=.6)
