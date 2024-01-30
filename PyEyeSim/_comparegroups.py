@@ -7,6 +7,8 @@ from numpy import matlib
 from scipy import stats,ndimage
 import pandas as pd
 import matplotlib.pyplot as plt
+from skimage import measure
+
 import copy
 
 # import  library helper functions. 
@@ -96,7 +98,7 @@ def CompareGroupsFix(self,betwcond):
     return 
 
     
-def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,center=0,substring=False,cmap='plasma',alpha=.5,cutoff='median'):
+def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,center=0,substring=False,cmap='plasma',alpha=.5,cutoff='median',reduces=8, Nrand=100):
     ''' 
     DESCRIPTION: visualize  heatmap fopr two groups, 
     subplot 1: group 1
@@ -122,6 +124,8 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
     alpha= transparency- 0-1 higher values less transparent
     cutoff: shows areas below this threshold as blank
     substring: match stimuli based on part of string --- if we want to compare two differently named stimuli, with part of the stimulus name matching
+    reduces: downampling size 8 reduced by a factor of 8*8 pixels for example (using skimage)
+    Nrand: number of random permutations to compute, default 100, for actual stats long run time and at least 1000 permutations are recommended, if set to 0 random permutation comparisonno performed
     
     '''
     if substring:
@@ -135,6 +139,9 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
         stimShow=copy.copy(Stim)
 
     WhichC,WhichCN=self.GetGroups(betwcond)
+      
+   
+    
     if hasattr(self,'subjects')==0:
         self.GetParams()    
     #Cols=['darkred','cornflowerblue']
@@ -145,13 +152,26 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
     else:
         FixCounts=self.FixCountCalc(Stim,CutAct=0,substring=substring) 
     assert np.sum(FixCounts)>0,'!!no fixations found'
+    print('dimensions=',np.shape(FixCounts))
     hmaps=[]
-    
+    hmapsred=[]## reduced heatmaps, downsampled with scikit image (mean based downsampling)
+
+    red1=measure.block_reduce(FixCounts[0,:,:], (reduces,reduces), np.mean)  # just to get dimensions for the output
+    RedAll=np.zeros((np.shape(FixCounts)[0],np.shape(red1)[0],np.shape(red1)[1]))
+    for s in range(np.shape(FixCounts)[0]):
+        RedAll[s,:,:]=measure.block_reduce(FixCounts[s,:,:], (reduces,reduces), np.mean)
+        
+        
     if type(Conds)==int:    
         Conditions=np.copy(self.Conds)
     else:
         print('use provided conditions: ' ,Conds)
         Conditions=np.copy(Conds)
+    N1=np.sum(WhichCN==Conditions[0])
+    N2=np.sum(WhichCN==Conditions[1])
+    print('num observers in group 1: {N1}') 
+    print('num observers in group 2: {N2}') 
+
     for cc,c in enumerate(Conditions):
         Idx=np.nonzero(WhichCN==c)[0]   
         if substring:
@@ -163,6 +183,10 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
             stims=copy.copy(Stim)
         print(cc,c,stims)
         hmap=self.Heatmap(stims,SD=SD,Ind=0,Vis=1,FixCounts=FixCounts[Idx,:,:],CutArea=CutArea,center=center,substring=False,ax=ax[0,cc],cmap=cmap,alpha=alpha,cutoff=cutoff)
+        
+        hmap_red=self.Heatmap(stims,SD=8,Ind=0,Vis=0,FixCounts=RedAll[Idx,:,:])#,CutArea=CutArea)
+        hmapsred.append(hmap_red)
+        
         ax[0,cc].set_title(c)
        # ax[0,cc].colorbar()
         hmaps.append(hmap)
@@ -178,6 +202,7 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
 
     
     Diff=hmaps[0]-hmaps[1]
+    DiffRed=hmapsred[0]-hmapsred[1]
     im=ax[1,0].imshow(Diff,cmap='RdBu', vmin=-np.nanmax(np.abs(Diff)), vmax=np.nanmax(np.abs(Diff)),alpha=alpha)
     ax[1,0].set_xticks([])
     ax[1,0].set_yticks([])
@@ -186,19 +211,17 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
     cbar.ax.get_yaxis().set_ticks([])
     cbar.ax.get_yaxis().labelpad = 15
     cbar.ax.set_ylabel(str(Conditions[0])+'<---->'+str(Conditions[1]), rotation=270)
-    
-    N1=np.sum(WhichCN==Conditions[0])
-    N2=np.sum(WhichCN==Conditions[1])
-    
+  
     ### calculate permuted difference heatmaps
-    Nrand=8
     DiffPerm=np.zeros(Nrand)
-    for n in range(Nrand):
-        Idxs=np.random.permutation(N1+N2)
-        hmap1=self.Heatmap(stims,SD=SD,Ind=0,Vis=0,FixCounts=FixCounts[Idxs[0:N1],:,:],CutArea=CutArea)
-        hmap2=self.Heatmap(stims,SD=SD,Ind=0,Vis=0,FixCounts=FixCounts[Idxs[N1:],:,:],CutArea=CutArea)
-        DiffPerm[n]=np.nansum(np.abs(hmap1-hmap2))
-    
+    print(f'{Nrand} permutations starting')
+    if Nrand>0:
+        for n in range(Nrand):
+            Idxs=np.random.permutation(N1+N2)
+            hmap1=self.Heatmap(stims,SD=8,Ind=0,Vis=0,FixCounts=RedAll[Idxs[0:N1],:,:])#,CutArea=CutArea)
+            hmap2=self.Heatmap(stims,SD=8,Ind=0,Vis=0,FixCounts=RedAll[Idxs[N1:],:,:])#,CutArea=CutArea)
+            DiffPerm[n]=np.nansum(np.abs(hmap1-hmap2))
+        
     
     if hasattr(self,'images'):
         if center:
@@ -212,12 +235,17 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
     ax[1,1].set_title('Absolute diff: '+str(np.round(np.nansum(np.abs(Diff)),3)))
     plt.tight_layout()
     
-    
+    truereddiff=np.nansum(np.abs(DiffRed))
     # visualize permuted difference heatmap distribution
-    fig,ax2=plt.subplots()
-    ax2.hist(DiffPerm)
-    ax2.axvlines(np.nansum(np.abs(Diff)))
-    return 
+    
+    if Nrand>0:
+        fig,ax2=plt.subplots()
+        ax2.hist(DiffPerm)
+        ax2.axvline(np.nansum(np.abs(DiffRed)),color='k')
+        ax2.text(truereddiff,0,'true difference')
+        ax2.set_title(f' {Stim} permuted vs true diff: {Nrand} permutations {np.sum(DiffPerm>truereddiff)/Nrand}')
+        ax2.set_xlabel('group difference')
+    return Diff,truereddiff,DiffPerm
 
     
     
