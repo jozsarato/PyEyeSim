@@ -29,13 +29,20 @@ class EyeData:
     from ._visuals import VisScanPath,MySaccadeVis,VisLOOHMM,VisHMM,MyTrainTestVis
     from ._dataproc import GetParams,GetStimuli,GetFixationData,GetDurations,GetGroups,GetCats,GetSaccades,SaccadeSel,GetEntropies,InferSize,Heatmap,FixCountCalc
     from ._stats import AngleCalc,AngtoPix,PixdoDeg,Entropy,FixDurProg,BinnedCount,GetInddiff,GetInddiff_v2,RunDiffDivs,GetBinnedStimFixS,StatPDiffInd2,StatPDiffInd1,CalcStatPs,CalcRets,CalcImmRets,BinnedDescriptives
-    from ._comparegroups import CompareGroupsFix,CompareGroupsHeatmap,CompareWithinGroupsFix,FixDurProgGroups,BinnedDescriptivesGroups,CompareGroupsMat
+    from ._comparegroups import CompareGroupsFix,CompareWithinGroupsFix,FixDurProgGroups,BinnedDescriptivesGroups,CompareGroupsMat
     from ._scanpathsim import AOIFix,SacSimPipeline,SacSim1Group
 
     try: 
     	from ._hmm import DataArrayHmm,MyTrainTest,FitLOOHMM,FitVisHMM,FitVisHMMGroups,HMMSimPipeline
     except:
     	print('hmmlearn not found, hidden markov model functionality will not work')
+        
+    try: 
+        from ._comparegroups import CompareGroupsHeatmap
+    except:
+        
+    	print('scikit image not found, compare groups heatmap will not work - scikit image needed for downsampling')
+
 
     def __init__(self, name, design,data,x_size,y_size,fixdata=1):
         ''' 

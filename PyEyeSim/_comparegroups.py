@@ -7,7 +7,6 @@ from numpy import matlib
 from scipy import stats,ndimage
 import pandas as pd
 import matplotlib.pyplot as plt
-from skimage import measure
 
 import copy
 
@@ -128,6 +127,8 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
     Nrand: number of random permutations to compute, default 100, for actual stats long run time and at least 1000 permutations are recommended, if set to 0 random permutation comparisonno performed
     
     '''
+    from skimage import measure
+
     if substring:
         self.stimuli=self.stimuli.astype('str')
         stimn=np.char.find(self.stimuli,Stim)
@@ -169,8 +170,8 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
         Conditions=np.copy(Conds)
     N1=np.sum(WhichCN==Conditions[0])
     N2=np.sum(WhichCN==Conditions[1])
-    print('num observers in group 1: {N1}') 
-    print('num observers in group 2: {N2}') 
+    print(f'num observers in group 1: {N1}') 
+    print(f'num observers in group 2: {N2}') 
 
     for cc,c in enumerate(Conditions):
         Idx=np.nonzero(WhichCN==c)[0]   
@@ -245,7 +246,7 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
         ax2.text(truereddiff,0,'true difference')
         ax2.set_title(f' {Stim} permuted vs true diff: {Nrand} permutations {np.sum(DiffPerm>truereddiff)/Nrand}')
         ax2.set_xlabel('group difference')
-    return Diff,truereddiff,DiffPerm
+    return np.nansum(np.abs(Diff)),truereddiff,DiffPerm
 
     
     
