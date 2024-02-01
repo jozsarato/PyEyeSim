@@ -79,12 +79,6 @@ def GetStimuli(self,extension,path=0,infersubpath=False):
                 except:  # because sometimes stimulus name already contains the extension
                     Stim=plt.imread(path+str(int(s)))
 
-
-       # else:
-        #    if type(s)!=str:
-         #       print(p+str(int(s))+extension)
-          #      Stim=plt.imread(p+str(int(s))+extension)
-                
         Res=np.shape(Stim)
         if Res[0] != self.y_size:
             print("!y size incosistency warning expected",self.y_size,'vs actual', Res)
@@ -178,6 +172,7 @@ def GetGroups(self,betwcond):
                 WhichC[cs]=cc
                 WhichCN.append(c)
     self.whichC=WhichC
+
     return WhichC,np.array(WhichCN)
 
 def GetCats(self,condColumn):

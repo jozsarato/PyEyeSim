@@ -310,17 +310,24 @@ def FixDurProgGroups(self,colName,nfixmax=10,between=0):
     if between:
         print('running between group comparison')
         WhichC,WhichCN=self.GetGroups(colName)
+        print(WhichC,WhichCN)
+        Conds=self.Conds
+
     else:
         print('running within group comparison, provide between=True for between group comparisons')
 
-        WhichC=self.GetCats(colName)
-    for cc,c in enumerate(self.WithinConds):
-        if between:
-            Idx=np.nonzero(WhichC==cc)[0]
-        else:
-            Idx=np.nonzero(WhichC==c)[0]
+        WhichCN=self.GetCats(colName)
+        print(self.WithinConds,WhichCN)
 
-        print('group',cc,c)
+        Conds=self.WithinConds
+  #  print(WhichCN)
+    for cc,c in enumerate(Conds):
+        if between:
+            Idx=np.nonzero(WhichCN==c)[0]
+        else:
+            Idx=np.nonzero(WhichCN==c)[0]
+
+     #   print('group',cc,c)
         if between:
             Y=np.nanmean(np.nanmean(self.durprog[Idx,:,:],1),0)
             Err=stats.sem(np.nanmean(self.durprog[Idx,:,:],1),0,nan_policy='omit')
