@@ -158,10 +158,10 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
     hmaps=[]
     hmapsred=[]## reduced heatmaps, downsampled with scikit image (mean based downsampling)
 
-    red1=measure.block_reduce(FixCounts[0,:,:], (downsample,downsample), np.mean)  # just to get dimensions for the output
+    red1=measure.block_reduce(FixCounts[0,:,:], (downsample,downsample), np.sum)  # just to get dimensions for the output
     RedAll=np.zeros((np.shape(FixCounts)[0],np.shape(red1)[0],np.shape(red1)[1]))
     for s in range(np.shape(FixCounts)[0]):
-        RedAll[s,:,:]=measure.block_reduce(FixCounts[s,:,:], (downsample,downsample), np.mean)
+        RedAll[s,:,:]=measure.block_reduce(FixCounts[s,:,:], (downsample,downsample), np.sum)
         
         
     if type(Conds)==int:    
@@ -205,7 +205,7 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
     
     Diff=hmaps[0]-hmaps[1]
     DiffRed=hmapsred[0]-hmapsred[1]
-    im=ax[1,0].imshow(Diff,cmap='RdBu', vmin=-np.nanmax(np.abs(Diff)), vmax=np.nanmax(np.abs(Diff)),alpha=alpha)
+    im=ax[1,0].imshow(Diff,cmap='RdBu', vmin=np.nanmin(Diff), vmax=np.nanmax(Diff),alpha=alpha)
     ax[1,0].set_xticks([])
     ax[1,0].set_yticks([])
     ax[1,0].set_title(str(Conditions[0])+' - '+str(Conditions[1]))
@@ -248,6 +248,13 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
         ax2.set_title(f' {Stim} permuted {Nrand} vs true diff - p={np.sum(DiffPerm>truereddiff)/Nrand}')
         ax2.set_xlabel('group difference')
         ax2.set_ylabel('num random permutations')
+
+
+   # imred=measure.block_reduce(self.images[stimShow], (downsample,downsample,1), np.mean)  # just to get dimensions for the output
+   # fig,ax3=plt.subplots()
+    
+    #ax3.imshow(imred)
+    #im=ax3.imshow(DiffRed,cmap='RdBu', vmin=-np.nanmax(np.abs(DiffRed)), vmax=np.nanmax(np.abs(DiffRed)),alpha=alpha)
 
     return np.nansum(np.abs(Diff)),truereddiff,DiffPerm
 
