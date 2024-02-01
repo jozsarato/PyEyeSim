@@ -97,7 +97,7 @@ def CompareGroupsFix(self,betwcond):
     return 
 
     
-def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,center=0,substring=False,cmap='plasma',alpha=.5,cutoff='median',reduces=8, Nrand=100):
+def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,center=0,substring=False,cmap='plasma',alpha=.5,cutoff='median',downsample=8, Nrand=100):
     ''' 
     DESCRIPTION: visualize  heatmap fopr two groups, 
     subplot 1: group 1
@@ -123,7 +123,7 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
     alpha= transparency- 0-1 higher values less transparent
     cutoff: shows areas below this threshold as blank
     substring: match stimuli based on part of string --- if we want to compare two differently named stimuli, with part of the stimulus name matching
-    reduces: downampling size 8 reduced by a factor of 8*8 pixels for example (using skimage)
+    downsample: downampling size 8 reduced by a factor of 8*8 pixels for example (using skimage)
     Nrand: number of random permutations to compute, default 100, for actual stats long run time and at least 1000 permutations are recommended, if set to 0 random permutation comparisonno performed
     
     '''
@@ -158,10 +158,10 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
     hmaps=[]
     hmapsred=[]## reduced heatmaps, downsampled with scikit image (mean based downsampling)
 
-    red1=measure.block_reduce(FixCounts[0,:,:], (reduces,reduces), np.mean)  # just to get dimensions for the output
+    red1=measure.block_reduce(FixCounts[0,:,:], (downsample,downsample), np.mean)  # just to get dimensions for the output
     RedAll=np.zeros((np.shape(FixCounts)[0],np.shape(red1)[0],np.shape(red1)[1]))
     for s in range(np.shape(FixCounts)[0]):
-        RedAll[s,:,:]=measure.block_reduce(FixCounts[s,:,:], (reduces,reduces), np.mean)
+        RedAll[s,:,:]=measure.block_reduce(FixCounts[s,:,:], (downsample,downsample), np.mean)
         
         
     if type(Conds)==int:    
@@ -242,11 +242,13 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
     
     if Nrand>0:
         fig,ax2=plt.subplots()
-        ax2.hist(DiffPerm)
+        ax2.hist(DiffPerm,color='olive')
         ax2.axvline(np.nansum(np.abs(DiffRed)),color='k')
-        ax2.text(truereddiff,0,'true difference')
+        ax2.text(truereddiff,Nrand/20,'true difference')
         ax2.set_title(f' {Stim} permuted {Nrand} vs true diff - p={np.sum(DiffPerm>truereddiff)/Nrand}')
         ax2.set_xlabel('group difference')
+        ax2.set_ylabel('num random permutations')
+
     return np.nansum(np.abs(Diff)),truereddiff,DiffPerm
 
     

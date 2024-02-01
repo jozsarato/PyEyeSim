@@ -7,21 +7,13 @@ Created on Fri Feb  4 11:58:03 2022
 """
 
 import numpy as np
-from numpy import matlib
-from scipy import stats,ndimage
 import pandas as pd
-import matplotlib.pyplot as plt
-import copy 
-import pickle
 import xarray as xr
-import matplotlib.ticker as ticker
-from matplotlib.patches import Ellipse
-import platform
 #% import  library helper functions
 
-from .visualhelper import VisBinnedProg,PlotDurProg,JointBinnedPlot,MeanPlot,draw_ellipse,HistPlot
-from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,SaccadeLine,CalcSim, CheckCoor
-from .statshelper import SaliencyMapFilt,SaccadesTrial,ScanpathL,StatEntropy
+from .visualhelper import MeanPlot,HistPlot
+
+from .statshelper import ScanpathL
 
 
 class EyeData:
@@ -44,7 +36,7 @@ class EyeData:
     	print('scikit image not found, compare groups heatmap will not work - scikit image needed for downsampling')
 
 
-    def __init__(self, name, design,data,x_size,y_size,fixdata=1):
+    def __init__(self, name, design,data,x_size,y_size):
         ''' 
         Description: initalizing eye-tracking data object.
         
@@ -54,30 +46,20 @@ class EyeData:
         data (pandas.DataFrame): The eye-tracking data.
         x_size (int): Screen size in pixels (width).
         y_size (int): Screen size in pixels (height).
-        fixdata (int, optional): Indicator for fixation data (1) or saccade data (0). Default is 1 as fixation data are expected for most functionalities. 
         '''
         self.name = name
         self.design = design
         self.data=data
         self.x_size=x_size
         self.y_size=y_size
-        self.fixdata=fixdata
 
-
-        if fixdata:
-            print('Fixation dataset',self.name)
-        else:
-            print('Saccade dataset',self.name)
-            print(' Expected saccade columns:  begin_x,begin_y,end_x,end_y')
 
         print('dataset size: ',np.shape(self.data))
         print('study design: ',self.design)
         print('presentation size:  x=',self.x_size,'pixels y=',self.y_size,' pixels')
         print('presentation size:  x=',self.x_size,'pixels y=',self.y_size,' pixels')
-        if fixdata:   # if fixation data
-            DefColumns={'Stimulus':'Stimulus','subjectID':'subjectID','mean_x':'mean_x','mean_y':'mean_y'}
-        else:   # if saccade data
-            DefColumns={'Stimulus':'Stimulus','subjectID':'subjectID','begin_x':'begin_x', 'begin_y':'begin_y', 'end_x':'end_x','end_y':'end_y'}
+        DefColumns={'Stimulus':'Stimulus','subjectID':'subjectID','mean_x':'mean_x','mean_y':'mean_y'}
+    
 
         for df in DefColumns:
             try:
@@ -118,17 +100,11 @@ class EyeData:
         '''
        # print(type(FixDuration))
        
-        if self.fixdata:
-            if type(FixDuration)!='int':
-                self.data=self.data.rename(columns={Stimulus:'Stimulus',subjectID:'subjectID',mean_x: 'mean_x',mean_y: 'mean_y',FixDuration: 'duration'})
-            else:
-                self.data=self.data.rename(columns={Stimulus:'Stimulus',subjectID:'subjectID',mean_x: 'mean_x',mean_y: 'mean_y'})
+        if type(FixDuration)!='int':
+            self.data=self.data.rename(columns={Stimulus:'Stimulus',subjectID:'subjectID',mean_x: 'mean_x',mean_y: 'mean_y',FixDuration: 'duration'})
         else:
-            if type(FixDuration)!='int':
-                self.data=self.data.rename(columns={Stimulus:'Stimulus',subjectID:'subjectID',FixDuration: 'duration'})
-            else:
-                self.data=self.data.rename(columns={Stimulus:'Stimulus',subjectID:'subjectID'})
-        
+            self.data=self.data.rename(columns={Stimulus:'Stimulus',subjectID:'subjectID',mean_x: 'mean_x',mean_y: 'mean_y'})
+ 
         try:
             subjs,stims=self.GetParams()
             print('info found for '+ str(len(subjs))+' subjects, and '+str(len(stims))+' stimuli')
