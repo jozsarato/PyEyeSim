@@ -153,9 +153,6 @@ def MyTrainTestVis(self, DatTr,DatTest,lenTrain,lenTest,totest=0):
 
     self.MySaccadeVis(ax[1],DatTest,lenTest,title='test data '+titStr)
     return 
-          
-
-        
 
 
 # %%
