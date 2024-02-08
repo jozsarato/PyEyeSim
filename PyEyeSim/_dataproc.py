@@ -366,7 +366,8 @@ def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax
         ax.imshow(smapall,alpha=alpha,cmap=cmap) 
         ax.set_xticks([])
         ax.set_yticks([])
-
+        ax.set_xlim([xs1,xs2])
+        ax.set_ylim([ys2,ys1])
             
     return smapall
 

@@ -18,10 +18,10 @@ from .statshelper import ScanpathL
 
 class EyeData:
 	
-    from ._visuals import VisScanPath,MySaccadeVis,VisLOOHMM,VisHMM,MyTrainTestVis
+    from ._visuals import VisScanPath,MySaccadeVis,VisLOOHMM,VisHMM,MyTrainTestVis,VisGrid
     from ._dataproc import GetParams,GetStimuli,GetFixationData,GetDurations,GetGroups,GetCats,GetSaccades,SaccadeSel,GetEntropies,InferSize,Heatmap,FixCountCalc
     from ._stats import AngleCalc,AngtoPix,PixdoDeg,Entropy,FixDurProg,BinnedCount,GetInddiff,GetInddiff_v2,RunDiffDivs,GetBinnedStimFixS,StatPDiffInd2,StatPDiffInd1,CalcStatPs,CalcRets,CalcImmRets,BinnedDescriptives
-    from ._comparegroups import CompareGroupsFix,CompareWithinGroupsFix,FixDurProgGroups,BinnedDescriptivesGroups,CompareGroupsMat
+    from ._comparegroups import CompareGroupsFix,CompareWithinGroupsFix,FixDurProgGroups,BinnedDescriptivesGroups,CompareGroupsMat,CompareGroupsGridFix
     from ._scanpathsim import AOIFix,SacSimPipeline,SacSim1Group
 
     try: 
