@@ -393,5 +393,50 @@ def CompareGroupsMat(self,group,indsimmat):
                 Diffs[cs,cg1,cg2]=np.nanmean(indsimmat[cs,groups==cg1,:][:,groups==cg2])
     return Diffs
         
+
+
+def CompareGroupsGridFix(self,Stim,betwcond,StimPath='',nhor=5,nver=5,center=0,substring=False,cmap='plasma',alpha=.5): 
+    if substring:
+        self.stimuli=self.stimuli.astype('str')
+        stimn=np.char.find(self.stimuli,Stim)
+        Stims=self.stimuli[stimn>-1]
+        stimn=np.nonzero(stimn>-1)[0]
+        stimShow=Stims[0]
+        print('stimns found:',stimn,Stims)
+    else:
+        stimShow=copy.copy(Stim)
+
+    WhichC,WhichCN=self.GetGroups(betwcond)
+    Conditions=np.unique(WhichCN)
+      
+    if hasattr(self,'boundsX')==0:
+        self.RunDescriptiveFix()
+    
+    if hasattr(self,'subjects')==0:
+        self.GetParams()   
+    if center:
+        ## this is really inefficient, ince stats p-s are calculated for all images
+        statPMat,statEntropyMat=self.CalcStatPs(nhor,nver,MinFix=10,InferS=2)
+    else: 
+        statPMat,statEntropyMat=self.CalcStatPs(nhor,nver,MinFix=10,InferS=2)
+
+   # if substring and len(stimn)==2:
+
+    fig,ax=plt.subplots(nrows=2,ncols=len(stimn))
+    for cs,s in enumerate(stimn):
+        self.VisGrid(np.nanmean(statPMat[:,s,:,:],0),Stims[cs],center=True,ax=ax[0,cs],alpha=.3,cmap='inferno')
+        ax[0,cs].set_title(Stims[cs])
+       # fixgr1=statPMat[:,stimn[0],:,:]
+        #fixgr2=statPMat[:,stimn[1],:,:]
+
+    if substring:
+        diffmat=np.nanmean(statPMat[:,stimn[0],:,:],0)-np.nanmean(statPMat[:,stimn[1],:,:],0) 
+        cbar=self.VisGrid(diffmat,Stims[cs],center=True,ax=ax[1,0],alpha=.7,cmap='RdBu',vmax=np.nanmax(np.abs(diffmat)),cbar=True)
+        cbar.ax.get_yaxis().set_ticks([])
+        cbar.ax.get_yaxis().labelpad = 15
+        cbar.ax.set_ylabel(str(Stims[0])+'<---->'+str(Stims[1]), rotation=270)
   
+
+    return
+
     

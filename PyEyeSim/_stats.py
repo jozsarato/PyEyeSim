@@ -105,9 +105,25 @@ def BinnedCount(self,Fixcounts,Stim,fixs=1,binsize_h=50,binsize_v=None):
     return BinnedCount
 
 
-def CalcStatPs(self,nHor,nVer,MinFix=20,InferS=1):
-    ''' for a dataset, return number of fixation and static probability matrix, for given divisions
-    returns StatPMat: nsubject*nstimulus*nvertical*nhorizontal '''
+def CalcStatPs(self,nHor,nVer,MinFix=10,InferS=1):
+    ''' for a dataset, return number of fixation probability matrix for each subject and stimulus, for given divisions
+    returns StatPMat: nsubject*nstimulus*nvertical*nhorizontal 
+
+    mandatory: 
+    nHor: number of horizontal divisions
+    nVer: number of vertical divisions
+
+
+    optional:
+    MinFix: minimum number of fixations for a given participant
+
+    InferS: 0 calcualte for full screen (if images are presented full screen for example)
+            1 calculate for inferred bounds -- based 99% of locations
+            2 calculate based on centered image (that is smaller than full screen)-- needed when image sizes differ and not full screen, but can be only calculated if images have been loaded
+
+
+
+    '''
    
     statPMat=np.zeros((((self.ns,self.np,nVer,nHor))))
     statEntropyMat=np.zeros((self.ns,self.np,))
