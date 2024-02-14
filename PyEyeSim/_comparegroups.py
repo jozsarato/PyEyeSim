@@ -35,6 +35,7 @@ def CompareGroupsFix(self,betwcond):
     betwcond (str): Name of the conditions for between-group fixation comparisons.
     '''
     
+    print('!runnning between group comparison')
     WhichC,WhichCN=self.GetGroups(betwcond)
     if hasattr(self,'entropies')==False:   # check if entropy has already been calculated
         print('Calculating entropy')
@@ -395,7 +396,10 @@ def CompareGroupsMat(self,group,indsimmat):
         
 
 
-def CompareGroupsGridFix(self,Stim,betwcond,StimPath='',nhor=5,nver=5,center=0,substring=False,cmap='plasma',alpha=.5): 
+def CompareGroupsGridFix(self,Stim,betwcond,StimPath='',Conds=0,nhor=5,nver=5,center=0,substring=False,cmap='plasma',alpha=.5): 
+    ''' 
+
+    Conds: explicitly provide conditions'''
     if substring:
         self.stimuli=self.stimuli.astype('str')
         stimn=np.char.find(self.stimuli,Stim)
@@ -405,9 +409,17 @@ def CompareGroupsGridFix(self,Stim,betwcond,StimPath='',nhor=5,nver=5,center=0,s
         print('stimns found:',stimn,Stims)
     else:
         stimShow=copy.copy(Stim)
+        stimn=np.nonzero(self.stimuli==Stim)[0]
+        print('stimns found:',stimn,stimShow)
+
 
     WhichC,WhichCN=self.GetGroups(betwcond)
-    Conditions=np.unique(WhichCN)
+
+    if type(Conds)==int:    
+        Conditions=np.copy(self.Conds)
+    else:
+        print('use provided conditions: ' ,Conds)
+        Conditions=np.copy(Conds)
       
     if hasattr(self,'boundsX')==0:
         self.RunDescriptiveFix()
@@ -422,20 +434,38 @@ def CompareGroupsGridFix(self,Stim,betwcond,StimPath='',nhor=5,nver=5,center=0,s
 
    # if substring and len(stimn)==2:
 
-    fig,ax=plt.subplots(nrows=2,ncols=len(stimn))
-    for cs,s in enumerate(stimn):
-        self.VisGrid(np.nanmean(statPMat[:,s,:,:],0),Stims[cs],center=True,ax=ax[0,cs],alpha=.3,cmap='inferno')
-        ax[0,cs].set_title(Stims[cs])
-       # fixgr1=statPMat[:,stimn[0],:,:]
-        #fixgr2=statPMat[:,stimn[1],:,:]
-
+    fig,ax=plt.subplots(nrows=2,ncols=2)
+    
     if substring:
+        for cs,s in enumerate(stimn):
+            self.VisGrid(np.nanmean(statPMat[:,s,:,:],0),Stims[cs],center=True,ax=ax[0,cs],alpha=.3,cmap=cmap)
+            ax[0,cs].set_title(Stims[cs])
+           # fixgr1=statPMat[:,stimn[0],:,:]
+            #fixgr2=statPMat[:,stimn[1],:,:]
+
         diffmat=np.nanmean(statPMat[:,stimn[0],:,:],0)-np.nanmean(statPMat[:,stimn[1],:,:],0) 
-        cbar=self.VisGrid(diffmat,Stims[cs],center=True,ax=ax[1,0],alpha=.7,cmap='RdBu',vmax=np.nanmax(np.abs(diffmat)),cbar=True)
-        cbar.ax.get_yaxis().set_ticks([])
-        cbar.ax.get_yaxis().labelpad = 15
-        cbar.ax.set_ylabel(str(Stims[0])+'<---->'+str(Stims[1]), rotation=270)
+        
   
+    else:
+        statmats=[]
+        for ccond,cond in enumerate(Conditions):
+            Idx=WhichCN==cond
+            print(np.shape(np.nanmean(statPMat[Idx,stimn,:,:],0)))
+            self.VisGrid(np.nanmean(statPMat[Idx,stimn,:,:],0),stimShow,center=True,ax=ax[0,ccond],alpha=.3,cmap=cmap)
+            ax[0,ccond].set_title(cond)
+
+            statmats.append(statPMat[Idx,stimn,:,:])
+        diffmat=np.nanmean(statmats[0],0)-np.nanmean(statmats[1],0) 
+    print(np.shape(diffmat))
+
+
+    cbar=self.VisGrid(diffmat,stimShow,center=center,ax=ax[1,0],alpha=.7,cmap='RdBu',vmax=np.nanmax(np.abs(diffmat)),cbar=True)
+    cbar.ax.get_yaxis().set_ticks([])
+    cbar.ax.get_yaxis().labelpad = 15
+    if substring:
+        cbar.ax.set_ylabel(str(Stims[0])+'<---->'+str(Stims[1]), rotation=270)
+    else:
+        cbar.ax.set_ylabel(str(Conditions[0])+'<---->'+str(Conditions[1]), rotation=270)
 
     return
 

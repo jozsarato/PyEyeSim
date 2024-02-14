@@ -96,7 +96,7 @@ class EyeData:
             If an integer, fixation duration column is assumed absent. It will be renamed "duration" afterwards
         StimPath (str): Path to stimuli. Set to 0 if not provided.
         StimExt (str): File extension of stimuli (default: '.jpg').
-        infersubpath (bool): Flag to infer stimulus subpaths based on subject IDs (default: False).
+        infersubpath (bool): Flag to infer stimulus subpaths based on subject IDs (default: False).  -- if stimuli are stored in subfolders for multiple categories
         '''
        # print(type(FixDuration))
        
