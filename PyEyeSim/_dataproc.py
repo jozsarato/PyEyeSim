@@ -311,7 +311,7 @@ def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax
     #else:    
     if substring==False:
         stimn=np.nonzero(self.stimuli==Stim)[0]
-        stimShow=Stim[:]
+        stimShow=Stim
     else:
         self.stimuli=self.stimuli.astype('str')
         stimn=np.char.find(self.stimuli,Stim)
