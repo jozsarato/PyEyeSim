@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import copy
 
 # import  library helper functions. 
-from .statshelper import SaliencyMapFilt,SaccadesTrial,ScanpathL,StatEntropy
+from .statshelper import SaliencyMapFilt,SaccadesTrial,ScanpathL,StatEntropy,BonfHolm
 from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,SaccadeLine,CalcSim ,CheckCoor
 from .visualhelper import VisBinnedProg,PlotDurProg,JointBinnedPlot,MeanPlot,draw_ellipse,HistPlot
 
@@ -434,29 +434,41 @@ def CompareGroupsGridFix(self,Stim,betwcond,StimPath='',Conds=0,nhor=5,nver=5,ce
 
    # if substring and len(stimn)==2:
 
-    fig,ax=plt.subplots(nrows=2,ncols=2)
-    
+    fig,ax=plt.subplots(nrows=2,ncols=2,figsize=(10,8))
+    statmats=[]
     if substring:
         for cs,s in enumerate(stimn):
-            self.VisGrid(np.nanmean(statPMat[:,s,:,:],0),Stims[cs],center=True,ax=ax[0,cs],alpha=.3,cmap=cmap)
+            Statpm=np.nanmean(statPMat[:,s,:,:],0)
+            Statpm[Statpm<np.nanmedian(Statpm)]=np.NAN
+            self.VisGrid(Statpm,Stims[cs],center=True,ax=ax[0,cs],alpha=alpha,cmap=cmap)
             ax[0,cs].set_title(Stims[cs])
            # fixgr1=statPMat[:,stimn[0],:,:]
             #fixgr2=statPMat[:,stimn[1],:,:]
+            statmats.append(statPMat[:,s,:,:])
+
 
         diffmat=np.nanmean(statPMat[:,stimn[0],:,:],0)-np.nanmean(statPMat[:,stimn[1],:,:],0) 
         
   
     else:
-        statmats=[]
         for ccond,cond in enumerate(Conditions):
             Idx=WhichCN==cond
             print(np.shape(np.nanmean(statPMat[Idx,stimn,:,:],0)))
-            self.VisGrid(np.nanmean(statPMat[Idx,stimn,:,:],0),stimShow,center=True,ax=ax[0,ccond],alpha=.3,cmap=cmap)
+            Statpm=np.nanmean(statPMat[Idx,stimn,:,:],0)
+            Statpm[Statpm<np.nanmedian(Statpm)]=np.NAN
+            self.VisGrid(Statpm,stimShow,center=True,ax=ax[0,ccond],alpha=alpha,cmap=cmap)
             ax[0,ccond].set_title(cond)
-
             statmats.append(statPMat[Idx,stimn,:,:])
         diffmat=np.nanmean(statmats[0],0)-np.nanmean(statmats[1],0) 
-    print(np.shape(diffmat))
+
+    tt,pp=np.zeros((nhor,nver)),np.zeros((nhor,nver))
+    for ch in range(nhor):
+        for cv in range(nver):
+            d1,d2=statmats[0][:,cv,ch],statmats[1][:,cv,ch]
+           
+
+            tt[cv,ch],pp[cv,ch] = stats.ttest_ind(d1[np.isfinite(d1)],d2[np.isfinite(d2)])
+
 
 
     cbar=self.VisGrid(diffmat,stimShow,center=center,ax=ax[1,0],alpha=.7,cmap='RdBu',vmax=np.nanmax(np.abs(diffmat)),cbar=True)
@@ -467,6 +479,27 @@ def CompareGroupsGridFix(self,Stim,betwcond,StimPath='',Conds=0,nhor=5,nver=5,ce
     else:
         cbar.ax.set_ylabel(str(Conditions[0])+'<---->'+str(Conditions[1]), rotation=270)
 
-    return
+    ax[1,0].set_title('difference')
+    ax[1,1].set_title('t-values')
+    
+    cbar=self.VisGrid(np.abs(tt),stimShow,center=center,ax=ax[1,1],alpha=.7,cmap='Greens',cbar=True)
+
+    fig,ax2=plt.subplots()
+
+    sign=np.ones((nhor,nver))
+    sign[pp<.05]=.5
+
+    # calculate bonferroni-holm correction
+    ncomp=nhor*nver
+    psigncorr=BonfHolm(pp.flatten())
+    psigncorr=psigncorr.reshape(nver,nhor)
+    #sign[psigncorr==1]=np.nan
+    sign[pp<.01]=np.nan
+
+    cbar=self.VisGrid(sign,stimShow,center=center,ax=ax2,alpha=.7,cmap='Blues',cbar=False)
+    ax2.set_title(f'num sign p<.05: {np.sum(pp<.05)} ,chance expectation: {np.round(nhor*nver*.05)} ')
+    
+    return tt,pp,psigncorr
+
 
     
