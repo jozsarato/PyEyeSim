@@ -396,7 +396,7 @@ def CompareGroupsMat(self,group,indsimmat):
         
 
 
-def CompareGroupsGridFix(self,Stim,betwcond,StimPath='',Conds=0,nhor=5,nver=5,center=0,substring=False,cmap='plasma',alpha=.5): 
+def CompareGroupsGridFix(self,Stim,betwcond,StimPath='',Conds=0,nhor=5,nver=5,center=0,substring=False,cmap='plasma',alpha=.5,t_abs=True): 
     ''' 
 
     Conds: explicitly provide conditions'''
@@ -439,11 +439,10 @@ def CompareGroupsGridFix(self,Stim,betwcond,StimPath='',Conds=0,nhor=5,nver=5,ce
     if substring:
         for cs,s in enumerate(stimn):
             Statpm=np.nanmean(statPMat[:,s,:,:],0)
-            Statpm[Statpm<np.nanmedian(Statpm)]=np.NAN
+            Statpm[Statpm<np.nanpercentile(Statpm,30)]=np.NAN
             self.VisGrid(Statpm,Stims[cs],center=True,ax=ax[0,cs],alpha=alpha,cmap=cmap)
             ax[0,cs].set_title(Stims[cs])
-           # fixgr1=statPMat[:,stimn[0],:,:]
-            #fixgr2=statPMat[:,stimn[1],:,:]
+           
             statmats.append(statPMat[:,s,:,:])
 
 
@@ -455,13 +454,13 @@ def CompareGroupsGridFix(self,Stim,betwcond,StimPath='',Conds=0,nhor=5,nver=5,ce
             Idx=WhichCN==cond
             print(np.shape(np.nanmean(statPMat[Idx,stimn,:,:],0)))
             Statpm=np.nanmean(statPMat[Idx,stimn,:,:],0)
-            Statpm[Statpm<np.nanmedian(Statpm)]=np.NAN
+            Statpm[Statpm<np.nanpercentile(Statpm,30)]=np.NAN
             self.VisGrid(Statpm,stimShow,center=True,ax=ax[0,ccond],alpha=alpha,cmap=cmap)
             ax[0,ccond].set_title(cond)
             statmats.append(statPMat[Idx,stimn,:,:])
         diffmat=np.nanmean(statmats[0],0)-np.nanmean(statmats[1],0) 
 
-    tt,pp=np.zeros((nhor,nver)),np.zeros((nhor,nver))
+    tt,pp=np.zeros((nver,nhor)),np.zeros((nver,nhor))
     for ch in range(nhor):
         for cv in range(nver):
             d1,d2=statmats[0][:,cv,ch],statmats[1][:,cv,ch]
@@ -480,13 +479,20 @@ def CompareGroupsGridFix(self,Stim,betwcond,StimPath='',Conds=0,nhor=5,nver=5,ce
         cbar.ax.set_ylabel(str(Conditions[0])+'<---->'+str(Conditions[1]), rotation=270)
 
     ax[1,0].set_title('difference')
-    ax[1,1].set_title('t-values')
-    
-    cbar=self.VisGrid(np.abs(tt),stimShow,center=center,ax=ax[1,1],alpha=.7,cmap='Greens',cbar=True)
+    if t_abs:
+        cbar=self.VisGrid(np.abs(tt),stimShow,center=center,ax=ax[1,1],alpha=.7,cmap='Greens',cbar=True)
+        ax[1,1].set_title('abs t-values')
+    else:
+        cbar=self.VisGrid(tt,stimShow,center=center,ax=ax[1,1],alpha=.7,cmap='RdBu',vmax=4,cbar=True)
+        ax[1,1].set_title('t-values')
+        if substring:
+            cbar.ax.set_ylabel(str(Stims[0])+'<---->'+str(Stims[1]), rotation=270)
+        else:
+            cbar.ax.set_ylabel(str(Conditions[0])+'<---->'+str(Conditions[1]), rotation=270)
 
     fig,ax2=plt.subplots()
 
-    sign=np.ones((nhor,nver))
+    sign=np.ones((nver,nhor))
     sign[pp<.05]=.5
 
     # calculate bonferroni-holm correction
@@ -497,7 +503,7 @@ def CompareGroupsGridFix(self,Stim,betwcond,StimPath='',Conds=0,nhor=5,nver=5,ce
     sign[pp<.01]=np.nan
 
     cbar=self.VisGrid(sign,stimShow,center=center,ax=ax2,alpha=.7,cmap='Blues',cbar=False)
-    ax2.set_title(f'num sign p<.05: {np.sum(pp<.05)} ,chance expectation: {np.round(nhor*nver*.05)} ')
+    ax2.set_title(f'num sign p<.05: {np.sum(pp<.05)} ,chance expectation: {np.round(nhor*nver*.05,1)} ')
     
     return tt,pp,psigncorr
 
