@@ -396,7 +396,7 @@ def CompareGroupsMat(self,group,indsimmat):
         
 
 
-def CompareGroupsGridFix(self,Stim,betwcond,StimPath='',Conds=0,nhor=5,nver=5,center=0,substring=False,cmap='plasma',alpha=.5,tabs=True): 
+def CompareGroupsGridFix(self,Stim,betwcond,StimPath='',Conds=0,nhor=5,nver=5,center=0,substring=False,cmap='plasma',alpha=.5,t_abs=True): 
     ''' 
 
     Conds: explicitly provide conditions'''
@@ -479,11 +479,11 @@ def CompareGroupsGridFix(self,Stim,betwcond,StimPath='',Conds=0,nhor=5,nver=5,ce
         cbar.ax.set_ylabel(str(Conditions[0])+'<---->'+str(Conditions[1]), rotation=270)
 
     ax[1,0].set_title('difference')
-    if tabs:
+    if t_abs:
         cbar=self.VisGrid(np.abs(tt),stimShow,center=center,ax=ax[1,1],alpha=.7,cmap='Greens',cbar=True)
         ax[1,1].set_title('abs t-values')
     else:
-        cbar=self.VisGrid(tt,stimShow,center=center,ax=ax[1,1],alpha=.7,cmap='RdBu',vmax=3,cbar=True)
+        cbar=self.VisGrid(tt,stimShow,center=center,ax=ax[1,1],alpha=.7,cmap='RdBu',vmax=4,cbar=True)
         ax[1,1].set_title('t-values')
         if substring:
             cbar.ax.set_ylabel(str(Stims[0])+'<---->'+str(Stims[1]), rotation=270)
