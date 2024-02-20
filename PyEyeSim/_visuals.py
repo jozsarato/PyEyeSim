@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import copy 
-import xarray as xr
 import matplotlib.ticker as ticker
 from math import atan2, degrees
 
