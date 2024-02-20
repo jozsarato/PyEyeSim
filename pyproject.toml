@@ -1,14 +1,23 @@
 [project]
 name = "pyeyesim"
-version = "0.1"
+version = "0.2"
 requires-python = ">=3.8"
 authors = [
   { name="Jozsef Arato", email="jozsef.arato@gmail.com" },
 ]
-description = "Eye movement analysis and visualization package, with a focus on scanpath similarity"
+description = "Eye movement analysis and visualization package, with a focus on fixation map and scanpath similarity"
 readme = "README.md"
 classifiers = [
     "Programming Language :: Python :: 3"]
+
+dependencies = [
+  "numpy",
+  "scipy",
+  "pandas",
+  "scikit-image",
+  "xarray",
+  "matplotlib"]
+
 
 [project.urls]
 Homepage = "https://github.com/jozsarato/PyEyeSim"
