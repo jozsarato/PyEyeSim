@@ -1,6 +1,6 @@
 [project]
 name = "pyeyesim"
-version = "0.2.0"
+version = "0.2.1"
 requires-python = ">=3.8"
 authors = [
   { name="Jozsef Arato", email="jozsef.arato@gmail.com" },
