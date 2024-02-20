@@ -19,12 +19,15 @@ The library started to develop for use in art perception studies, therefore, the
 
 
 #### Installation:
+in the terminal/anaconda prompt
+
+`pip install pyeyesim`
+
+OR 
+
 if you cloned the library and are in the root folder of the library using the terminal (mac) or anaconda prompt (windows), you can install it, using the command: 
-
-https://pypi.org/project/pyeyesim/
-
-
 **" pip install -e . "**
+
 
 #### Demo:
 for examples of using the library, see the PyEyeDemoBasic.ipynb in the Notebooks folder
@@ -40,3 +43,6 @@ xarray
 ##### for full funcionality
   scikit-image
   hmmlearn
+
+##### on pip
+https://pypi.org/project/pyeyesim/
