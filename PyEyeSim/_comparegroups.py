@@ -396,10 +396,24 @@ def CompareGroupsMat(self,group,indsimmat):
         
 
 
-def CompareGroupsGridFix(self,Stim,betwcond,StimPath='',Conds=0,nhor=5,nver=5,center=0,substring=False,cmap='plasma',alpha=.5,t_abs=True): 
+def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,center=True,substring=False,cmap_ind='plasma',cmap_diff='RdYlBu',alpha=.5,t_abs=False): 
     ''' 
 
-    Conds: explicitly provide conditions'''
+    Stim: stimulus name
+    betwcond: between subject condition (if substring=True, this is not used)
+    
+    Conds: explicitly provide conditions (if there are more than 2, this is necessary)
+    t_abs: default=False,  absolute t value vs raw t-values grid
+    nhor: number of horizonal cells for the grid
+    nver: number of vertical cells for the grid
+    center (true): stimulus position correction (based on difference between stimulus and screen resolution), stimulus must be presented centrally!
+    substring: if paired stimuli have to found based on common part in stimulusID
+    cmap_ind: colormap for the heatmap of each group, default: 'plasma'
+    cmap_diff: colormap for difference heatmaps- default 'RdYlBu'--- ideally use divergent heatmaps
+    
+
+    '''
+
     if substring:
         self.stimuli=self.stimuli.astype('str')
         stimn=np.char.find(self.stimuli,Stim)
@@ -440,7 +454,7 @@ def CompareGroupsGridFix(self,Stim,betwcond,StimPath='',Conds=0,nhor=5,nver=5,ce
         for cs,s in enumerate(stimn):
             Statpm=np.nanmean(statPMat[:,s,:,:],0)
             Statpm[Statpm<np.nanpercentile(Statpm,30)]=np.NAN
-            self.VisGrid(Statpm,Stims[cs],center=True,ax=ax[0,cs],alpha=alpha,cmap=cmap)
+            self.VisGrid(Statpm,Stims[cs],center=True,ax=ax[0,cs],alpha=alpha,cmap=cmap_ind)
             ax[0,cs].set_title(Stims[cs])
            
             statmats.append(statPMat[:,s,:,:])
@@ -455,7 +469,7 @@ def CompareGroupsGridFix(self,Stim,betwcond,StimPath='',Conds=0,nhor=5,nver=5,ce
             print(np.shape(np.nanmean(statPMat[Idx,stimn,:,:],0)))
             Statpm=np.nanmean(statPMat[Idx,stimn,:,:],0)
             Statpm[Statpm<np.nanpercentile(Statpm,30)]=np.NAN
-            self.VisGrid(Statpm,stimShow,center=True,ax=ax[0,ccond],alpha=alpha,cmap=cmap)
+            self.VisGrid(Statpm,stimShow,center=True,ax=ax[0,ccond],alpha=alpha,cmap=cmap_ind)
             ax[0,ccond].set_title(cond)
             statmats.append(statPMat[Idx,stimn,:,:])
         diffmat=np.nanmean(statmats[0],0)-np.nanmean(statmats[1],0) 
@@ -470,7 +484,7 @@ def CompareGroupsGridFix(self,Stim,betwcond,StimPath='',Conds=0,nhor=5,nver=5,ce
 
 
 
-    cbar=self.VisGrid(diffmat,stimShow,center=center,ax=ax[1,0],alpha=.7,cmap='RdBu',vmax=np.nanmax(np.abs(diffmat)),cbar=True)
+    cbar=self.VisGrid(diffmat,stimShow,center=center,ax=ax[1,0],alpha=.7,cmap=cmap_diff,vmax=np.nanmax(np.abs(diffmat)),cbar=True)
     cbar.ax.get_yaxis().set_ticks([])
     cbar.ax.get_yaxis().labelpad = 15
     if substring:
@@ -483,12 +497,27 @@ def CompareGroupsGridFix(self,Stim,betwcond,StimPath='',Conds=0,nhor=5,nver=5,ce
         cbar=self.VisGrid(np.abs(tt),stimShow,center=center,ax=ax[1,1],alpha=.7,cmap='Greens',cbar=True)
         ax[1,1].set_title('abs t-values')
     else:
-        cbar=self.VisGrid(tt,stimShow,center=center,ax=ax[1,1],alpha=.7,cmap='RdBu',vmax=4,cbar=True)
-        ax[1,1].set_title('t-values')
+        cbar=self.VisGrid(tt,stimShow,center=center,ax=ax[1,1],alpha=.7,cmap=cmap_diff,vmax=4,cbar=True)
+        ax[1,1].set_title('t-value')
+        cbar.ax.get_yaxis().labelpad = 30
+
         if substring:
             cbar.ax.set_ylabel(str(Stims[0])+'<---->'+str(Stims[1]), rotation=270)
         else:
             cbar.ax.set_ylabel(str(Conditions[0])+'<---->'+str(Conditions[1]), rotation=270)
+
+
+    # xs1=(self.x_size-np.shape(self.images[stimShow])[1])/2
+    # xs2=self.x_size-xs1
+    # ys1=(self.y_size-np.shape(self.images[stimShow])[0])/2
+    # ys2=self.y_size-ys1
+    # x,y=np.linspace(xs1,xs2,np.shape(tt)[1]+1),np.linspace(ys1,ys2,np.shape(tt)[0]+1)
+    # for i in range(len(x) - 1):
+    #     for j in range(len(y) - 1):
+    #         if pp[i,j]<.05:
+    #             ax[1,1].plot([x[i], x[i + 1]], [y[j], y[j]], color='k')  # Horizontal lines
+    #             ax[1,1].plot([x[i], x[i]], [y[j], y[j + 1]], color='k')  # Vertical lines
+
 
     fig,ax2=plt.subplots()
 
