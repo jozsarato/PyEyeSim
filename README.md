@@ -21,6 +21,8 @@ The library started to develop for use in art perception studies, therefore, the
 #### Installation:
 if you cloned the library and are in the root folder of the library using the terminal (mac) or anaconda prompt (windows), you can install it, using the command: 
 
+https://pypi.org/project/pyeyesim/
+
 
 **" pip install -e . "**
 
