@@ -8,7 +8,6 @@ Created on Fri Feb  4 11:58:03 2022
 
 import numpy as np
 import pandas as pd
-import xarray as xr
 #% import  library helper functions
 
 from .visualhelper import MeanPlot,HistPlot
@@ -193,11 +192,17 @@ class EyeData:
         Bounds['BoundX2']=self.boundsX[:,1]
         Bounds['BoundY1']=self.boundsY[:,0]
         Bounds['BoundY2']=self.boundsY[:,1] 
-        if duration:
-            self.durs=xr.DataArray(self.durations, dims=('subjectID','Stimulus'), coords={'subjectID':Subjects,'Stimulus': Stimuli})
-        self.nfix = xr.DataArray(self.nfixations, dims=('subjectID','Stimulus'), coords={'subjectID':Subjects,'Stimulus': Stimuli})
-        self.meanfix_xy = xr.DataArray(MeanFixXY, dims=('subjectID','Stimulus','XY'), coords={'subjectID':Subjects,'Stimulus': Stimuli, 'XY':['X','Y']})
-        self.sdfix_xy = xr.DataArray(SDFixXY, dims=('subjectID','Stimulus','XY'), coords={'subjectID':Subjects,'Stimulus': Stimuli, 'XY':['X','Y']})
+        
+        try: 
+            import xarray as xr
+
+            if duration:
+                self.durs=xr.DataArray(self.durations, dims=('subjectID','Stimulus'), coords={'subjectID':Subjects,'Stimulus': Stimuli})
+            self.nfix = xr.DataArray(self.nfixations, dims=('subjectID','Stimulus'), coords={'subjectID':Subjects,'Stimulus': Stimuli})
+            self.meanfix_xy = xr.DataArray(MeanFixXY, dims=('subjectID','Stimulus','XY'), coords={'subjectID':Subjects,'Stimulus': Stimuli, 'XY':['X','Y']})
+            self.sdfix_xy = xr.DataArray(SDFixXY, dims=('subjectID','Stimulus','XY'), coords={'subjectID':Subjects,'Stimulus': Stimuli, 'XY':['X','Y']})
+        except:
+            print('xarray format descriptives not created, as xarray not installed')
         self.bounds=Bounds
         return Stimuli,Subjects
     

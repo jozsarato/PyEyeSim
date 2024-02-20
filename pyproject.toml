@@ -1,6 +1,6 @@
 [project]
 name = "pyeyesim"
-version = "0.2"
+version = "0.2.0"
 requires-python = ">=3.8"
 authors = [
   { name="Jozsef Arato", email="jozsef.arato@gmail.com" },
@@ -15,7 +15,6 @@ dependencies = [
   "scipy",
   "pandas",
   "scikit-image",
-  "xarray",
   "matplotlib"]
 
 
