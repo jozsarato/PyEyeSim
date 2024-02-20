@@ -507,26 +507,8 @@ def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,center=True,su
             cbar.ax.set_ylabel(str(Conditions[0])+'<---->'+str(Conditions[1]), rotation=270)
 
 
-    xs1=(self.x_size-np.shape(self.images[stimShow])[1])/2
-    xs2=self.x_size-xs1
-    ys1=(self.y_size-np.shape(self.images[stimShow])[0])/2
-    ys2=self.y_size-ys1
-    x,y=np.linspace(xs1,xs2,np.shape(tt)[1]+1),np.linspace(ys1,ys2,np.shape(tt)[0]+1)
-    for i in range(len(x) - 1):
-        for j in range(len(y) - 1):
-            if pp[j,i]<.05:
-                if pp[j,i]<.01:
-                    linestyle='-'
-                else:
-                    linestyle='--'
-                ax[1,1].plot([x[i], x[i + 1]], [y[j], y[j]], color='k',linestyle=linestyle)  # Horizontal lines
-                ax[1,1].plot([x[i], x[i]], [y[j], y[j + 1]], color='k',linestyle=linestyle)  # Vertical lines
 
-                if i<len(x):
-                    ax[1,1].plot([x[i+1], x[i+1]], [y[j], y[j + 1]], color='k',linestyle=linestyle)  # Vertical lines
-                if j <len(y):
-                    ax[1,1].plot([x[i], x[i + 1]], [y[j+1], y[j+1]], color='k',linestyle=linestyle)  # Horizontal lines
-    ax[1,1].set_xlabel(f'num sign p<.05: {np.sum(pp<.05)} ,chance expectation: {np.round(nhor*nver*.05,1)} ')  
+    self.Hihglight_Sign(stimShow,pp,ax[1,1]) # highlight significant cells, by showing grid buondaries (dashed (p<.05) or solid line (p<.01) 
     
     
     return tt,pp
