@@ -198,4 +198,28 @@ def VisGrid(self,vals,Stim,center=False,ax=0,alpha=.3,cmap='inferno',cbar=0,vmax
         cb=0
     return cb
         
+
+def Hihglight_Sign(self,Stim,pvals,axis):
+    xs1=(self.x_size-np.shape(self.images[Stim])[1])/2
+    xs2=self.x_size-xs1
+    ys1=(self.y_size-np.shape(self.images[Stim])[0])/2
+    ys2=self.y_size-ys1
+    x,y=np.linspace(xs1,xs2,np.shape(pvals)[1]+1),np.linspace(ys1,ys2,np.shape(pvals)[0]+1)
+    for i in range(len(x) - 1):
+        for j in range(len(y) - 1):
+            if pvals[j,i]<.05:
+                if pvals[j,i]<.01:
+                    linestyle='-'
+                else:
+                    linestyle='--'
+                axis.plot([x[i], x[i + 1]], [y[j], y[j]], color='k',linestyle=linestyle)  # Horizontal lines
+                axis.plot([x[i], x[i]], [y[j], y[j + 1]], color='k',linestyle=linestyle)  # Vertical lines
+
+                if i<len(x):
+                    axis.plot([x[i+1], x[i+1]], [y[j], y[j + 1]], color='k',linestyle=linestyle)  # Vertical lines
+                if j <len(y):
+                    axis.plot([x[i], x[i + 1]], [y[j+1], y[j+1]], color='k',linestyle=linestyle)  # Horizontal lines
+    axis.set_xlabel(f'num sign p<.05: {np.sum(pvals<.05)} ,chance expectation: {np.round(np.shape(pvals)[0]*np.shape(pvals)[1]*.05,1)} ')  
+    return 
+
 # %%

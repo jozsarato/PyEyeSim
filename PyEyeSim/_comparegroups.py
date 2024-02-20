@@ -396,10 +396,24 @@ def CompareGroupsMat(self,group,indsimmat):
         
 
 
-def CompareGroupsGridFix(self,Stim,betwcond,StimPath='',Conds=0,nhor=5,nver=5,center=0,substring=False,cmap='plasma',alpha=.5,t_abs=True): 
+def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,center=True,substring=False,cmap_ind='plasma',cmap_diff='RdYlBu',alpha=.5,t_abs=False): 
     ''' 
 
-    Conds: explicitly provide conditions'''
+    Stim: stimulus name
+    betwcond: between subject condition (if substring=True, this is not used)
+    
+    Conds: explicitly provide conditions (if there are more than 2, this is necessary)
+    t_abs: default=False,  absolute t value vs raw t-values grid
+    nhor: number of horizonal cells for the grid
+    nver: number of vertical cells for the grid
+    center (true): stimulus position correction (based on difference between stimulus and screen resolution), stimulus must be presented centrally!
+    substring: if paired stimuli have to found based on common part in stimulusID
+    cmap_ind: colormap for the heatmap of each group, default: 'plasma'
+    cmap_diff: colormap for difference heatmaps- default 'RdYlBu'--- ideally use divergent heatmaps
+    
+
+    '''
+
     if substring:
         self.stimuli=self.stimuli.astype('str')
         stimn=np.char.find(self.stimuli,Stim)
@@ -440,7 +454,7 @@ def CompareGroupsGridFix(self,Stim,betwcond,StimPath='',Conds=0,nhor=5,nver=5,ce
         for cs,s in enumerate(stimn):
             Statpm=np.nanmean(statPMat[:,s,:,:],0)
             Statpm[Statpm<np.nanpercentile(Statpm,30)]=np.NAN
-            self.VisGrid(Statpm,Stims[cs],center=True,ax=ax[0,cs],alpha=alpha,cmap=cmap)
+            self.VisGrid(Statpm,Stims[cs],center=True,ax=ax[0,cs],alpha=alpha,cmap=cmap_ind)
             ax[0,cs].set_title(Stims[cs])
            
             statmats.append(statPMat[:,s,:,:])
@@ -455,7 +469,7 @@ def CompareGroupsGridFix(self,Stim,betwcond,StimPath='',Conds=0,nhor=5,nver=5,ce
             print(np.shape(np.nanmean(statPMat[Idx,stimn,:,:],0)))
             Statpm=np.nanmean(statPMat[Idx,stimn,:,:],0)
             Statpm[Statpm<np.nanpercentile(Statpm,30)]=np.NAN
-            self.VisGrid(Statpm,stimShow,center=True,ax=ax[0,ccond],alpha=alpha,cmap=cmap)
+            self.VisGrid(Statpm,stimShow,center=True,ax=ax[0,ccond],alpha=alpha,cmap=cmap_ind)
             ax[0,ccond].set_title(cond)
             statmats.append(statPMat[Idx,stimn,:,:])
         diffmat=np.nanmean(statmats[0],0)-np.nanmean(statmats[1],0) 
@@ -470,7 +484,7 @@ def CompareGroupsGridFix(self,Stim,betwcond,StimPath='',Conds=0,nhor=5,nver=5,ce
 
 
 
-    cbar=self.VisGrid(diffmat,stimShow,center=center,ax=ax[1,0],alpha=.7,cmap='RdBu',vmax=np.nanmax(np.abs(diffmat)),cbar=True)
+    cbar=self.VisGrid(diffmat,stimShow,center=center,ax=ax[1,0],alpha=.7,cmap=cmap_diff,vmax=np.nanmax(np.abs(diffmat)),cbar=True)
     cbar.ax.get_yaxis().set_ticks([])
     cbar.ax.get_yaxis().labelpad = 15
     if substring:
@@ -483,29 +497,21 @@ def CompareGroupsGridFix(self,Stim,betwcond,StimPath='',Conds=0,nhor=5,nver=5,ce
         cbar=self.VisGrid(np.abs(tt),stimShow,center=center,ax=ax[1,1],alpha=.7,cmap='Greens',cbar=True)
         ax[1,1].set_title('abs t-values')
     else:
-        cbar=self.VisGrid(tt,stimShow,center=center,ax=ax[1,1],alpha=.7,cmap='RdBu',vmax=4,cbar=True)
-        ax[1,1].set_title('t-values')
+        cbar=self.VisGrid(tt,stimShow,center=center,ax=ax[1,1],alpha=.7,cmap=cmap_diff,vmax=4,cbar=True)
+        ax[1,1].set_title('t-value')
+        cbar.ax.get_yaxis().labelpad = 30
+
         if substring:
             cbar.ax.set_ylabel(str(Stims[0])+'<---->'+str(Stims[1]), rotation=270)
         else:
             cbar.ax.set_ylabel(str(Conditions[0])+'<---->'+str(Conditions[1]), rotation=270)
 
-    fig,ax2=plt.subplots()
 
-    sign=np.ones((nver,nhor))
-    sign[pp<.05]=.5
 
-    # calculate bonferroni-holm correction
-    ncomp=nhor*nver
-    psigncorr=BonfHolm(pp.flatten())
-    psigncorr=psigncorr.reshape(nver,nhor)
-    #sign[psigncorr==1]=np.nan
-    sign[pp<.01]=np.nan
-
-    cbar=self.VisGrid(sign,stimShow,center=center,ax=ax2,alpha=.7,cmap='Blues',cbar=False)
-    ax2.set_title(f'num sign p<.05: {np.sum(pp<.05)} ,chance expectation: {np.round(nhor*nver*.05,1)} ')
+    self.Hihglight_Sign(stimShow,pp,ax[1,1]) # highlight significant cells, by showing grid buondaries (dashed (p<.05) or solid line (p<.01) 
     
-    return tt,pp,psigncorr
+    
+    return tt,pp
 
 
     
