@@ -10,14 +10,16 @@ import hmmlearn.hmm  as hmm
  # hmm related functions start here
 def DataArrayHmm(self,stim,group=-1,tolerance=20,verb=True):
     ''' HMM data arrangement, for the format required by hmmlearn
-    tolarance control the numbers of pixels, where out of stimulus fixations are still accepted
-    participants with invalid fixations are removed
+    tolarance control the numbers of pixels, where out of stimulus fixations are still accepted, currently disabled as not yet adapted for changing bounds
+    therefore, participants with invalid fixations are not yet removed
+    
     verb-- verbose-- print missing participants, too much printing for leave one out cross validation'''
     
     XX=np.array([])
     YY=np.array([])
     Lengths=np.array([],dtype=int)
     self.suseHMM=np.array([],dtype=int)
+    #print('org data for stim')
     for cs,s in enumerate(self.subjects):
         if group!=-1:
             if self.whichC[cs]==group:
@@ -32,14 +34,14 @@ def DataArrayHmm(self,stim,group=-1,tolerance=20,verb=True):
             if any(fixX<-tolerance) or any(fixX>self.x_size+tolerance) or any(fixY<-tolerance)or any(fixY>self.y_size+tolerance):
                 if verb:
                     print('invalid fixation location for subj', s)
-            else:
-                if len(fixX)>2:
-                    XX=np.append(XX,fixX)
-                    YY=np.append(YY,fixY)
-                    Lengths=np.append(Lengths,len(fixX))
-                    self.suseHMM=np.append(self.suseHMM,s)
-                elif verb:
-                    print('not enough fixations for subj', s)
+           # else:
+            if len(fixX)>2:
+                XX=np.append(XX,fixX)
+                YY=np.append(YY,fixY)
+                Lengths=np.append(Lengths,len(fixX))
+                self.suseHMM=np.append(self.suseHMM,s)
+            elif verb:
+                print('not enough fixations for subj', s)
 
     return XX,YY,Lengths
 
@@ -214,6 +216,6 @@ def HMMSimPipeline(self,ncomps=[4,6],verb=False):
             else:
                 StimSimsHMMall[cncomp,:,cp]=ScoresLOO
             StimSimsHMM[cncomp,cp]=np.mean(ScoresLOO)
-    return StimSimsHMM, np.nanmax(StimSimsHMMall,0)
+    return StimSimsHMM, StimSimsHMMall
 
 

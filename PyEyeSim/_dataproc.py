@@ -222,46 +222,6 @@ def GetSaccades(self):
                 else:
                     self.saccadelenghts[cs,cp]=np.NAN
     return SaccadeObj
-    
-def SaccadeSel(self,SaccadeObj,nDiv): 
-    ''' select saccades for angle comparison method'''
-    nH,nV=nDiv,nDiv
-    SaccadeAOIAngles=[]
-    SaccadeAOIAnglesCross=[]
-    
-    AOIRects=CreatAoiRects(nH,nV,self.boundsX,self.boundsY)
-    Saccades=np.zeros((((self.ns,self.np,nH,nV))),dtype=np.ndarray)  # store an array of saccades that cross the cell, for each AOI rectangle of each trial for each partiicpant
-    for s in np.arange(self.ns):
-        SaccadeAOIAngles.append([])
-        SaccadeAOIAnglesCross.append([])
-        for p in range(self.np):
-            SaccadeAOIAngles[s].append(np.zeros(((int(self.nsac[s,p]),nH,nV))))
-           # print(s,p,NSac[s,p])
-            SaccadeAOIAngles[s][p][:]=np.NAN
-            SaccadeAOIAnglesCross[s].append(np.zeros(((int(self.nsac[s,p]),nH,nV))))
-            SaccadeAOIAnglesCross[s][p][:]=np.NAN
-            for sac in range(len(SaccadeObj[s][p])):
-                SaccadeDots=SaccadeObj[s][p][sac].LinePoints()
-                
-                
-                for h in range(nH):
-                    for v in range(nV):
-                       # print(h,v)
-                        if AOIRects[p][h][v].Cross(SaccadeDots)==True:
-                          #  print(h,v,SaccadeObj[s][p][sac].Angle())
-                            SaccadeAOIAngles[s][p][sac,h,v]=SaccadeObj[s][p][sac].Angle()  # get the angle of the sacccade
-
-                if np.sum(SaccadeAOIAngles[s][p][sac,:,:]>0)>1:  # select saccaded that use multiple cells
-                    #print('CrossSel',SaccadeAOIAngles[s][p][sac,:,:])
-                    SaccadeAOIAnglesCross[s][p][sac,:,:]=SaccadeAOIAngles[s][p][sac,:,:]
-
-            for h in range(nH):
-                for v in range(nV):
-                    if np.sum(np.isfinite(SaccadeAOIAnglesCross[s][p][:,h,v]))>0:
-                        Saccades[s,p,h,v]=np.array(SaccadeAOIAnglesCross[s][p][~np.isnan(SaccadeAOIAnglesCross[s][p][:,h,v]),h,v])
-                    else:
-                        Saccades[s,p,h,v]=np.array([])
-    return Saccades
 
 
 def GetEntropies(self,fixsize=0,binsize_h=50):
@@ -272,6 +232,9 @@ def GetEntropies(self,fixsize=0,binsize_h=50):
     output 3: individual entropies for each stimlus (2d array: subjects*stimuli)
     
     '''
+    if hasattr(self,'boundsX')==False:
+            print('runnnig descriptives to get bounds')
+            self.RunDescriptiveFix()  
     self.entropies=np.zeros(self.np)
     self.entropmax=np.zeros(self.np)
     self.entropies_ind=np.zeros((self.ns,self.np))
@@ -282,7 +245,7 @@ def GetEntropies(self,fixsize=0,binsize_h=50):
     for cp,p in enumerate(self.stimuli):
         FixCountInd=self.FixCountCalc(p)
        # self.fixcounts[p]=FixCountInd
-        binnedcount=self.BinnedCount(np.sum(FixCountInd,0),p,fixs=fixsize,binsize_h=binsize_h)
+        binnedcount=self.BinnedCount(np.nansum(FixCountInd,0),p,fixs=fixsize,binsize_h=binsize_h)
         self.entropies[cp],self.entropmax[cp]=self.Entropy(binnedcount)
         for cs,s in enumerate(self.subjects):
             binnedc_ind=self.BinnedCount(FixCountInd[cs,:,:],p,fixs=fixsize)

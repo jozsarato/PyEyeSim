@@ -116,10 +116,10 @@ def VisScanPath(self, stimn, ax=None, alpha=0.5, allS=True, scan_path_col='salmo
                 ax.scatter(fixx, fixy, color=fixation_col, alpha=alpha, s=20)
 
             # Enumerate all fixations by default
-            num_fixations = len(fixx) if num_fixations is None else num_fixations
+           # num_fixations = len(fixx) if num_fixations is None else num_fixations
 
-            for i, (x, y) in enumerate(zip(fixx[:num_fixations], fixy[:num_fixations])):
-                ax.text(x, y, str(i + 1), color="white", fontsize=10, ha='center', va='center')
+            #for i, (x, y) in enumerate(zip(fixx[:num_fixations], fixy[:num_fixations])):
+             #   ax.text(x, y, str(i + 1), color="white", fontsize=10, ha='center', va='center')
 
     else:
         fixx, fixy = self.GetFixationData(self.subjects[allS], self.stimuli[stimn])
@@ -128,10 +128,10 @@ def VisScanPath(self, stimn, ax=None, alpha=0.5, allS=True, scan_path_col='salmo
             ax.scatter(fixx, fixy, color=fixation_col, alpha=alpha, s=20)
 
         # Enumerate all fixations by default
-        num_fixations = len(fixx) if num_fixations is None else num_fixations
+  #      num_fixations = len(fixx) if num_fixations is None else num_fixations
 
-        for i, (x, y) in enumerate(zip(fixx[:num_fixations], fixy[:num_fixations])):
-            ax.text(x, y, str(i + 1), color="white", fontsize=10, ha='center', va='center')
+#        for i, (x, y) in enumerate(zip(fixx[:num_fixations], fixy[:num_fixations])):
+ #           ax.text(x, y, str(i + 1), color="white", fontsize=10, ha='center', va='center')
 
     ax.set_xlim([0, self.x_size])
     ax.set_ylim([self.y_size, 0])

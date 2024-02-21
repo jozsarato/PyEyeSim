@@ -61,25 +61,52 @@ def AOIFix(self,p,FixTrialX,FixTrialY,nDivH,nDivV,InferS=1):
         StatPtrial[st]=np.sum(WhichAOI==st)/np.sum(np.isfinite(WhichAOI)) # calculate stationary P for each AOI    
     return NFix,StatPtrial,StatNtrial
 
+    
+def SaccadeSel(self,SaccadeObj,nDiv,InferS=True): 
+    ''' select saccades for angle comparison method'''
+    nH,nV=nDiv,nDiv
+    SaccadeAOIAngles=[]
+    SaccadeAOIAnglesCross=[]
+    if InferS:
+        if hasattr(self,'boundsX')==False:
+            print('runnnig descriptives to get bounds')
+            self.RunDescriptiveFix()  
+        AOIRects=CreatAoiRects(nH,nV,self.boundsX,self.boundsY)
+    else:
+        AOIRects=CreatAoiRects(nH,nV,self.x_size,self.y_size)
 
-     
-   ## function still missing
+    Saccades=np.zeros((((self.ns,self.np,nH,nV))),dtype=np.ndarray)  # store an array of saccades that cross the cell, for each AOI rectangle of each trial for each partiicpant
+    for s in np.arange(self.ns):
+        SaccadeAOIAngles.append([])
+        SaccadeAOIAnglesCross.append([])
+        for p in range(self.np):
+            SaccadeAOIAngles[s].append(np.zeros(((int(self.nsac[s,p]),nH,nV))))
+           # print(s,p,NSac[s,p])
+            SaccadeAOIAngles[s][p][:]=np.NAN
+            SaccadeAOIAnglesCross[s].append(np.zeros(((int(self.nsac[s,p]),nH,nV))))
+            SaccadeAOIAnglesCross[s][p][:]=np.NAN
+            for sac in range(len(SaccadeObj[s][p])):
+                SaccadeDots=SaccadeObj[s][p][sac].LinePoints()
+                
+                
+                for h in range(nH):
+                    for v in range(nV):
+                       # print(h,v)
+                        if AOIRects[p][h][v].Cross(SaccadeDots)==True:
+                          #  print(h,v,SaccadeObj[s][p][sac].Angle())
+                            SaccadeAOIAngles[s][p][sac,h,v]=SaccadeObj[s][p][sac].Angle()  # get the angle of the sacccade
 
+                if np.sum(SaccadeAOIAngles[s][p][sac,:,:]>0)>1:  # select saccaded that use multiple cells
+                    #print('CrossSel',SaccadeAOIAngles[s][p][sac,:,:])
+                    SaccadeAOIAnglesCross[s][p][sac,:,:]=SaccadeAOIAngles[s][p][sac,:,:]
 
-def SacSimPipeline(self,divs=[4,5,7,9],Thr=5):
-    SaccadeObj=self.GetSaccades()
-    StimSims=np.zeros((len(divs),self.np))
-    StimSimsInd=np.zeros((len(divs),self.ns,self.np))
-
-    for cd,ndiv in enumerate(divs):
-        sacDivSel=self.SaccadeSel(SaccadeObj,ndiv)
-        SimSacP=self.SacSim1Group(sacDivSel,ndiv,Thr=Thr)
-        StimSimsInd[cd,:,:]=np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0)
-        StimSims[cd,:]=np.nanmean(np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0),0)
-    return StimSims,np.nanmean(StimSimsInd,0)
-   
-
-
+            for h in range(nH):
+                for v in range(nV):
+                    if np.sum(np.isfinite(SaccadeAOIAnglesCross[s][p][:,h,v]))>0:
+                        Saccades[s,p,h,v]=np.array(SaccadeAOIAnglesCross[s][p][~np.isnan(SaccadeAOIAnglesCross[s][p][:,h,v]),h,v])
+                    else:
+                        Saccades[s,p,h,v]=np.array([])
+    return Saccades
 
 
 def SacSim1Group(self,Saccades,nDiv,Thr=5):
@@ -99,3 +126,20 @@ def SacSim1Group(self,Saccades,nDiv,Thr=5):
                                     simsacn=CalcSim(Saccades[s1,p1,h,v],Saccades[s2,p1,h,v],Thr=Thr)
                                     SimSacP[s1,s2,p1,h,v]=simsacn/(len(Saccades[s1,p1,h,v])+len(Saccades[s2,p1,h,v]))
     return SimSacP
+
+  
+
+
+def SacSimPipeline(self,divs=[4,5,7,9],Thr=5,InferS=True):
+    SaccadeObj=self.GetSaccades()
+    StimSims=np.zeros((len(divs),self.np))
+    StimSimsInd=np.zeros((len(divs),self.ns,self.np))
+
+    for cd,ndiv in enumerate(divs):
+        print(cd,ndiv)
+        sacDivSel=self.SaccadeSel(SaccadeObj,ndiv,InferS=InferS)
+        SimSacP=self.SacSim1Group(sacDivSel,ndiv,Thr=Thr)
+        StimSimsInd[cd,:,:]=np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0)
+        StimSims[cd,:]=np.nanmean(np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0),0)
+    return StimSims,np.nanmean(StimSimsInd,0)
+   
