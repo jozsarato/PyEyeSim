@@ -28,8 +28,8 @@ def CreatAoiRects(nHorD,nVerD,BoundsX,BoundsY):
     for p in range(np.shape(BoundsX)[0]):
         AOIboundsH=AOIbounds(BoundsX[p,0],BoundsX[p,1],nHorD)
         AOIboundsV=AOIbounds(BoundsY[p,0],BoundsY[p,1],nVerD)
-        print(AOIboundsH)
-        print(AOIboundsV)
+      #  print(AOIboundsH)
+       # print(AOIboundsV)
         AOIRects.append([])
         for h in range(nHorD):
             AOIRects[p].append([])
