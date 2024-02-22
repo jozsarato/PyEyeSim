@@ -92,11 +92,10 @@ def draw_ellipse(position, covariance, ax=None, **kwargs):
     else:
         angle = 0
         width, height = 2 * np.sqrt(covariance)
-    
     # Draw the Ellipse
     for nsig in range(1, 2):
-        ax.add_patch(Ellipse(position, nsig * width, nsig * height,
-                             angle, **kwargs))
+      
+        ax.add_patch(Ellipse(position, nsig * width, nsig * height,angle=angle,**kwargs)) #**kwargs
         
 
 
