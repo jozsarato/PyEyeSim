@@ -98,7 +98,7 @@ def CompareGroupsFix(self,betwcond):
     return 
 
     
-def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,center=0,substring=False,cmap='plasma',alpha=.5,cutoff='median',downsample=8, Nrand=100):
+def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,center=0,substring=False,cmap_ind='plasma',alpha=.5,cutoff='median',downsample=8, Nrand=100,cmap_diff='RdYlBu'):
     ''' 
     DESCRIPTION: visualize  heatmap fopr two groups, 
     subplot 1: group 1
@@ -185,7 +185,7 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
         else:
             stims=copy.copy(Stim)
         print(cc,c,stims)
-        hmap=self.Heatmap(stims,SD=SD,Ind=0,Vis=1,FixCounts=FixCounts[Idx,:,:],CutArea=CutArea,center=center,substring=False,ax=ax[0,cc],cmap=cmap,alpha=alpha,cutoff=cutoff)
+        hmap=self.Heatmap(stims,SD=SD,Ind=0,Vis=1,FixCounts=FixCounts[Idx,:,:],CutArea=CutArea,center=center,substring=False,ax=ax[0,cc],cmap=cmap_ind,alpha=alpha,cutoff=cutoff)
         
         hmap_red=self.Heatmap(stims,SD=8,Ind=0,Vis=0,FixCounts=RedAll[Idx,:,:])#,CutArea=CutArea)
         hmapsred.append(hmap_red)
@@ -206,7 +206,7 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
     
     Diff=hmaps[0]-hmaps[1]
     DiffRed=hmapsred[0]-hmapsred[1]
-    im=ax[1,0].imshow(Diff,cmap='RdBu', vmin=-np.nanmax(np.abs(Diff)), vmax=np.nanmax(np.abs(Diff)),alpha=alpha)
+    im=ax[1,0].imshow(Diff,cmap=cmap_diff, vmin=-np.nanmax(np.abs(Diff)), vmax=np.nanmax(np.abs(Diff)),alpha=alpha)
     ax[1,0].set_xticks([])
     ax[1,0].set_yticks([])
     ax[1,0].set_title(str(Conditions[0])+' - '+str(Conditions[1]))
