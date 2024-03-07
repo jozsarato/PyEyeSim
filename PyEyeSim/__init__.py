@@ -81,6 +81,16 @@ class EyeData:
         '''
         return self.data
     
+    def adaptToScreen(self):
+        '''
+        Description: adapt data to screen size.
+        '''
+        for img in self.images:
+            xs1 =(self.x_size-np.shape(self.images[img])[1])/2
+            ys1 =(self.y_size-np.shape(self.images[img])[0])/2
+            print(xs1, ys1)
+            self.data[self.data.Stimulus == img]['mean_x']=self.data[self.data.Stimulus == img]['mean_x']-xs1
+            self.data[self.data.Stimulus == img]['mean_y']=self.data[self.data.Stimulus == img]['mean_y']-ys1
     
     
     def DataInfo(self,Stimulus='Stimulus',subjectID='subjectID',mean_x='mean_x',mean_y='mean_y',FixDuration=0,StimPath=0,StimExt='.jpg',infersubpath=False):
