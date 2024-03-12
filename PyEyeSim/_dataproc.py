@@ -85,13 +85,24 @@ def GetStimuli(self,extension,path=0,infersubpath=False):
          #       print(p+str(int(s))+extension)
           #      Stim=plt.imread(p+str(int(s))+extension)
                 
+        self.images[s]=Stim
+
         Res=np.shape(Stim)
         if Res[0] != self.y_size:
             print("!y size incosistency warning expected",self.y_size,'vs actual', Res)
+            ys1=(self.y_size-np.shape(self.images[s])[0])/2
+            ys2=self.y_size-ys1
+            self.data.loc[self.data.Stimulus==s, 'mean_y']= self.data.mean_y[self.data.Stimulus==s]-ys1
         if Res[1] != self.x_size:
             print("!x size incosistency warning, expected",self.x_size,'vs actual', Res)
+            xs1=(self.x_size-np.shape(self.images[s])[1])/2
+           # self.data['mean_x'][self.data.Stimulus==s] -= xs1
+            self.data.loc[self.data.Stimulus==s, 'mean_x']= self.data.mean_x[self.data.Stimulus==s]-xs1
+
+            print('correctiona applied, assuming central stimulus presentation')
+
+       
         
-        self.images[s]=Stim
     pass 
  
 
@@ -105,6 +116,9 @@ def FixCountCalc(self,Stim,CutAct=1,substring=False):
         assert np.sum(self.data['Stimulus']==Stim)>0, 'stimulus not found'
         stimn=np.nonzero(self.stimuli==Stim)[0]
         print('stimns found:',stimn,Stim)
+        idims=np.shape(self.images[Stim])
+        yimsize,ximsize=idims[0],idims[1]
+
 
     elif substring==True:  
         self.stimuli=self.stimuli.astype('str')
@@ -112,9 +126,13 @@ def FixCountCalc(self,Stim,CutAct=1,substring=False):
         Stims=self.stimuli[stimn>-1]
         stimn=np.nonzero(stimn>-1)[0]
         print('stimns found:',stimn,Stims)
+        
+        idims=np.shape(self.images[Stims[0]])
+        yimsize,ximsize=idims[0],idims[1]
+    print('resolution x =', ximsize, ' y =',yimsize)
 
     FixCountInd=np.zeros(((self.ns,self.y_size,self.x_size)))
- 
+    
     
     for cs,s in enumerate(self.subjects):
         if substring:
@@ -319,21 +337,16 @@ def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax
             smap[cs,:,:]=SaliencyMapFilt(FixCounts[cs,:,:],SD=SD,Ind=1)       
     if Vis:
         smapall[smapall<cutThr]=np.NAN  # replacing below threshold with NAN
-        xs1=(self.x_size-np.shape(self.images[stimShow])[1])/2
-        xs2=self.x_size-xs1
-        ys1=(self.y_size-np.shape(self.images[stimShow])[0])/2
-        ys2=self.y_size-ys1
+       
         if ax==False:
             fig,ax=plt.subplots()
-        if center:
-            ax.imshow(self.images[stimShow],extent=[xs1,xs2,ys2,ys1])
-        else:
-            ax.imshow(self.images[stimShow])
+#
+        ax.imshow(self.images[stimShow])
         ax.imshow(smapall,alpha=alpha,cmap=cmap) 
         ax.set_xticks([])
         ax.set_yticks([])
-        ax.set_xlim([xs1,xs2])
-        ax.set_ylim([ys2,ys1])
+        #ax.set_xlim([xs1,xs2])
+       # ax.set_ylim([ys2,ys1])
             
     return smapall
 

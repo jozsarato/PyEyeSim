@@ -194,21 +194,13 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
        # ax[0,cc].colorbar()
         hmaps.append(hmap)
     if hasattr(self,'images'):
-        if center:
-            xs1=(self.x_size-np.shape(self.images[stimShow])[1])/2
-            xs2=self.x_size-xs1
-            ys1=(self.y_size-np.shape(self.images[stimShow])[0])/2
-            ys2=self.y_size-ys1
-            ax[1,0].imshow(self.images[stimShow],extent=[xs1,xs2,ys2,ys1])
-        else:
-            ax[1,0].imshow( self.images[stimShow])
+        ax[1,0].imshow( self.images[stimShow])
 
     
     Diff=hmaps[0]-hmaps[1]
     DiffRed=hmapsred[0]-hmapsred[1]
     im=ax[1,0].imshow(Diff,cmap='RdBu', vmin=-np.nanmax(np.abs(Diff)), vmax=np.nanmax(np.abs(Diff)),alpha=alpha)
-    ax[1,0].set_xticks([])
-    ax[1,0].set_yticks([])
+   
     ax[1,0].set_title(str(Conditions[0])+' - '+str(Conditions[1]))
     cbar=plt.colorbar(im,ax=ax[1,0], shrink=.6)
     cbar.ax.get_yaxis().set_ticks([])
@@ -227,16 +219,23 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
         
     
     if hasattr(self,'images'):
-        if center:
-            ax[1,1].imshow(self.images[stimShow],extent=[xs1,xs2,ys2,ys1])
-        else:
-            ax[1,1].imshow(self.images[stimShow])
+        #if center:
+         #   ax[1,1].imshow(self.images[stimShow],extent=[xs1,xs2,ys2,ys1])
+        #else:
+        ax[1,1].imshow(self.images[stimShow])
     im=ax[1,1].imshow(np.abs(Diff), vmin=0, vmax=np.nanmax(np.abs(Diff)),alpha=alpha)
-    ax[1,1].set_xticks([])
-    ax[1,1].set_yticks([])
+   
     plt.colorbar(im,ax=ax[1,1], shrink=.6)
     ax[1,1].set_title('Absolute diff: '+str(np.round(np.nansum(np.abs(Diff)),3)))
     plt.tight_layout()
+    
+    for hora in range(2):
+        for vera in range(2):
+            ax[hora,vera].set_xlim(0,np.shape(self.images[stimShow])[1])
+            ax[hora,vera].set_ylim(np.shape(self.images[stimShow])[0],0)
+
+            ax[hora,vera].set_xticks([])
+            ax[hora,vera].set_yticks([])
     
     truereddiff=np.nansum(np.abs(DiffRed))
     # visualize permuted difference heatmap distribution
