@@ -142,12 +142,15 @@ def FixCountCalc(self,Stim,CutAct=1,substring=False):
 
 
 
-def GetFixationData(self,subj,stim):
+def GetFixationData(self,subj,stim,timemin=0,timemax=np.inf,timecol=0):
     """get X,Y fixation sequence for a subject and stimulus
     output 1: array of pixel x for sequence of fixations
     output 2: array of pixel y for sequence of fixations"""
     SubjIdx=np.nonzero(self.data['subjectID'].to_numpy()==subj)  #idx for subject
     TrialSubIdx=np.intersect1d(np.nonzero(self.data['Stimulus'].to_numpy()==stim),SubjIdx) # idx for subject and painting
+    if type(timecol)!=int:
+        TimeIdx=np.nonzero((self.data[timecol]>timemin)&(self.data[timecol]<timemax))[0]
+        TrialSubIdx=np.intersect1d(TrialSubIdx, TimeIdx)
     FixTrialX=np.array(self.data['mean_x'].iloc[TrialSubIdx]) # get x data for trial
     FixTrialY=np.array(self.data['mean_y'].iloc[TrialSubIdx]) # get y data for trial
     return FixTrialX,FixTrialY

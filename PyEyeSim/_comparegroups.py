@@ -396,7 +396,7 @@ def CompareGroupsMat(self,group,indsimmat):
         
 
 
-def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,center=True,substring=False,cmap_ind='plasma',cmap_diff='RdYlBu',alpha=.5,t_abs=False): 
+def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,center=True,substring=False,cmap_ind='plasma',cmap_diff='RdYlBu',alpha=.5,t_abs=False,timemin=0, timemax=np.inf, timecol=0): 
     ''' 
 
     Stim: stimulus name
@@ -441,10 +441,10 @@ def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,center=True,su
     if hasattr(self,'subjects')==0:
         self.GetParams()   
     if center:
-        ## this is really inefficient, ince stats p-s are calculated for all images
-        statPMat,statEntropyMat=self.CalcStatPs(nhor,nver,MinFix=10,InferS=2)
+        ## this is really inefficient, since stats p-s are calculated for all images
+        statPMat,statEntropyMat=self.CalcStatPs(nhor,nver,MinFix=5,InferS=2,timemin=timemin, timemax=timemax, timecol=timecol)
     else: 
-        statPMat,statEntropyMat=self.CalcStatPs(nhor,nver,MinFix=10,InferS=2)
+        statPMat,statEntropyMat=self.CalcStatPs(nhor,nver,MinFix=5,InferS=2,timemin=timemin, timemax=timemax, timecol=timecol)
 
    # if substring and len(stimn)==2:
 
