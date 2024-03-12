@@ -33,12 +33,10 @@ def AOIFix(self,p,FixTrialX,FixTrialY,nDivH,nDivV,InferS=1):
         AOIboundsH=AOIbounds(self.boundsX[p,0], self.boundsX[p,1],nDivH)       
         AOIboundsV=AOIbounds(self.boundsY[p,0], self.boundsY[p,1],nDivV)   
     elif InferS==2:
-        xs1=(self.x_size-np.shape(self.images[self.stimuli[p]])[1])/2
-        xs2=self.x_size-xs1
-        ys1=(self.y_size-np.shape(self.images[self.stimuli[p]])[0])/2
-        ys2=self.y_size-ys1
-        AOIboundsH=AOIbounds(xs1, xs2,nDivH)       
-        AOIboundsV=AOIbounds(ys1, ys2,nDivV)  
+        ims=np.shape(self.images[self.stimuli[p]])
+        
+        AOIboundsH=AOIbounds(0, ims[1],nDivH)       
+        AOIboundsV=AOIbounds(0,ims[0],nDivV)  
 
     # set parameters & arrays to store data
     StatPtrial=np.zeros(nAOI) # static probabilities.

@@ -85,13 +85,26 @@ def GetStimuli(self,extension,path=0,infersubpath=False):
          #       print(p+str(int(s))+extension)
           #      Stim=plt.imread(p+str(int(s))+extension)
                 
+        self.images[s]=Stim
+
         Res=np.shape(Stim)
-        if Res[0] != self.y_size:
+        ## implement correction for difference between screen and stimulus/image resolution!
+        # and and y values are shifted, so that stimuli start at 0
+        if Res[0] != self.y_size:   
             print("!y size incosistency warning expected",self.y_size,'vs actual', Res)
+            ys1=(self.y_size-np.shape(self.images[s])[0])/2
+#            ys2=self.y_size-ys1
+            self.data.loc[self.data.Stimulus==s, 'mean_y']= self.data.mean_y[self.data.Stimulus==s]-ys1
         if Res[1] != self.x_size:
             print("!x size incosistency warning, expected",self.x_size,'vs actual', Res)
+            xs1=(self.x_size-np.shape(self.images[s])[1])/2
+           # self.data['mean_x'][self.data.Stimulus==s] -= xs1
+            self.data.loc[self.data.Stimulus==s, 'mean_x']= self.data.mean_x[self.data.Stimulus==s]-xs1
+
+            print('correctiona applied, assuming central stimulus presentation')
+
+       
         
-        self.images[s]=Stim
     pass 
  
 
@@ -105,6 +118,8 @@ def FixCountCalc(self,Stim,CutAct=1,substring=False):
         assert np.sum(self.data['Stimulus']==Stim)>0, 'stimulus not found'
         stimn=np.nonzero(self.stimuli==Stim)[0]
         print('stimns found:',stimn,Stim)
+        idims=np.shape(self.images[Stim])
+
 
     elif substring==True:  
         self.stimuli=self.stimuli.astype('str')
@@ -112,9 +127,13 @@ def FixCountCalc(self,Stim,CutAct=1,substring=False):
         Stims=self.stimuli[stimn>-1]
         stimn=np.nonzero(stimn>-1)[0]
         print('stimns found:',stimn,Stims)
+        
+        idims=np.shape(self.images[Stims[0]])
+    yimsize,ximsize=idims[0],idims[1]
+    print('resolution x =', ximsize, ' y =',yimsize)
 
-    FixCountInd=np.zeros(((self.ns,self.y_size,self.x_size)))
- 
+    FixCountInd=np.zeros(((self.ns,yimsize,ximsize)))
+    
     
     for cs,s in enumerate(self.subjects):
         if substring:
@@ -124,30 +143,33 @@ def FixCountCalc(self,Stim,CutAct=1,substring=False):
                 stimIdx=1
             else:
                 stimIdx=0
-
-            Valid=np.nonzero((x<self.boundsX[stimn[stimIdx],1])&(x>self.boundsX[stimn[stimIdx],0])&(y>self.boundsY[stimn[stimIdx],0])&(y<self.boundsY[stimn[stimIdx],1]))[0]
+            Valid=np.nonzero((x<ximsize)&(x>0)&(y>0)&(y<yimsize))[0]
 
         else:
             x,y=np.intp(self.GetFixationData(s,Stim))
-            Valid=np.nonzero((x<self.boundsX[stimn,1])&(x>self.boundsX[stimn,0])&(y>self.boundsY[stimn,0])&(y<self.boundsY[stimn,1]))[0]
+         #   Valid=np.nonzero((x<self.boundsX[stimn,1])&(x>self.boundsX[stimn,0])&(y>self.boundsY[stimn,0])&(y<self.boundsY[stimn,1]))[0]
+            Valid=np.nonzero((x<ximsize)&(x>0)&(y>0)&(y<yimsize))[0]
         X,Y=x[Valid],y[Valid]
         FixCountInd[cs,Y,X]+=1
    # self.boundsX[stimn,0]:self.boundsX[stimn,1]
-    if CutAct:
-        if len(stimn)>0:
-            stimn=stimn[0] # cut based on the bounds of the first if there are more matching stimuli
-        FixCountInd=FixCountInd[:,:,int(np.round(self.boundsX[stimn,0])):int(np.round(self.boundsX[stimn,1]))]  # cut X
-        FixCountInd=FixCountInd[:,int(np.round(self.boundsY[stimn,0])):int(np.round(self.boundsY[stimn,1])),:] # cut Y
+   # if CutAct:
+    #    if len(stimn)>0:
+     #       stimn=stimn[0] # cut based on the bounds of the first if there are more matching stimuli
+      #  FixCountInd=FixCountInd[:,:,int(np.round(self.boundsX[stimn,0])):int(np.round(self.boundsX[stimn,1]))]  # cut X
+       # FixCountInd=FixCountInd[:,int(np.round(self.boundsY[stimn,0])):int(np.round(self.boundsY[stimn,1])),:] # cut Y
     return FixCountInd
 
 
 
-def GetFixationData(self,subj,stim):
+def GetFixationData(self,subj,stim,timemin=0,timemax=np.inf,timecol=0):
     """get X,Y fixation sequence for a subject and stimulus
     output 1: array of pixel x for sequence of fixations
     output 2: array of pixel y for sequence of fixations"""
     SubjIdx=np.nonzero(self.data['subjectID'].to_numpy()==subj)  #idx for subject
     TrialSubIdx=np.intersect1d(np.nonzero(self.data['Stimulus'].to_numpy()==stim),SubjIdx) # idx for subject and painting
+    if type(timecol)!=int:
+        TimeIdx=np.nonzero((self.data[timecol]>timemin)&(self.data[timecol]<timemax))[0]
+        TrialSubIdx=np.intersect1d(TrialSubIdx, TimeIdx)
     FixTrialX=np.array(self.data['mean_x'].iloc[TrialSubIdx]) # get x data for trial
     FixTrialY=np.array(self.data['mean_y'].iloc[TrialSubIdx]) # get y data for trial
     return FixTrialX,FixTrialY
@@ -256,7 +278,7 @@ def GetEntropies(self,fixsize=0,binsize_h=50):
 
 
   
-def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax=False,center=0,substring=False,cmap='plasma',alpha=.5):
+def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax=False,substring=False,cmap='plasma',alpha=.5):
     ''' Pipeline for  heatmap calculation, FixCounts are calculated for stimulus, or passed pre-calcualted as optional parameter
     output: heatmap for a stimulus
     
@@ -264,7 +286,6 @@ def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax
     
     cutarea option: 1 only use active area (99% percentile of fixations), 0- use all of the area - set it to 1, if stimulus does not cover the whole screen
     cutoff=median: median cutoff, otherwise percetile of values to replace with nans, goal--> clear visualization
-    center: if set to 1, if pixel coordinates dont match, painting presented centrally, but gaze coors are zero based
     substring: use part of file name (expected for mathcing paired files)
     cmap=colormap (see matplotlib colormaps for options: https://matplotlib.org/stable/users/explain/colors/colormaps.html)
     alpha= transparency- 0-1 higher values less transparent
@@ -275,13 +296,15 @@ def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax
     if substring==False:
         stimn=np.nonzero(self.stimuli==Stim)[0]
         stimShow=Stim
+        idims=np.shape(self.images[Stim])
     else:
         self.stimuli=self.stimuli.astype('str')
         stimn=np.char.find(self.stimuli,Stim)
         Stims=self.stimuli[stimn>-1]
         stimn=np.nonzero(stimn>-1)[0]
         stimShow=Stims[0]
-
+        idims=np.shape(self.images[Stims[0]])
+    yimsize,ximsize=idims[0],idims[1]
 
     if hasattr(self,'boundsX')==False:
         print('run RunDescriptiveFix first- without visuals')
@@ -304,7 +327,7 @@ def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax
         else:
             cutThr=0
         if CutArea:
-            smapall=np.zeros((self.y_size,self.x_size))
+            smapall=np.zeros((yimsize,ximsize))
             if len(stimn)>0:
                 stimn=stimn[0]
             smapall[int(self.boundsY[stimn,0]):int(self.boundsY[stimn,1]),int(self.boundsX[stimn,0]):int(self.boundsX[stimn,1])]=smap
@@ -316,21 +339,16 @@ def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax
             smap[cs,:,:]=SaliencyMapFilt(FixCounts[cs,:,:],SD=SD,Ind=1)       
     if Vis:
         smapall[smapall<cutThr]=np.NAN  # replacing below threshold with NAN
-        xs1=(self.x_size-np.shape(self.images[stimShow])[1])/2
-        xs2=self.x_size-xs1
-        ys1=(self.y_size-np.shape(self.images[stimShow])[0])/2
-        ys2=self.y_size-ys1
+       
         if ax==False:
             fig,ax=plt.subplots()
-        if center:
-            ax.imshow(self.images[stimShow],extent=[xs1,xs2,ys2,ys1])
-        else:
-            ax.imshow(self.images[stimShow])
+#
+        ax.imshow(self.images[stimShow])
         ax.imshow(smapall,alpha=alpha,cmap=cmap) 
         ax.set_xticks([])
         ax.set_yticks([])
-        ax.set_xlim([xs1,xs2])
-        ax.set_ylim([ys2,ys1])
+        #ax.set_xlim([xs1,xs2])
+       # ax.set_ylim([ys2,ys1])
             
     return smapall
 

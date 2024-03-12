@@ -105,7 +105,7 @@ def BinnedCount(self,Fixcounts,Stim,fixs=1,binsize_h=50,binsize_v=None):
     return BinnedCount
 
 
-def CalcStatPs(self,nHor,nVer,MinFix=10,InferS=1):
+def CalcStatPs(self,nHor,nVer,MinFix=10,InferS=1,timemin=0, timemax=np.inf, timecol=0):
     ''' for a dataset, return number of fixation probability matrix for each subject and stimulus, for given divisions
     returns StatPMat: nsubject*nstimulus*nvertical*nhorizontal 
 
@@ -130,8 +130,7 @@ def CalcStatPs(self,nHor,nVer,MinFix=10,InferS=1):
     
     for cs,s in enumerate(self.subjects):
         for cp,p in enumerate(self.stimuli):      
-            FixTrialX,FixTrialY=self.GetFixationData(s,p)  
-            
+            FixTrialX,FixTrialY=self.GetFixationData(s,p,timemin=timemin, timemax=timemax, timecol=timecol)  
             if self.nfixations[cs,cp]>MinFix:
                 NFixy,StatPtrial,StatNtrial=self.AOIFix(cp,FixTrialX,FixTrialY,nHor,nVer,InferS=InferS)
                 statPMat[cs,cp,:,:]=StatPtrial.reshape(nVer,nHor)

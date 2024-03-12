@@ -153,7 +153,7 @@ def MyTrainTestVis(self, DatTr,DatTest,lenTrain,lenTest,totest=0):
     self.MySaccadeVis(ax[1],DatTest,lenTest,title='test data '+titStr)
     return 
 
-def VisGrid(self,vals,Stim,center=False,ax=0,alpha=.3,cmap='inferno',cbar=0,vmax=0):
+def VisGrid(self,vals,Stim,ax=0,alpha=.3,cmap='inferno',cbar=0,vmax=0):
     '''  
     visualize grid on image
 
@@ -169,26 +169,21 @@ def VisGrid(self,vals,Stim,center=False,ax=0,alpha=.3,cmap='inferno',cbar=0,vmax
     '''
     if type(ax)==int:
         fig,ax=plt.subplots()
-    if center:
-        xs1=(self.x_size-np.shape(self.images[Stim])[1])/2
-        xs2=self.x_size-xs1
-        ys1=(self.y_size-np.shape(self.images[Stim])[0])/2
-        ys2=self.y_size-ys1
-        ax.imshow(self.images[Stim],extent=[xs1,xs2,ys2,ys1])
+    idims=np.shape(self.images[Stim])
+    yimsize,ximsize=idims[0],idims[1]
+    
+    ax.imshow(self.images[Stim])
+    if vmax==0:
+        cols=ax.pcolormesh(np.linspace(0,ximsize,np.shape(vals)[1]+1),np.linspace(0,yimsize,np.shape(vals)[0]+1),vals,alpha=alpha,cmap=cmap)
     else:
-        ax.imshow(self.images[Stim])
-    if center:
-        if vmax==0:
-            cols=ax.pcolormesh(np.linspace(xs1,xs2,np.shape(vals)[1]+1),np.linspace(ys1,ys2,np.shape(vals)[0]+1),vals,alpha=alpha,cmap=cmap)
-        else:
-            cols=ax.pcolormesh(np.linspace(xs1,xs2,np.shape(vals)[1]+1),np.linspace(ys1,ys2,np.shape(vals)[0]+1),vals,alpha=alpha,cmap=cmap,vmin=-vmax,vmax=vmax)
+        cols=ax.pcolormesh(np.linspace(0,ximsize,np.shape(vals)[1]+1),np.linspace(0,yimsize,np.shape(vals)[0]+1),vals,alpha=alpha,cmap=cmap,vmin=-vmax,vmax=vmax)
 
-    else:
-        stimId=self.stimuli==Stim
-        if vmax==0:
-            cols=ax.pcolormesh(np.linspace(self.boundsX[stimId,0],self.boundsX[stimId,1],np.shape(vals)[1]+1),np.linspace(self.boundsY[stimId,0],self.boundsY[stimId,1],np.shape(vals)[0]+1),vals,alpha=alpha,cmap=cmap)
-        else:
-            cols=ax.pcolormesh(np.linspace(self.boundsX[stimId,0],self.boundsX[stimId,1],np.shape(vals)[1]+1),np.linspace(self.boundsY[stimId,0],self.boundsY[stimId,1],np.shape(vals)[0]+1),vals,alpha=alpha,cmap=cmap,vmin=-vmax,vmax=vmax)
+#    else:
+ #       stimId=self.stimuli==Stim
+  #      if vmax==0:
+   #         cols=ax.pcolormesh(np.linspace(self.boundsX[stimId,0],self.boundsX[stimId,1],np.shape(vals)[1]+1),np.linspace(self.boundsY[stimId,0],self.boundsY[stimId,1],np.shape(vals)[0]+1),vals,alpha=alpha,cmap=cmap)
+    #    else:
+     #       cols=ax.pcolormesh(np.linspace(self.boundsX[stimId,0],self.boundsX[stimId,1],np.shape(vals)[1]+1),np.linspace(self.boundsY[stimId,0],self.boundsY[stimId,1],np.shape(vals)[0]+1),vals,alpha=alpha,cmap=cmap,vmin=-vmax,vmax=vmax)
     ax.set_xticks([])
     ax.set_yticks([])
     if cbar:
@@ -199,11 +194,9 @@ def VisGrid(self,vals,Stim,center=False,ax=0,alpha=.3,cmap='inferno',cbar=0,vmax
         
 
 def Hihglight_Sign(self,Stim,pvals,axis):
-    xs1=(self.x_size-np.shape(self.images[Stim])[1])/2
-    xs2=self.x_size-xs1
-    ys1=(self.y_size-np.shape(self.images[Stim])[0])/2
-    ys2=self.y_size-ys1
-    x,y=np.linspace(xs1,xs2,np.shape(pvals)[1]+1),np.linspace(ys1,ys2,np.shape(pvals)[0]+1)
+    idims=np.shape(self.images[Stim])
+    yimsize,ximsize=idims[0],idims[1]
+    x,y=np.linspace(0,ximsize,np.shape(pvals)[1]+1),np.linspace(0,yimsize,np.shape(pvals)[0]+1)
     for i in range(len(x) - 1):
         for j in range(len(y) - 1):
             if pvals[j,i]<.05:
