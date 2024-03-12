@@ -98,7 +98,7 @@ def CompareGroupsFix(self,betwcond):
     return 
 
     
-def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,center=0,substring=False,cmap='plasma',alpha=.5,cutoff='median',downsample=8, Nrand=100):
+def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,substring=False,cmap='plasma',alpha=.5,cutoff='median',downsample=8, Nrand=100):
     ''' 
     DESCRIPTION: visualize  heatmap fopr two groups, 
     subplot 1: group 1
@@ -185,7 +185,7 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
         else:
             stims=copy.copy(Stim)
         print(cc,c,stims)
-        hmap=self.Heatmap(stims,SD=SD,Ind=0,Vis=1,FixCounts=FixCounts[Idx,:,:],CutArea=CutArea,center=center,substring=False,ax=ax[0,cc],cmap=cmap,alpha=alpha,cutoff=cutoff)
+        hmap=self.Heatmap(stims,SD=SD,Ind=0,Vis=1,FixCounts=FixCounts[Idx,:,:],CutArea=CutArea,substring=False,ax=ax[0,cc],cmap=cmap,alpha=alpha,cutoff=cutoff)
         
         hmap_red=self.Heatmap(stims,SD=8,Ind=0,Vis=0,FixCounts=RedAll[Idx,:,:])#,CutArea=CutArea)
         hmapsred.append(hmap_red)
@@ -219,9 +219,7 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
         
     
     if hasattr(self,'images'):
-        #if center:
-         #   ax[1,1].imshow(self.images[stimShow],extent=[xs1,xs2,ys2,ys1])
-        #else:
+       
         ax[1,1].imshow(self.images[stimShow])
     im=ax[1,1].imshow(np.abs(Diff), vmin=0, vmax=np.nanmax(np.abs(Diff)),alpha=alpha)
    
@@ -395,7 +393,7 @@ def CompareGroupsMat(self,group,indsimmat):
         
 
 
-def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,center=True,substring=False,cmap_ind='plasma',cmap_diff='RdYlBu',alpha=.5,t_abs=False,timemin=0, timemax=np.inf, timecol=0): 
+def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,substring=False,cmap_ind='plasma',cmap_diff='RdYlBu',alpha=.5,t_abs=False,timemin=0, timemax=np.inf, timecol=0): 
     ''' 
 
     Stim: stimulus name
@@ -439,11 +437,8 @@ def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,center=True,su
     
     if hasattr(self,'subjects')==0:
         self.GetParams()   
-    if center:
-        ## this is really inefficient, since stats p-s are calculated for all images
-        statPMat,statEntropyMat=self.CalcStatPs(nhor,nver,MinFix=5,InferS=2,timemin=timemin, timemax=timemax, timecol=timecol)
-    else: 
-        statPMat,statEntropyMat=self.CalcStatPs(nhor,nver,MinFix=5,InferS=2,timemin=timemin, timemax=timemax, timecol=timecol)
+   
+    statPMat,statEntropyMat=self.CalcStatPs(nhor,nver,MinFix=5,InferS=2,timemin=timemin, timemax=timemax, timecol=timecol)
 
    # if substring and len(stimn)==2:
 
@@ -453,7 +448,7 @@ def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,center=True,su
         for cs,s in enumerate(stimn):
             Statpm=np.nanmean(statPMat[:,s,:,:],0)
             Statpm[Statpm<np.nanpercentile(Statpm,30)]=np.NAN
-            self.VisGrid(Statpm,Stims[cs],center=True,ax=ax[0,cs],alpha=alpha,cmap=cmap_ind)
+            self.VisGrid(Statpm,Stims[cs],ax=ax[0,cs],alpha=alpha,cmap=cmap_ind)
             ax[0,cs].set_title(Stims[cs])
            
             statmats.append(statPMat[:,s,:,:])
@@ -468,7 +463,7 @@ def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,center=True,su
             print(np.shape(np.nanmean(statPMat[Idx,stimn,:,:],0)))
             Statpm=np.nanmean(statPMat[Idx,stimn,:,:],0)
             Statpm[Statpm<np.nanpercentile(Statpm,30)]=np.NAN
-            self.VisGrid(Statpm,stimShow,center=True,ax=ax[0,ccond],alpha=alpha,cmap=cmap_ind)
+            self.VisGrid(Statpm,stimShow,ax=ax[0,ccond],alpha=alpha,cmap=cmap_ind)
             ax[0,ccond].set_title(cond)
             statmats.append(statPMat[Idx,stimn,:,:])
         diffmat=np.nanmean(statmats[0],0)-np.nanmean(statmats[1],0) 
@@ -483,7 +478,7 @@ def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,center=True,su
 
 
 
-    cbar=self.VisGrid(diffmat,stimShow,center=center,ax=ax[1,0],alpha=.7,cmap=cmap_diff,vmax=np.nanmax(np.abs(diffmat)),cbar=True)
+    cbar=self.VisGrid(diffmat,stimShow,ax=ax[1,0],alpha=.7,cmap=cmap_diff,vmax=np.nanmax(np.abs(diffmat)),cbar=True)
     cbar.ax.get_yaxis().set_ticks([])
     cbar.ax.get_yaxis().labelpad = 15
     if substring:
@@ -493,10 +488,10 @@ def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,center=True,su
 
     ax[1,0].set_title('difference')
     if t_abs:
-        cbar=self.VisGrid(np.abs(tt),stimShow,center=center,ax=ax[1,1],alpha=.7,cmap='Greens',cbar=True)
+        cbar=self.VisGrid(np.abs(tt),stimShow,ax=ax[1,1],alpha=.7,cmap='Greens',cbar=True)
         ax[1,1].set_title('abs t-values')
     else:
-        cbar=self.VisGrid(tt,stimShow,center=center,ax=ax[1,1],alpha=.7,cmap=cmap_diff,vmax=4,cbar=True)
+        cbar=self.VisGrid(tt,stimShow,ax=ax[1,1],alpha=.7,cmap=cmap_diff,vmax=4,cbar=True)
         ax[1,1].set_title('t-value')
         cbar.ax.get_yaxis().labelpad = 30
 
