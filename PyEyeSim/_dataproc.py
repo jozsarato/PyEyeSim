@@ -109,7 +109,7 @@ def GetStimuli(self,extension,path=0,infersubpath=False):
  
 
   
-def FixCountCalc(self,Stim,CutAct=1,substring=False):
+def FixCountCalc(self,Stim,CutAct=False,substring=False):
     ''' Pixelwise fixation count for each participant, but for single stimulus  (Stim) 
     output: subjects*y*x --> num of fixaiton for each pixel
     if CutAct==1 in the end, only the within bounds areas is returned for further calculations
@@ -152,11 +152,11 @@ def FixCountCalc(self,Stim,CutAct=1,substring=False):
         X,Y=x[Valid],y[Valid]
         FixCountInd[cs,Y,X]+=1
    # self.boundsX[stimn,0]:self.boundsX[stimn,1]
-   # if CutAct:
-    #    if len(stimn)>0:
-     #       stimn=stimn[0] # cut based on the bounds of the first if there are more matching stimuli
-      #  FixCountInd=FixCountInd[:,:,int(np.round(self.boundsX[stimn,0])):int(np.round(self.boundsX[stimn,1]))]  # cut X
-       # FixCountInd=FixCountInd[:,int(np.round(self.boundsY[stimn,0])):int(np.round(self.boundsY[stimn,1])),:] # cut Y
+    if CutAct:
+        if len(stimn)>0:
+            stimn=stimn[0] # cut based on the bounds of the first if there are more matching stimuli
+        FixCountInd=FixCountInd[:,:,int(np.round(self.boundsX[stimn,0])):int(np.round(self.boundsX[stimn,1]))]  # cut X
+        FixCountInd=FixCountInd[:,int(np.round(self.boundsY[stimn,0])):int(np.round(self.boundsY[stimn,1])),:] # cut Y
     return FixCountInd
 
 
@@ -304,7 +304,11 @@ def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax
         stimn=np.nonzero(stimn>-1)[0]
         stimShow=Stims[0]
         idims=np.shape(self.images[Stims[0]])
-    yimsize,ximsize=idims[0],idims[1]
+    if hasattr(self,'images')==False:
+        yimsize,ximsize=self.x_size,self.y_size
+
+    else:
+        yimsize,ximsize=idims[0],idims[1]
 
     if hasattr(self,'boundsX')==False:
         print('run RunDescriptiveFix first- without visuals')
@@ -328,6 +332,7 @@ def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax
             cutThr=0
         if CutArea:
             smapall=np.zeros((yimsize,ximsize))
+            smapall[:]=np.NAN
             if len(stimn)>0:
                 stimn=stimn[0]
             smapall[int(self.boundsY[stimn,0]):int(self.boundsY[stimn,1]),int(self.boundsX[stimn,0]):int(self.boundsX[stimn,1])]=smap

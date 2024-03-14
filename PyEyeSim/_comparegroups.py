@@ -141,9 +141,6 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
         stimShow=copy.copy(Stim)
 
     WhichC,WhichCN=self.GetGroups(betwcond)
-      
-    if hasattr(self,'boundsX')==0:
-        self.RunDescriptiveFix()
     
     if hasattr(self,'subjects')==0:
         self.GetParams()    
@@ -432,11 +429,7 @@ def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,substring=Fals
         print('use provided conditions: ' ,Conds)
         Conditions=np.copy(Conds)
       
-    if hasattr(self,'boundsX')==0:
-        self.RunDescriptiveFix()
-    
-    if hasattr(self,'subjects')==0:
-        self.GetParams()   
+   
    
     statPMat,statEntropyMat=self.CalcStatPs(nhor,nver,MinFix=5,InferS=2,timemin=timemin, timemax=timemax, timecol=timecol)
 
