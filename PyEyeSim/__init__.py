@@ -47,7 +47,7 @@ class EyeData:
         y_size (int): Screen size in pixels (height).
         '''
         self.name = name
-        self.design = design
+        self.design = design  # remove design ?
         self.data=data
         self.x_size=x_size
         self.y_size=y_size
@@ -129,6 +129,8 @@ class EyeData:
             print('stimuli loaded succesfully, access as self.images')
           # except:   
            #    print('stimuli not found')
+        print('run descriptive analysis')
+        self.RunDescriptiveFix(Visual=True)
         pass
   
     

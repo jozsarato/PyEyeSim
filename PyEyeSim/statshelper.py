@@ -12,9 +12,9 @@ import pandas as pd
 def SaliencyMapFilt(Fixies,SD=25,Ind=0):
     ''' Gaussian filter of fixations counts, Ind=1 for individual, Ind=0 for group '''
     if Ind==0:
-        Smap=ndimage.filters.gaussian_filter(np.mean(Fixies,0),SD)
+        Smap=ndimage.gaussian_filter(np.mean(Fixies,0),SD)
     else:
-        Smap=ndimage.filters.gaussian_filter(Fixies,SD)
+        Smap=ndimage.gaussian_filter(Fixies,SD)
     return Smap
 
 
