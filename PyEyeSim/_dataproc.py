@@ -118,8 +118,10 @@ def FixCountCalc(self,Stim,CutAct=False,substring=False):
         assert np.sum(self.data['Stimulus']==Stim)>0, 'stimulus not found'
         stimn=np.nonzero(self.stimuli==Stim)[0]
         print('stimns found:',stimn,Stim)
-        idims=np.shape(self.images[Stim])
-
+        if hasattr(self,'images')==False:
+            idims=np.array([self.y_size,self.x_size])
+        else:
+            idims=np.shape(self.images[Stim])
 
     elif substring==True:  
         self.stimuli=self.stimuli.astype('str')
@@ -296,7 +298,10 @@ def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax
     if substring==False:
         stimn=np.nonzero(self.stimuli==Stim)[0]
         stimShow=Stim
-        idims=np.shape(self.images[Stim])
+        if hasattr(self,'images')==False:
+            idims=np.array([self.y_size,self.x_size])
+        else:
+            idims=np.shape(self.images[Stim])
     else:
         self.stimuli=self.stimuli.astype('str')
         stimn=np.char.find(self.stimuli,Stim)
@@ -304,11 +309,8 @@ def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax
         stimn=np.nonzero(stimn>-1)[0]
         stimShow=Stims[0]
         idims=np.shape(self.images[Stims[0]])
-    if hasattr(self,'images')==False:
-        yimsize,ximsize=self.x_size,self.y_size
-
-    else:
-        yimsize,ximsize=idims[0],idims[1]
+    
+    yimsize,ximsize=idims[0],idims[1]
 
     if hasattr(self,'boundsX')==False:
         print('run RunDescriptiveFix first- without visuals')
@@ -347,8 +349,8 @@ def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax
        
         if ax==False:
             fig,ax=plt.subplots()
-#
-        ax.imshow(self.images[stimShow])
+        if hasattr(self,'images')==True:
+            ax.imshow(self.images[stimShow])
         ax.imshow(smapall,alpha=alpha,cmap=cmap) 
         ax.set_xticks([])
         ax.set_yticks([])

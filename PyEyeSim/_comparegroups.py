@@ -226,9 +226,9 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
     
     for hora in range(2):
         for vera in range(2):
-            ax[hora,vera].set_xlim(0,np.shape(self.images[stimShow])[1])
-            ax[hora,vera].set_ylim(np.shape(self.images[stimShow])[0],0)
-
+            if hasattr(self,'images'):
+                ax[hora,vera].set_xlim(0,np.shape(self.images[stimShow])[1])
+                ax[hora,vera].set_ylim(np.shape(self.images[stimShow])[0],0)
             ax[hora,vera].set_xticks([])
             ax[hora,vera].set_yticks([])
     
