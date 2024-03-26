@@ -95,21 +95,34 @@ def create_test_df(size = 1000):
         'CURRENT_FIX_Y': np.random.randint(0, 2160, size),  # generating random integers for Y
         'CURRENT_FIX_DURATION': np.random.randint(0, 501, size)  # generating random integers for duration
     })
+    print("test frame created")
     return test_img, test_df
 
 class TestFixCountCalc(unittest.TestCase):
+
+    #heatmap
+    def test_heatmap(self):
+        fixation_rows = 1000
+        sizeX,sizeY = 3840,2160
+        test_img, test_df = create_test_df(size=fixation_rows)
+
+        test_eye_data = EyeData('test_1', 'between', test_df, sizeX, sizeY)
+        test_eye_data.DataInfo(Stimulus='image_1',subjectID='RECORDING_SESSION_LABEL',mean_x='CURRENT_FIX_X',mean_y='CURRENT_FIX_Y',FixDuration='CURRENT_FIX_DURATION')
+
+        xs, ys, heatmap, salmap = extract_focus_peaks(test_eye_data.data.mean_x, test_eye_data.data.mean_y, (sizeX, sizeY))
+ 
+        testHM = test_eye_data.Heatmap(test_img)
+     #fixCount
     def test_case_1(self):
         fixation_rows = 1000
         sizeX,sizeY = 3840,2160
         test_img, test_df = create_test_df(size=fixation_rows)
-        stimuli = test_df['image_1'].unique()
 
         test_eye_data = EyeData('test_1', 'between', test_df, sizeX, sizeY)
         test_eye_data.DataInfo(Stimulus='image_1',subjectID='RECORDING_SESSION_LABEL',mean_x='CURRENT_FIX_X',mean_y='CURRENT_FIX_Y',FixDuration='CURRENT_FIX_DURATION')
-        test_eye_data.RunDescriptiveFix()
 
         test_res = test_eye_data.FixCountCalc(test_img, CutAct=0)
-        xs, ys, heatmap, salmap = extract_focus_peaks(test_eye_data.data.mean_x, test_eye_data.data.mean_y, (sizeX, sizeY))
+
         self.assertEqual(np.sum(test_res), fixation_rows)
 
 if __name__ == '__main__':
