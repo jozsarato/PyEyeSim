@@ -89,7 +89,7 @@ def create_test_df(size = 1000):
     """
     test_img = 'test_1.jpg'
     test_df = pd.DataFrame({
-        'RECORDING_SESSION_LABEL': ['tr_1'] * size,
+        'RECORDING_SESSION_LABEL': np.random.choice(['tr_1','tr_2','tr_3'], size),
         'image_1': [test_img] * size,
         'CURRENT_FIX_X': np.random.randint(0, 3840, size),  # generating random integers for X
         'CURRENT_FIX_Y': np.random.randint(0, 2160, size),  # generating random integers for Y
@@ -112,7 +112,11 @@ class TestFixCountCalc(unittest.TestCase):
         xs, ys, heatmap, salmap = extract_focus_peaks(test_eye_data.data.mean_x, test_eye_data.data.mean_y, (sizeX, sizeY))
  
         testHM = test_eye_data.Heatmap(test_img)
-     #fixCount
+        print(testHM[0])
+        print(heatmap[0])
+        self.assertTrue(np.allclose(testHM, heatmap, rtol=1e-05, atol=1e-08))             
+     #fixCount#
+        
     def test_case_1(self):
         fixation_rows = 1000
         sizeX,sizeY = 3840,2160
