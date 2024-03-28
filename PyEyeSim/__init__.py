@@ -24,15 +24,14 @@ class EyeData:
     from ._scanpathsim import AOIFix,SacSimPipeline,SacSim1Group,SaccadeSel
 
     try: 
-    	from ._hmm import DataArrayHmm,MyTrainTest,FitLOOHMM,FitVisHMM,FitVisHMMGroups,HMMSimPipeline
+        from ._hmm import DataArrayHmm,MyTrainTest,FitLOOHMM,FitVisHMM,FitVisHMMGroups,HMMSimPipeline
     except:
-    	warnings.warn('hmmlearn not found, hidden markov model functionality will not work')
+        warnings.warn('hmmlearn not found, hidden markov model functionality will not work')
         
     try: 
         from ._comparegroups import CompareGroupsHeatmap
-    except:
-        
-    	warnings.warn('scikit image not found, compare groups heatmap will not work - scikit image needed for downsampling')
+    except: 
+        warnings.warn('scikit image not found, compare groups heatmap will not work - scikit image needed for downsampling')
 
 
     def __init__(self, name, design,data,x_size,y_size):
@@ -98,7 +97,7 @@ class EyeData:
         except:
             warnings.warn('stimulus and subject info not found')
 
-    def DataInfo(self,Stimulus='Stimulus',subjectID='subjectID',mean_x='mean_x',mean_y='mean_y',FixDuration=0,StimPath=None,StimExt='.jpg',infersubpath=False):
+    def DataInfo(self,Stimulus='Stimulus',subjectID='subjectID',mean_x='mean_x',mean_y='mean_y',FixDuration=0,StimPath=None,StimExt='.jpg',infersubpath=False, Visual=False):
         ''' 
         Description: Provide information about amount of stimuli and subjects.
         Arguments:
@@ -121,13 +120,10 @@ class EyeData:
         self.setStimuliPath(StimPath,StimExt,infersubpath)
 
         print('run descriptive analysis')
-        self.RunDescriptiveFix(Visual=True)
+        self.RunDescriptiveFix(Visual=Visual)
         
   
-    
-    
-
-    def RunDescriptiveFix(self,Visual=0,duration=0):
+    def RunDescriptiveFix(self,Visual,duration=0):
         '''
         Description:  Calculate descriptive statistics for fixation data in dataset.
 
