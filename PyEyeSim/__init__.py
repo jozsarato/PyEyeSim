@@ -14,7 +14,7 @@ from .visualhelper import MeanPlot,HistPlot
 
 from .statshelper import ScanpathL
 
-
+import warnings
 class EyeData:
 	
     from ._visuals import VisScanPath,MySaccadeVis,VisLOOHMM,VisHMM,MyTrainTestVis,VisGrid,Hihglight_Sign
@@ -26,13 +26,13 @@ class EyeData:
     try: 
     	from ._hmm import DataArrayHmm,MyTrainTest,FitLOOHMM,FitVisHMM,FitVisHMMGroups,HMMSimPipeline
     except:
-    	print('hmmlearn not found, hidden markov model functionality will not work')
+    	warnings.warn('hmmlearn not found, hidden markov model functionality will not work')
         
     try: 
         from ._comparegroups import CompareGroupsHeatmap
     except:
         
-    	print('scikit image not found, compare groups heatmap will not work - scikit image needed for downsampling')
+    	warnings.warn('scikit image not found, compare groups heatmap will not work - scikit image needed for downsampling')
 
 
     def __init__(self, name, design,data,x_size,y_size):
@@ -52,20 +52,15 @@ class EyeData:
         self.x_size=x_size
         self.y_size=y_size
 
-
-        print('dataset size: ',np.shape(self.data))
-        print('study design: ',self.design)
-        print('presentation size:  x=',self.x_size,'pixels y=',self.y_size,' pixels')
-        print('presentation size:  x=',self.x_size,'pixels y=',self.y_size,' pixels')
         DefColumns={'Stimulus':'Stimulus','subjectID':'subjectID','mean_x':'mean_x','mean_y':'mean_y'}
     
-
         for df in DefColumns:
             try:
                 data[DefColumns[df]]
                 print('column found: ', df,' default: ',DefColumns[df])
             except:
-                print(df," not found !!, provide column as", df,"=YourColumn , default: ",DefColumns[df])
+                warnings.warn(f"{df} not found !!, provide column as {df}=YourColumn - use setColumns(), default: ,{DefColumns[df]}")
+
     def info(self):
         ''' 
          Description: prints screen information, dataset name and study design. 
@@ -74,6 +69,7 @@ class EyeData:
         print('screen y_size',self.y_size)
         print(self.name)
         print(self.design,'design')
+        print('dataset size: ',np.shape(self.data))
 
     def data(self):
         ''' 
@@ -81,9 +77,28 @@ class EyeData:
         '''
         return self.data
     
+    def setColumns(self,Stimulus='Stimulus',subjectID='subjectID',mean_x='mean_x',mean_y='mean_y',FixDuration=0):
+        if type(FixDuration)!='int':
+            self.data=self.data.rename(columns={Stimulus:'Stimulus',subjectID:'subjectID',mean_x: 'mean_x',mean_y: 'mean_y',FixDuration: 'duration'})
+        else:
+            self.data=self.data.rename(columns={Stimulus:'Stimulus',subjectID:'subjectID',mean_x: 'mean_x',mean_y: 'mean_y'})
+ 
+    def setStimuliPath(self, StimPath = None, StimExt='.jpg',infersubpath=False):
+        if StimPath == None:
+            warnings.warn('Stim path not provided')
+            return
+        
+        self.GetStimuli(StimExt,StimPath,infersubpath=infersubpath)
+        print('stimuli loaded succesfully, access as self.images')
     
-    
-    def DataInfo(self,Stimulus='Stimulus',subjectID='subjectID',mean_x='mean_x',mean_y='mean_y',FixDuration=0,StimPath=0,StimExt='.jpg',infersubpath=False):
+    def setSubjStim(self):
+        try:
+            subjs,stims=self.GetParams()
+            print('info found for '+ str(len(subjs))+' subjects, and '+str(len(stims))+' stimuli')      
+        except:
+            warnings.warn('stimulus and subject info not found')
+
+    def DataInfo(self,Stimulus='Stimulus',subjectID='subjectID',mean_x='mean_x',mean_y='mean_y',FixDuration=0,StimPath=None,StimExt='.jpg',infersubpath=False):
         ''' 
         Description: Provide information about amount of stimuli and subjects.
         Arguments:
@@ -97,36 +112,19 @@ class EyeData:
         StimExt (str): File extension of stimuli (default: '.jpg').
         infersubpath (bool): Flag to infer stimulus subpaths based on subject IDs (default: False).  -- if stimuli are stored in subfolders for multiple categories
         '''
-       # print(type(FixDuration))
        
-        if type(FixDuration)!='int':
-            self.data=self.data.rename(columns={Stimulus:'Stimulus',subjectID:'subjectID',mean_x: 'mean_x',mean_y: 'mean_y',FixDuration: 'duration'})
-        else:
-            self.data=self.data.rename(columns={Stimulus:'Stimulus',subjectID:'subjectID',mean_x: 'mean_x',mean_y: 'mean_y'})
- 
-        try:
-            subjs,stims=self.GetParams()
-            print('info found for '+ str(len(subjs))+' subjects, and '+str(len(stims))+' stimuli')
+        #pipeline
+        self.setColumns(Stimulus,subjectID,mean_x,mean_y,FixDuration)
+
+        self.setSubjStim()      
             
-        except:
-            print('stimulus and subject info not found')
-            
-        if StimPath==0:
-            print('Stim path not provided')
-        else:
-         #  try: 
-            self.GetStimuli(StimExt,StimPath,infersubpath=infersubpath)
-            print('stimuli loaded succesfully, access as self.images')
-          # except:   
-           #    print('stimuli not found')
+        self.setStimuliPath(StimPath,StimExt,infersubpath)
+
         print('run descriptive analysis')
         self.RunDescriptiveFix(Visual=True)
-        pass
+        
   
     
-    
-    
-   
     
 
     def RunDescriptiveFix(self,Visual=0,duration=0):
