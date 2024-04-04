@@ -97,9 +97,13 @@ def CompareGroupsFix(self,betwcond):
     
     return 
 
-    
+#TODO this could be the visual method and the second method just returns inference statistics
+def CompareGroupsHeatmapVisual():
+    pass
+
 def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,substring=False,cmap='plasma',alpha=.5,cutoff='median',downsample=8, Nrand=100):
     ''' 
+    #TODO should visualization happen in this function or separately?
     DESCRIPTION: visualize  heatmap fopr two groups, 
     subplot 1: group 1
     subplot 2: group 2
@@ -111,6 +115,7 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
     
     Stim (str): The stimulus for which the heatmap is generated.
     betwcond (str): The condition for between-group heatmap comparison.
+    #TODO there needs to be an explanation on available conditions, how to name them. 
     
     
     OPTIONAL PARAMETERS
@@ -224,6 +229,7 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
     ax[1,1].set_title('Absolute diff: '+str(np.round(np.nansum(np.abs(Diff)),3)))
     plt.tight_layout()
     
+    #TODO what does hora and vera mean?
     for hora in range(2):
         for vera in range(2):
             if hasattr(self,'images'):

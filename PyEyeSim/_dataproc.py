@@ -20,6 +20,7 @@ def GetParams(self):
     self.ns,self.np=len(self.subjects),len(self.stimuli)
     return  self.subjects,self.stimuli
 
+#TODO my idea: input param to decide if size is fine with the original sizex and sizey params, doesnt always have to decide params
 def InferSize(self,Interval=99):
     ''' Infer stimulus size as central Interval % fixations data'''
     BoundsX=np.zeros((len(self.stimuli),2))
@@ -39,8 +40,7 @@ def InferSize(self,Interval=99):
             BoundsY[cp,1]=self.y_size  ## out of area bounds are replaced with screen size
     BoundsX=np.intp(np.round(BoundsX))
     BoundsY=np.intp(np.round(BoundsY))
-    #self.boundsX=BoundsX
-    #self.boundsY=BoundsY
+    
     return BoundsX,BoundsY
 
 def GetStimuli(self,extension,path=0,infersubpath=False):
