@@ -13,7 +13,7 @@ import pandas as pd
 from .visualhelper import MeanPlot,HistPlot
 
 from .statshelper import ScanpathL
-
+from icecream import ic
 import warnings
 class EyeData:
 	
@@ -107,7 +107,7 @@ class EyeData:
         mean_y (str): Column name for mean y-coordinate of fixations in the eye-tracking data.
         FixDuration (int or str): Column name or integers for fixation duration in the eye-tracking data.
             If an integer, fixation duration column is assumed absent. It will be renamed "duration" afterwards
-        StimPath (str): Path to stimuli. Set to 0 if not provided.
+        StimPath (str): Path to stimuli. None by default -> if not provided.
         StimExt (str): File extension of stimuli (default: '.jpg').
         infersubpath (bool): Flag to infer stimulus subpaths based on subject IDs (default: False).  -- if stimuli are stored in subfolders for multiple categories
         '''
@@ -120,23 +120,28 @@ class EyeData:
         self.setStimuliPath(StimPath,StimExt,infersubpath)
 
         print('run descriptive analysis')
-        self.RunDescriptiveFix(Visual=Visual)
+        self.RunDescriptiveFix(Visual=Visual, inferSize=True)
         
   
-    def RunDescriptiveFix(self,Visual,duration=0):
+    def RunDescriptiveFix(self,Visual=False,duration=0, inferSize=False):
         '''
         Description:  Calculate descriptive statistics for fixation data in dataset.
 
         Arguments:
-        Visual (int): Flag indicating whether to generate visual plots (default: 0). Use 1 to show plots.
-        duration (int): Flag indicating whether fixation duration data is present (default: 0). Use one if fixation duration is present.  
+        Visual (bool): Flag indicating whether to generate visual plots (default: False). True to show plots.
+        duration (bool): Flag indicating whether fixation duration data is present (default: 0). Use one if fixation duration is present.  
         
         Returns: Mean fixation number, Number of valid fixations, inferred stim boundaries and mean and SD of fixation locations, mean Saccade amplitude, mean scanpath length.
         '''
         
         Subjects,Stimuli=self.GetParams()
+
         print('Data for ',len(self.subjects),'observers and ', len(self.stimuli),' stimuli.')
+
+        #TODO explain these params
+        #TODO bounds should only use InferSize if necessary, otherwise use input bounds (sizex sizey)
         self.boundsX,self.boundsY=self.InferSize(Interval=99)
+
         self.actsize=(self.boundsX[:,1]-self.boundsX[:,0])*(self.boundsY[:,1]-self.boundsY[:,0])
         self.nfixations=np.zeros((self.ns,self.np))
         self.nfixations[:]=np.NAN
@@ -165,7 +170,8 @@ class EyeData:
                     self.sacc_ampl[cs,cp],self.len_scanpath[cs,cp]=np.NAN,np.NAN
                     if duration:
                         self.durations[cs,cp]=np.NAN
-                        
+
+        #question is if people actually read these things otherwise it will just clutter the workspace               
         print('Mean fixation number: ',np.round(np.nanmean(np.nanmean(self.nfixations,1)),2),' +/- ',np.round(np.nanstd(np.nanmean(self.nfixations,1)),2))
         if duration:
             print('Mean fixation duration: ',np.round(np.nanmean(np.nanmean(self.durations,1)),1),' +/- ',np.round(np.nanstd(np.nanmean(self.durations,1)),1),'msec')
@@ -199,6 +205,7 @@ class EyeData:
             self.sdfix_xy = xr.DataArray(SDFixXY, dims=('subjectID','Stimulus','XY'), coords={'subjectID':Subjects,'Stimulus': Stimuli, 'XY':['X','Y']})
         except:
             print('xarray format descriptives not created, as xarray not installed')
+        #TODO why is bounds now only one variable? could we use one instead of two everywhere?
         self.bounds=Bounds
         return Stimuli,Subjects
     
