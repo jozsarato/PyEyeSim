@@ -5,7 +5,7 @@ import numpy as np
 
 from scipy.ndimage import generate_binary_structure, binary_erosion, maximum_filter, gaussian_filter
 from scipy.spatial import distance
-from icecream import ic
+
 def detect_peaks(image):
     """
     Takes an image and detect the peaks usingthe local maximum filter.
