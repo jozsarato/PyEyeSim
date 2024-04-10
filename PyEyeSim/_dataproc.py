@@ -145,7 +145,7 @@ def FixCountCalc(self,Stim,CutAct=False,substring=False):
                 stimIdx=1
             else:
                 stimIdx=0
-            Valid=np.nonzero((x<ximsize)&(x>0)&(y>0)&(y<yimsize))[0]
+            Valid=np.nonzero((x<ximsize)&(x>=0)&(y>=0)&(y<yimsize))[0]
 
         else:
             x,y=np.intp(self.GetFixationData(s,Stim))
@@ -288,7 +288,7 @@ def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax
     output: heatmap for a stimulus
     
     Vis:  if 1 Heatmap visual shows up- otherwise no visualization, but returns the heatmap values
-    
+    Ind: independent heatmap for each participant
     cutarea option: 1 only use active area (99% percentile of fixations), 0- use all of the area - set it to 1, if stimulus does not cover the whole screen
     cutoff=median: median cutoff, otherwise percetile of values to replace with nans, goal--> clear visualization
     substring: use part of file name (expected for mathcing paired files)
@@ -330,9 +330,9 @@ def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax
     if Ind==0:
         smap=SaliencyMapFilt(FixCounts,SD=SD,Ind=0)
         if cutoff=='median':
-             cutThr=np.median(smap)
+            cutThr=np.median(smap)
         elif cutoff>0:
-             cutThr=np.percentile(smap,cutoff) 
+            cutThr=np.percentile(smap,cutoff) 
         else:
             cutThr=0
         if CutArea:
@@ -346,7 +346,16 @@ def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax
     else:
         smap=np.zeros_like(FixCounts)
         for cs,s in enumerate(self.subjects):
-            smap[cs,:,:]=SaliencyMapFilt(FixCounts[cs,:,:],SD=SD,Ind=1)       
+            smap[cs,:,:]=SaliencyMapFilt(FixCounts[cs,:,:],SD=SD,Ind=1)
+        smapall=np.nanmean(smap,0)
+        if cutoff=='median':
+            cutThr=np.median(smapall)
+        elif cutoff>0:
+            cutThr=np.percentile(smapall,cutoff) 
+        else:
+            cutThr=0
+    
+    
     if Vis:
         smapall[smapall<cutThr]=np.NAN  # replacing below threshold with NAN
        
