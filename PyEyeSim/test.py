@@ -5,7 +5,7 @@ import numpy as np
 
 from scipy.ndimage import generate_binary_structure, binary_erosion, maximum_filter, gaussian_filter
 from scipy.spatial import distance
-
+from icecream import ic
 def detect_peaks(image):
     """
     Takes an image and detect the peaks usingthe local maximum filter.
@@ -72,7 +72,7 @@ def extract_focus_peaks(x_coords, y_coords, dimensions, sal=25,):
     return focus_x, focus_y, finalHeatmap, LocalSalMapRaw
 
 
-def create_test_df(size = 1000):
+def create_test_df(frameX, frameY, size = 1000,n_subjects = 3):
     """Creates a test DataFrame with randomly generated fixation data.
 
     Generates a DataFrame with the specified number of rows, containing random 
@@ -88,11 +88,12 @@ def create_test_df(size = 1000):
     test_df: DataFrame containing generated fixation data.
     """
     test_img = 'test_1.jpg'
+    labels = ['tr_{}'.format(i + 1) for i in range(n_subjects)]
     test_df = pd.DataFrame({
-        'RECORDING_SESSION_LABEL': np.random.choice(['tr_1','tr_2','tr_3'], size),
+        'RECORDING_SESSION_LABEL': np.random.choice(labels, size),
         'image_1': [test_img] * size,
-        'CURRENT_FIX_X': np.random.randint(0, 3840, size),  # generating random integers for X
-        'CURRENT_FIX_Y': np.random.randint(0, 2160, size),  # generating random integers for Y
+        'CURRENT_FIX_X': np.random.randint(0, frameX, size),  # generating random integers for X
+        'CURRENT_FIX_Y': np.random.randint(0, frameY, size),  # generating random integers for Y
         'CURRENT_FIX_DURATION': np.random.randint(0, 501, size)  # generating random integers for duration
     })
     print("test frame created")
@@ -102,25 +103,27 @@ class TestFixCountCalc(unittest.TestCase):
 
     #heatmap
     def test_heatmap(self):
-        fixation_rows = 1000
-        sizeX,sizeY = 3840,2160
-        test_img, test_df = create_test_df(size=fixation_rows)
+        fixation_rows = 10
+        sizeX,sizeY = 5,5
+        N = 3
+        test_img, test_df = create_test_df( frameX=sizeX, frameY=sizeY, size=fixation_rows, n_subjects = N)
 
         test_eye_data = EyeData('test_1', 'between', test_df, sizeX, sizeY)
         test_eye_data.DataInfo(Stimulus='image_1',subjectID='RECORDING_SESSION_LABEL',mean_x='CURRENT_FIX_X',mean_y='CURRENT_FIX_Y',FixDuration='CURRENT_FIX_DURATION')
 
         xs, ys, heatmap, salmap = extract_focus_peaks(test_eye_data.data.mean_x, test_eye_data.data.mean_y, (sizeX, sizeY))
- 
-        testHM = test_eye_data.Heatmap(test_img)
-        print(testHM[0])
-        print(heatmap[0])
+
+        heatmap = heatmap/N #normalizing heatmap as function below uses mean of all fixations and not sum
+
+        testHM = test_eye_data.Heatmap(test_img, CutArea=0)
+
         self.assertTrue(np.allclose(testHM, heatmap, rtol=1e-05, atol=1e-08))             
      #fixCount#
         
     def test_case_1(self):
         fixation_rows = 1000
         sizeX,sizeY = 3840,2160
-        test_img, test_df = create_test_df(size=fixation_rows)
+        test_img, test_df = create_test_df(sizeX, sizeY, size=fixation_rows)
 
         test_eye_data = EyeData('test_1', 'between', test_df, sizeX, sizeY)
         test_eye_data.DataInfo(Stimulus='image_1',subjectID='RECORDING_SESSION_LABEL',mean_x='CURRENT_FIX_X',mean_y='CURRENT_FIX_Y',FixDuration='CURRENT_FIX_DURATION')
