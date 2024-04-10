@@ -150,9 +150,12 @@ def FixCountCalc(self,Stim,CutAct=False,substring=False):
         else:
             x,y=np.intp(self.GetFixationData(s,Stim))
          #   Valid=np.nonzero((x<self.boundsX[stimn,1])&(x>self.boundsX[stimn,0])&(y>self.boundsY[stimn,0])&(y<self.boundsY[stimn,1]))[0]
-            Valid=np.nonzero((x<ximsize)&(x>0)&(y>0)&(y<yimsize))[0]
+            Valid=np.nonzero((x<ximsize)&(x>=0)&(y>=0)&(y<yimsize))[0]
         X,Y=x[Valid],y[Valid]
-        FixCountInd[cs,Y,X]+=1
+        for xx,yy in zip(X,Y):
+            FixCountInd[cs,yy,xx]+=1
+        #FixCountInd[cs,Y,X]+=1
+
    # self.boundsX[stimn,0]:self.boundsX[stimn,1]
     if CutAct:
         if len(stimn)>0:
