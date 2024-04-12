@@ -407,7 +407,7 @@ def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,substring=Fals
     
 
     '''
-
+    
     if substring:
         self.stimuli=self.stimuli.astype('str')
         stimn=np.char.find(self.stimuli,Stim)
@@ -495,9 +495,11 @@ def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,substring=Fals
 
 
 
-    self.Hihglight_Sign(stimShow,pp,ax[1,1]) # highlight significant cells, by showing grid buondaries (dashed (p<.05) or solid line (p<.01) 
+    self.Highlight_Sign(stimShow,pp,ax[1,1]) # highlight significant cells, by showing grid buondaries (dashed (p<.05) or solid line (p<.01) 
     
-    
+    print('num significant uncorrected',np.sum(pp<.05))
+    print('num significant Bonferroni - Holm corrected',BonfHolm(pp))
+
     return tt,pp
 
 
