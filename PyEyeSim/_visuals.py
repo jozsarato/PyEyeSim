@@ -193,7 +193,7 @@ def VisGrid(self,vals,Stim,ax=0,alpha=.3,cmap='inferno',cbar=0,vmax=0):
     return cb
         
 
-def Hihglight_Sign(self,Stim,pvals,axis):
+def Highlight_Sign(self,Stim,pvals,axis):
     idims=np.shape(self.images[Stim])
     yimsize,ximsize=idims[0],idims[1]
     x,y=np.linspace(0,ximsize,np.shape(pvals)[1]+1),np.linspace(0,yimsize,np.shape(pvals)[0]+1)

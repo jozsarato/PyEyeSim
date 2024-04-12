@@ -56,14 +56,13 @@ def DiffMat(x):
     return (XX1-XX2)**2
 
 def BonfHolm(ps,alpha=.05):
-    ''' perform bonferroni holm correction on unsroted array of p values
+    ''' perform bonferroni holm correction on unsorted array of p values
     return signifiance 1 or 0 in the original order'''
-    holmcorr=np.sort(ps)
+    ps=ps[np.isfinite(ps)]
     signCorr=np.zeros(len(ps))
-
-    for cn,n in enumerate(holmcorr):
+    for cn,n in enumerate(np.sort(ps)):
         if n<alpha/(len(ps)-cn):
-            signCorr[ps==n]=1
+            signCorr[cn]=1
         else:
             break
-    return signCorr
+    return np.sum(signCorr)
