@@ -143,8 +143,44 @@ def SacSimPipeline(self,divs=[4,5,7,9],Thr=5,InferS=True):
     for cd,ndiv in enumerate(divs):
         print(cd,ndiv)
         sacDivSel=self.SaccadeSel(SaccadeObj,ndiv,InferS=InferS)
-        SimSacP=self.SacSim1Group(sacDivSel,ndiv,Thr=Thr)
+        SimSacP=self.SacSim1Group(sacDivSel,Thr=Thr)
         StimSimsInd[cd,:,:]=np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0)
         StimSims[cd,:]=np.nanmean(np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0),0)
     return StimSims,np.nanmean(StimSimsInd,0)
+
+
+def ScanpathSim2Groups(self,stim,betwcond,nHor=5,nVer=0,inferS=False,Thr=5):
+    if hasattr(self,'subjects')==0:
+        self.GetParams()  
+    SaccadeObj=self.GetSaccades()
+    if type(stim)==str:
+        if stim=='all':
+            stimn=np.arange(self.ns)  # all stimuli
+        else:
+            stimn=np.nonzero(self.stimuli==stim)[0]
+
+    else:    
+        stimn=np.nonzero(self.stimuli==stim)[0]
+        
+    if nVer==0:
+        nVer=nHor  #
+    
+    SaccadeDiv=self.SaccadeSel(SaccadeObj,nHor=nHor,nVer=nVer,InferS=inferS)    
+    SimSacP=self.SacSim1Group(SaccadeDiv,Thr=Thr)
+    WhichC,WhichCN=self.GetGroups(betwcond)
+    Idxs=[]
    
+      
+    #Cols=['darkred','cornflowerblue']
+    fig,ax=plt.subplots(ncols=2,nrows=2,figsize=(10,8))
+                        
+    for cc,cond in enumerate(self.Conds):
+        Idxs.append(np.nonzero(WhichCN==cond)[0])
+    for cgr1,gr1 in enumerate(self.Conds):
+        for cgr2,gr2 in enumerate(self.Conds):
+
+            Vals=np.nanmean(np.nanmean(SimSacP[Idxs[cgr1],:,stimn,:,:][:,Idxs[cgr2],:,:],0),0)  
+            self.VisGrid(Vals,stim,ax=ax[cgr1,cgr2],cbar=True,inferS=inferS,alpha=.8)
+            ax[cgr1,cgr2].set_title(gr1+' '+gr2)
+    
+    return 

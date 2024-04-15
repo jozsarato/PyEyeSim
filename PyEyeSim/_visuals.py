@@ -159,7 +159,7 @@ def VisGrid(self,vals,Stim,ax=0,alpha=.3,cmap='inferno',cbar=0,vmax=0,inferS=0):
 
     Arguments:
     vals: values to lay over image
-    StimName: stimulus number
+    Stim: stimulus name
 
 
     optional:
@@ -180,7 +180,8 @@ def VisGrid(self,vals,Stim,ax=0,alpha=.3,cmap='inferno',cbar=0,vmax=0,inferS=0):
         horcells=np.linspace(0,ximsize,np.shape(vals)[1]+1)
         vercells=np.linspace(0,yimsize,np.shape(vals)[0]+1)
     else:
-        stimId=np.nonzero(self.stimuli==Stim)[0]        
+        stimId=np.nonzero(self.stimuli==Stim)[0]   
+        print(stimId)
         horcells=np.linspace(self.boundsX[stimId,0],self.boundsX[stimId,1],np.shape(vals)[1]+1).flatten()
         vercells=np.linspace(self.boundsY[stimId,0],self.boundsY[stimId,1],np.shape(vals)[0]+1).flatten()
     if vmax==0:
