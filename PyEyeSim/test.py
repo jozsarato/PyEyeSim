@@ -72,7 +72,7 @@ def extract_focus_peaks(x_coords, y_coords, dimensions, sal=25,):
     return focus_x, focus_y, finalHeatmap, LocalSalMapRaw
 
 
-def create_test_df(frameX, frameY, size = 1000,n_subjects = 3):
+def create_test_df(frameX, frameY, size = 1000,n_subjects = 3, groups = 1):
     """Creates a test DataFrame with randomly generated fixation data.
 
     Generates a DataFrame with the specified number of rows, containing random 
@@ -96,6 +96,11 @@ def create_test_df(frameX, frameY, size = 1000,n_subjects = 3):
         'CURRENT_FIX_Y': np.random.randint(0, frameY, size),  # generating random integers for Y
         'CURRENT_FIX_DURATION': np.random.randint(0, 501, size)  # generating random integers for duration
     })
+    if groups > 1:
+        labels_unique = test_df['RECORDING_SESSION_LABEL'].unique()
+        group_dict = {label: np.random.randint(1, groups+1) for label in labels_unique}
+        test_df['group'] = test_df['RECORDING_SESSION_LABEL'].map(group_dict)
+
     print("test frame created")
     return test_img, test_df
 
@@ -108,7 +113,7 @@ class TestFixCountCalc(unittest.TestCase):
         N = 3
         test_img, test_df = create_test_df( frameX=sizeX, frameY=sizeY, size=fixation_rows, n_subjects = N)
 
-        test_eye_data = EyeData('test_1', 'between', test_df, sizeX, sizeY)
+        test_eye_data = EyeData('test_2', 'between', test_df, sizeX, sizeY)
         test_eye_data.DataInfo(Stimulus='image_1',subjectID='RECORDING_SESSION_LABEL',mean_x='CURRENT_FIX_X',mean_y='CURRENT_FIX_Y',FixDuration='CURRENT_FIX_DURATION')
 
         xs, ys, heatmap, salmap = extract_focus_peaks(test_eye_data.data.mean_x, test_eye_data.data.mean_y, (sizeX, sizeY))
@@ -120,7 +125,7 @@ class TestFixCountCalc(unittest.TestCase):
         self.assertTrue(np.allclose(testHM, heatmap, rtol=1e-05, atol=1e-08))             
      #fixCount#
         
-    def test_case_1(self):
+    def test_fixCountCalc(self):
         fixation_rows = 1000
         sizeX,sizeY = 3840,2160
         test_img, test_df = create_test_df(sizeX, sizeY, size=fixation_rows)
@@ -131,6 +136,18 @@ class TestFixCountCalc(unittest.TestCase):
         test_res = test_eye_data.FixCountCalc(test_img, CutAct=0)
 
         self.assertEqual(np.sum(test_res), fixation_rows)
+
+    def test_heatmap_compare(self):
+        fixation_rows = 1000
+        sizeX,sizeY = 3840,2160
+        test_img, test_df = create_test_df(sizeX, sizeY, size=fixation_rows, n_subjects=40, groups=2)
+
+        test_eye_data = EyeData('test_3', 'between', test_df, sizeX, sizeY)
+        test_eye_data.DataInfo(Stimulus='image_1',subjectID='RECORDING_SESSION_LABEL',mean_x='CURRENT_FIX_X',mean_y='CURRENT_FIX_Y',FixDuration='CURRENT_FIX_DURATION')
+
+        test_eye_data.CompareGroupsHeatmap(test_img, 'group',SD=40,cmap='inferno',alpha=.6)
+
+        
 
 if __name__ == '__main__':
     unittest.main()
