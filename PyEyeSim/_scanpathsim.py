@@ -108,7 +108,7 @@ def SaccadeSel(self,SaccadeObj,nHor,nVer=0,InferS=False):
     return Saccades
 
 
-def SacSim1Group(self,Saccades,Thr=5):
+def SacSim1Group(self,Saccades,Thr=5,p='all',normalize='add'):
     ''' calculate saccade similarity for each stimulus, between each pair of participants ,
     needs saccades stored as PyEyeSim saccade objects stored in AOIs as input,
     vertical and horizontal dimensions are inferred from the input
@@ -129,7 +129,11 @@ def SacSim1Group(self,Saccades,Thr=5):
                                 if len(Saccades[s1,p1,v,h])>0 and len(Saccades[s2,p1,v,h])>0:
                                         
                                     simsacn=CalcSim(Saccades[s1,p1,v,h],Saccades[s2,p1,v,h],Thr=Thr)
-                                    SimSacP[s1,s2,p1,v,h]=simsacn/(len(Saccades[s1,p1,v,h])+len(Saccades[s2,p1,v,h]))
+                                    if normalize=='add':
+                                        SimSacP[s1,s2,p1,v,h]=simsacn/(len(Saccades[s1,p1,v,h])+len(Saccades[s2,p1,v,h]))
+                                    else:
+                                        SimSacP[s1,s2,p1,v,h]=simsacn/(len(Saccades[s1,p1,v,h])*len(Saccades[s2,p1,v,h]))
+ 
     return SimSacP
 
   
@@ -149,7 +153,7 @@ def SacSimPipeline(self,divs=[4,5,7,9],Thr=5,InferS=True):
     return StimSims,np.nanmean(StimSimsInd,0)
 
 
-def ScanpathSim2Groups(self,stim,betwcond,nHor=5,nVer=0,inferS=False,Thr=5):
+def ScanpathSim2Groups(self,stim,betwcond,nHor=5,nVer=0,inferS=False,Thr=5,normalize='add'):
     if hasattr(self,'subjects')==0:
         self.GetParams()  
     SaccadeObj=self.GetSaccades()
@@ -166,7 +170,7 @@ def ScanpathSim2Groups(self,stim,betwcond,nHor=5,nVer=0,inferS=False,Thr=5):
         nVer=nHor  #
     
     SaccadeDiv=self.SaccadeSel(SaccadeObj,nHor=nHor,nVer=nVer,InferS=inferS)    
-    SimSacP=self.SacSim1Group(SaccadeDiv,Thr=Thr)
+    SimSacP=self.SacSim1Group(SaccadeDiv,Thr=Thr,normalize=normalize)
     WhichC,WhichCN=self.GetGroups(betwcond)
     Idxs=[]
    
@@ -178,7 +182,7 @@ def ScanpathSim2Groups(self,stim,betwcond,nHor=5,nVer=0,inferS=False,Thr=5):
         Idxs.append(np.nonzero(WhichCN==cond)[0])
     for cgr1,gr1 in enumerate(self.Conds):
         for cgr2,gr2 in enumerate(self.Conds):
-
+            
             Vals=np.nanmean(np.nanmean(SimSacP[Idxs[cgr1],:,stimn,:,:][:,Idxs[cgr2],:,:],0),0)  
             self.VisGrid(Vals,stim,ax=ax[cgr1,cgr2],cbar=True,inferS=inferS,alpha=.8)
             ax[cgr1,cgr2].set_title(gr1+' '+gr2)
