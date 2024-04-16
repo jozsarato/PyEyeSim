@@ -126,7 +126,7 @@ def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,
     substring: match stimuli based on part of string --- if we want to compare two differently named stimuli, with part of the stimulus name matching
     downsample: downampling size 8 reduced by a factor of 8*8 pixels for example (using skimage)
     Nrand: number of random permutations to compute, default 100, for actual stats long run time and at least 1000 permutations are recommended, if set to 0 random permutation comparisonno performed
-    
+    # optional paramter to control color of difference heatmap
     '''
     from skimage import measure
 
@@ -390,7 +390,7 @@ def CompareGroupsMat(self,group,indsimmat):
         
 
 
-def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,substring=False,cmap_ind='plasma',cmap_diff='RdYlBu',alpha=.5,t_abs=False,timemin=0, timemax=np.inf, timecol=0): 
+def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,substring=False,cmap_ind='plasma',cmap_diff='RdYlBu',alpha=.5,t_abs=False,timemin=0, timemax=np.inf, timecol=0,useT=True): 
     ''' 
 
     Stim: stimulus name
@@ -480,18 +480,23 @@ def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,substring=Fals
         cbar.ax.set_ylabel(str(Conditions[0])+'<---->'+str(Conditions[1]), rotation=270)
 
     ax[1,0].set_title('difference')
-    if t_abs:
-        cbar=self.VisGrid(np.abs(tt),stimShow,ax=ax[1,1],alpha=.7,cmap='Greens',cbar=True)
-        ax[1,1].set_title('abs t-values')
-    else:
-        cbar=self.VisGrid(tt,stimShow,ax=ax[1,1],alpha=.7,cmap=cmap_diff,vmax=4,cbar=True)
-        ax[1,1].set_title('t-value')
-        cbar.ax.get_yaxis().labelpad = 30
-
-        if substring:
-            cbar.ax.set_ylabel(str(Stims[0])+'<---->'+str(Stims[1]), rotation=270)
+    if useT:
+        if t_abs:
+            cbar=self.VisGrid(np.abs(tt),stimShow,ax=ax[1,1],alpha=.7,cmap='Greens',cbar=True)
+            ax[1,1].set_title('abs t-values')
         else:
-            cbar.ax.set_ylabel(str(Conditions[0])+'<---->'+str(Conditions[1]), rotation=270)
+            cbar=self.VisGrid(tt,stimShow,ax=ax[1,1],alpha=.7,cmap=cmap_diff,vmax=4,cbar=True)
+            ax[1,1].set_title('t-value')
+            cbar.ax.get_yaxis().labelpad = 30
+    else:
+        cbar=self.VisGrid(np.log(pp),stimShow,ax=ax[1,1],alpha=.7,cmap='Greens',cbar=True)
+        ax[1,1].set_title('log(p)')
+
+    
+    if substring:
+        cbar.ax.set_ylabel(str(Stims[0])+'<---->'+str(Stims[1]), rotation=270)
+    else:
+        cbar.ax.set_ylabel(str(Conditions[0])+'<---->'+str(Conditions[1]), rotation=270)
 
 
 

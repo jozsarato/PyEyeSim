@@ -153,19 +153,22 @@ def MyTrainTestVis(self, DatTr,DatTest,lenTrain,lenTest,totest=0):
     self.MySaccadeVis(ax[1],DatTest,lenTest,title='test data '+titStr)
     return 
 
-def VisGrid(self,vals,Stim,ax=0,alpha=.3,cmap='inferno',cbar=0,vmax=0):
+def VisGrid(self,vals,Stim,ax=0,alpha=.3,cmap='inferno',cbar=0,vmax=0,inferS=0):
     '''  
-    visualize grid on image
+    visualize transparent grid of values on stimulus image
 
     Arguments:
     vals: values to lay over image
-    stimn: stimulus number
+    Stim: stimulus name
 
 
     optional:
-
-    center: needed if not full screen images
+    ax: provide axis to plot, if not new figure is opened
+    alpha: transparency
+    inferS: needed if not full screen images, with background--> not calculating value for full image in this case, but using BoundsX&Y
     cb: visualize colorbar --> also returned   
+    vmax: to fix colormap max and minimum values at x/- vmax(for stimulus comparabilty)
+    
     '''
     if type(ax)==int:
         fig,ax=plt.subplots()
@@ -173,17 +176,17 @@ def VisGrid(self,vals,Stim,ax=0,alpha=.3,cmap='inferno',cbar=0,vmax=0):
     yimsize,ximsize=idims[0],idims[1]
     
     ax.imshow(self.images[Stim])
-    if vmax==0:
-        cols=ax.pcolormesh(np.linspace(0,ximsize,np.shape(vals)[1]+1),np.linspace(0,yimsize,np.shape(vals)[0]+1),vals,alpha=alpha,cmap=cmap)
+    if inferS==0:
+        horcells=np.linspace(0,ximsize,np.shape(vals)[1]+1)
+        vercells=np.linspace(0,yimsize,np.shape(vals)[0]+1)
     else:
-        cols=ax.pcolormesh(np.linspace(0,ximsize,np.shape(vals)[1]+1),np.linspace(0,yimsize,np.shape(vals)[0]+1),vals,alpha=alpha,cmap=cmap,vmin=-vmax,vmax=vmax)
-
-#    else:
- #       stimId=self.stimuli==Stim
-  #      if vmax==0:
-   #         cols=ax.pcolormesh(np.linspace(self.boundsX[stimId,0],self.boundsX[stimId,1],np.shape(vals)[1]+1),np.linspace(self.boundsY[stimId,0],self.boundsY[stimId,1],np.shape(vals)[0]+1),vals,alpha=alpha,cmap=cmap)
-    #    else:
-     #       cols=ax.pcolormesh(np.linspace(self.boundsX[stimId,0],self.boundsX[stimId,1],np.shape(vals)[1]+1),np.linspace(self.boundsY[stimId,0],self.boundsY[stimId,1],np.shape(vals)[0]+1),vals,alpha=alpha,cmap=cmap,vmin=-vmax,vmax=vmax)
+        stimId=np.nonzero(self.stimuli==Stim)[0]   
+        horcells=np.linspace(self.boundsX[stimId,0],self.boundsX[stimId,1],np.shape(vals)[1]+1).flatten()
+        vercells=np.linspace(self.boundsY[stimId,0],self.boundsY[stimId,1],np.shape(vals)[0]+1).flatten()
+    if vmax==0:
+        cols=ax.pcolormesh(horcells,vercells,vals,alpha=alpha,cmap=cmap)
+    else:
+        cols=ax.pcolormesh(horcells,vercells,vals,alpha=alpha,cmap=cmap,vmin=-vmax,vmax=vmax)
     ax.set_xticks([])
     ax.set_yticks([])
     if cbar:
