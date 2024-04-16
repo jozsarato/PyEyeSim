@@ -13,7 +13,7 @@ import pandas as pd
 from .visualhelper import MeanPlot,HistPlot
 
 from .statshelper import ScanpathL
-
+import warnings
 
 class EyeData:
 	
@@ -24,15 +24,14 @@ class EyeData:
     from ._scanpathsim import AOIFix,SacSimPipeline,SacSim1Group,SaccadeSel,ScanpathSim2Groups
 
     try: 
-    	from ._hmm import DataArrayHmm,MyTrainTest,FitLOOHMM,FitVisHMM,FitVisHMMGroups,HMMSimPipeline
+        from ._hmm import DataArrayHmm,MyTrainTest,FitLOOHMM,FitVisHMM,FitVisHMMGroups,HMMSimPipeline
     except:
-    	print('hmmlearn not found, hidden markov model functionality will not work')
+        warnings.warn('hmmlearn not found, hidden markov model functionality will not work')
         
     try: 
         from ._comparegroups import CompareGroupsHeatmap
     except:
-        
-    	print('scikit image not found, compare groups heatmap will not work - scikit image needed for downsampling')
+        warnings.warn('scikit image not found, compare groups heatmap will not work - scikit image needed for downsampling')
 
 
     def __init__(self, name, design,data,x_size,y_size):
@@ -81,9 +80,33 @@ class EyeData:
         '''
         return self.data
     
+
+    def setColumns(self,Stimulus='Stimulus',subjectID='subjectID',mean_x='mean_x',mean_y='mean_y',FixDuration=0):
+        if type(FixDuration)!='int':
+            self.data=self.data.rename(columns={Stimulus:'Stimulus',subjectID:'subjectID',mean_x: 'mean_x',mean_y: 'mean_y',FixDuration: 'duration'})
+        else:
+            self.data=self.data.rename(columns={Stimulus:'Stimulus',subjectID:'subjectID',mean_x: 'mean_x',mean_y: 'mean_y'})
+ 
+
+    def setStimuliPath(self, StimPath = None, StimExt='.jpg',infersubpath=False):
+        if StimPath == None:
+            warnings.warn('Stim path not provided')
+            return
+        
+        self.GetStimuli(StimExt,StimPath,infersubpath=infersubpath)
+        print('stimuli loaded succesfully, access as self.images')
+
     
-    
-    def DataInfo(self,Stimulus='Stimulus',subjectID='subjectID',mean_x='mean_x',mean_y='mean_y',FixDuration=0,StimPath=0,StimExt='.jpg',infersubpath=False):
+    def setSubjStim(self):
+        try:
+            subjs,stims=self.GetParams()
+            print('info found for '+ str(len(subjs))+' subjects, and '+str(len(stims))+' stimuli')      
+        except:
+            warnings.warn('stimulus and subject info not found')
+
+
+    def DataInfo(self,Stimulus='Stimulus',subjectID='subjectID',mean_x='mean_x',mean_y='mean_y',FixDuration=0,StimPath=None,StimExt='.jpg',infersubpath=False, Visual=False):
+
         ''' 
         Description: Provide information about amount of stimuli and subjects.
         Arguments:
@@ -97,37 +120,18 @@ class EyeData:
         StimExt (str): File extension of stimuli (default: '.jpg').
         infersubpath (bool): Flag to infer stimulus subpaths based on subject IDs (default: False).  -- if stimuli are stored in subfolders for multiple categories
         '''
-       # print(type(FixDuration))
-       
-        if type(FixDuration)!='int':
-            self.data=self.data.rename(columns={Stimulus:'Stimulus',subjectID:'subjectID',mean_x: 'mean_x',mean_y: 'mean_y',FixDuration: 'duration'})
-        else:
-            self.data=self.data.rename(columns={Stimulus:'Stimulus',subjectID:'subjectID',mean_x: 'mean_x',mean_y: 'mean_y'})
- 
-        try:
-            subjs,stims=self.GetParams()
-            print('info found for '+ str(len(subjs))+' subjects, and '+str(len(stims))+' stimuli')
-            
-        except:
-            print('stimulus and subject info not found')
-            
-        if StimPath==0:
-            print('Stim path not provided')
-        else:
-         #  try: 
-            self.GetStimuli(StimExt,StimPath,infersubpath=infersubpath)
-            print('stimuli loaded succesfully, access as self.images')
-          # except:   
-           #    print('stimuli not found')
+
+        #pipeline
+        self.setColumns(Stimulus,subjectID,mean_x,mean_y,FixDuration)
+
+        self.setSubjStim()      
+
+        self.setStimuliPath(StimPath,StimExt,infersubpath)
+
         print('run descriptive analysis')
-        self.RunDescriptiveFix(Visual=True)
+        self.RunDescriptiveFix(Visual=Visual)
         pass
   
-    
-    
-    
-   
-    
 
     def RunDescriptiveFix(self,Visual=0,duration=0):
         '''
