@@ -208,7 +208,7 @@ def GetGroups(self,betwcond):
     return WhichC,np.array(WhichCN)
 
 def GetCats(self,condColumn):
-    ''' Between group comparison- 2 groups expected
+    ''' Within group comparison- 
     get conditions from between group column, check if mapping of participants to conditions is unique'''
     self.WithinConds=np.unique(self.data[condColumn])
     print('Conditions',self.WithinConds)
