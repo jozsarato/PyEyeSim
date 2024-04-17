@@ -233,9 +233,10 @@ def VisHeatmap(self,Stim,smap,ax=0,cutoff=0,alpha=.5,cmap='plasma',cbar=False,cb
     cols=ax.imshow(smap,alpha=alpha,cmap=cmap) 
     if cbar:
         cb=plt.colorbar(cols,ax=ax,shrink=.6)
-        cb.ax.get_yaxis().set_ticks([])
-        cb.ax.get_yaxis().labelpad = 15
-        cb.ax.set_ylabel(cbarlabel, rotation=270)
+        if cbarlabel!=' ':
+            cb.ax.get_yaxis().set_ticks([])
+            cb.ax.get_yaxis().labelpad = 15
+            cb.ax.set_ylabel(cbarlabel, rotation=270)
 
     ax.set_xticks([])
     ax.set_yticks([])

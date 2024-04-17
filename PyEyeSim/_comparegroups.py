@@ -193,42 +193,25 @@ def CompareGroupsHeatmap(self,Stim,betwcond=0,StimPath='',SD=25,CutArea=0,Conds=
         else:    
             self.stimuli=self.stimuli.astype('str')
             stimn=np.char.find(self.stimuli,Stim)
-            
             Stims=self.stimuli[stimn>-1]
             stimn=np.nonzero(stimn>-1)[0]
         print('stimns found:',stimn,Stims)
         stimn=np.intp(stimn)
         stimShow=Stims[0]
+        StimIdxs=self.GetStimSubjMap(Stims)
+
 
     else:
         stimn=np.nonzero(self.stimuli==Stim)[0]
         stimShow=copy.copy(Stim)
   
-    
-    if twostim:
-        StimIdxs=[[],[]]  # check which participant saw which stimulus
-
-        for cs,s in enumerate(self.subjects):
-            x1,y1=np.intp(self.GetFixationData(s,Stims[0]))
-            x2,y2=np.intp(self.GetFixationData(s,Stims[1]))
-            if len(x1)>0 and len(x2)>0:
-                warnings.warn('non unique stimulus - subject mapping error')
-            if len(x1)>0:
-                StimIdxs[0].append(cs)
-            elif len(x2)>0:
-                StimIdxs[1].append(cs)
-               
-        StimIdxs[0]=np.intp(np.array(StimIdxs[0]))    
-        StimIdxs[1]=np.intp(np.array(StimIdxs[1]))    
-
-
- 
+  
     
     if twostim==False:
         FixCounts=self.FixCountCalc(Stim,CutAct=CutArea) 
         assert np.sum(FixCounts)>0,'!!no fixations found'
-
         print('dimensions=',np.shape(FixCounts))
+        Reduced=ReduceCounts(FixCounts,downsample)
 
     else:
         FixCounts=[]
@@ -239,14 +222,11 @@ def CompareGroupsHeatmap(self,Stim,betwcond=0,StimPath='',SD=25,CutArea=0,Conds=
             fixcount=fixcount[HasFixIdx,:,:]
             FixCounts.append(fixcount)
             print(s,np.shape(FixCounts[-1]))
-
-
-    if twostim==False:
-        Reduced=ReduceCounts(FixCounts,downsample)
-    else:
         Reduced1=ReduceCounts(FixCounts[0],downsample)
         Reduced2=ReduceCounts(FixCounts[1],downsample)
         Reduced=np.concatenate((Reduced1,Reduced2),axis=0)
+
+
     print('reduced dims',np.shape(Reduced))
         
         
@@ -259,14 +239,12 @@ def CompareGroupsHeatmap(self,Stim,betwcond=0,StimPath='',SD=25,CutArea=0,Conds=
             print('use provided conditions: ' ,Conds)
             Conditions=np.copy(Conds)
         N1=np.sum(WhichCN==Conditions[0])
-        N2=np.sum(WhichCN==Conditions[1])
         print(f'num observers in group 1: {N1}') 
-        print(f'num observers in group 2: {N2}') 
+        print(f'num observers in group 2: {np.sum(WhichCN==Conditions[1])}') 
     else:
          N1=len(StimIdxs[0])
-         N2=len(StimIdxs[1])
          print(f'num observers seen stimulus {Stims[0]}: {N1}') 
-         print(f'num observers seen stimulus {Stims[1]}: {N2}') 
+         print(f'num observers seen stimulus {Stims[1]}: {len(StimIdxs[1])}') 
 
 
 
@@ -310,9 +288,9 @@ def CompareGroupsHeatmap(self,Stim,betwcond=0,StimPath='',SD=25,CutArea=0,Conds=
     else:
         colorbarlabel=str(Stims[0])+'<---->'+str(Stims[1])
 
-    self.VisHeatmap(stimShow,Diff,ax=ax[1,0],cutoff=cutoff,alpha=alpha,cmap=cmap_diff,cbar=True,cbarlabel=colorbarlabel)
+    self.VisHeatmap(stimShow,Diff,ax=ax[1,0],cutoff=cutoff,alpha=alpha,cmap=cmap_diff,cbar=True,cbarlabel=colorbarlabel,title='difference')
     
-    self.VisHeatmap(stimShow,np.abs(Diff),ax=ax[1,1],cutoff=cutoff,alpha=alpha,cmap=cmap_abs,cbar=True,cbarlabel=colorbarlabel)
+    self.VisHeatmap(stimShow,np.abs(Diff),ax=ax[1,1],cutoff=cutoff,alpha=alpha,cmap=cmap_abs,cbar=True,cbarlabel=' ',title='absolute difference')
     
     
     
@@ -323,9 +301,9 @@ def CompareGroupsHeatmap(self,Stim,betwcond=0,StimPath='',SD=25,CutArea=0,Conds=
     print(f'{Nrand} permutations starting')
     if Nrand>0:
         for n in range(Nrand):
-            Idxs=np.random.permutation(N1+N2)         
-            hmap1=SaliencyMapFilt(Reduced[Idxs[0:N1]],SD=downsample,Ind=0)
-            hmap2=SaliencyMapFilt(Reduced[Idxs[N1:]],SD=downsample,Ind=0)
+            Idxs=np.random.permutation(np.shape(Reduced)[0])         
+            hmap1=SaliencyMapFilt(Reduced[Idxs[0:N1],:,:],SD=downsample,Ind=0)
+            hmap2=SaliencyMapFilt(Reduced[Idxs[N1:],:,:],SD=downsample,Ind=0)
             DiffPerm[n]=np.nansum(np.abs(hmap1-hmap2))
         
    

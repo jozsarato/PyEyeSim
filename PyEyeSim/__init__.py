@@ -18,9 +18,9 @@ import warnings
 class EyeData:
 	
     from ._visuals import VisScanPath,MySaccadeVis,VisLOOHMM,VisHMM,MyTrainTestVis,VisGrid,Highlight_Sign,VisHeatmap
-    from ._dataproc import GetParams,GetStimuli,GetFixationData,GetDurations,GetGroups,GetCats,GetSaccades,GetEntropies,InferSize,Heatmap,FixCountCalc
+    from ._dataproc import GetParams,GetStimuli,GetFixationData,GetDurations,GetGroups,GetCats,GetSaccades,GetEntropies,InferSize,Heatmap,FixCountCalc,GetStimSubjMap
     from ._stats import AngleCalc,AngtoPix,PixdoDeg,Entropy,FixDurProg,BinnedCount,GetInddiff,GetInddiff_v2,RunDiffDivs,GetBinnedStimFixS,StatPDiffInd2,StatPDiffInd1,CalcStatPs,CalcRets,CalcImmRets,BinnedDescriptives
-    from ._comparegroups import CompareGroupsFix,CompareWithinGroupsFix,FixDurProgGroups,BinnedDescriptivesGroups,CompareGroupsMat,CompareGroupsGridFix,CompareGroupsHeatmap_N
+    from ._comparegroups import CompareGroupsFix,CompareWithinGroupsFix,FixDurProgGroups,BinnedDescriptivesGroups,CompareGroupsMat,CompareGroupsGridFix
     from ._scanpathsim import AOIFix,SacSimPipeline,SacSim1Group,SaccadeSel,ScanpathSim2Groups
 
     try: 

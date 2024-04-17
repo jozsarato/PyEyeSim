@@ -204,6 +204,24 @@ def GetCats(self,condColumn):
     assert len(np.unique(WhichCat))==len(np.unique(self.WithinConds)), 'stimulus category mapping problem'
     return WhichCat
 
+def GetStimSubjMap(self,Stims):
+    StimIdxs=[[],[]]  # check which participant saw which stimulus
+    for cs,s in enumerate(self.subjects):
+        x1,y1=np.intp(self.GetFixationData(s,Stims[0]))
+        x2,y2=np.intp(self.GetFixationData(s,Stims[1]))
+        if len(x1)>0 and len(x2)>0:
+            warnings.warn('non unique stimulus - subject mapping error')
+        if len(x1)>0:
+            StimIdxs[0].append(cs)
+        elif len(x2)>0:
+            StimIdxs[1].append(cs)
+           
+    StimIdxs[0]=np.intp(np.array(StimIdxs[0]))    
+    StimIdxs[1]=np.intp(np.array(StimIdxs[1]))    
+    return StimIdxs
+    
+
+
 def GetSaccades(self):
     ''' from fixations, make approximate saccades, and store it as saccade objects'''
     SaccadeObj=[]
