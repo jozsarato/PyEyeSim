@@ -165,7 +165,7 @@ def CompareGroupsHeatmap(self,Stim,betwcond=0,StimPath='',SD=25,CutArea=0,Conds=
     SD (int, optional): Optional parameter for heatmap smoothness, in pixels. Default is 25.
     CutArea (int, optional): Cut fixations. For example if you use '1', it shows 99% percentile of fixations. Default is 0. SEt to 1, if stimulus does not cover the screen size eg: for  portrait orientation
     Conds (int or list, optional): use automatically detected conditions conditions, as provided in betweencond column
-        othewise Conds=['MyCond1' MyCond2'], if we want to specify the order of access for betweencond column.
+        othewise Conds=['MyCond1' MyCond2'], if we want to specify the order of access for betweencond column.  (could be useful if there are more then 2 conditions, and we want to select 2 to contrast)
     center: if stimulus area does not start at pixel 0, shifts image display using the plt.imshow(image, extent=)
     cmap_ind=colormap for  each of the two group heatmaps (see matplotlib colormaps for options: https://matplotlib.org/stable/users/explain/colors/colormaps.html) (two top figures)
     cmap_diff: colormap of difference heatmap (raw) in two directions (bottom left figure)
@@ -197,7 +197,7 @@ def CompareGroupsHeatmap(self,Stim,betwcond=0,StimPath='',SD=25,CutArea=0,Conds=
             stimn=np.nonzero(stimn>-1)[0]
         print('stimns found:',stimn,Stims)
         stimn=np.intp(stimn)
-        stimShow=Stims[0]
+        stimShow=Stims[0]  # for comparison figures, first figure is used
         StimIdxs=self.GetStimSubjMap(Stims)
 
 
@@ -236,7 +236,7 @@ def CompareGroupsHeatmap(self,Stim,betwcond=0,StimPath='',SD=25,CutArea=0,Conds=
         if type(Conds)==int:    
             Conditions=np.copy(self.Conds)
         else:
-            print('use provided conditions: ' ,Conds)
+            print('use provided conditions: ' ,Conds) 
             Conditions=np.copy(Conds)
         N1=np.sum(WhichCN==Conditions[0])
         print(f'num observers in group 1: {N1}') 
