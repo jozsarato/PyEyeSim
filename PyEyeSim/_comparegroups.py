@@ -99,198 +99,7 @@ def CompareGroupsFix(self,betwcond):
     return 
 
     
-def CompareGroupsHeatmap(self,Stim,betwcond,StimPath='',SD=25,CutArea=0,Conds=0,substring=False,cmap_ind='plasma',cmap_diff='RdYlBu',cmap_abs='Greens',alpha=.5,cutoff='median',downsample=8, Nrand=100):
-    ''' 
-    DESCRIPTION: visualize  heatmap fopr two groups, 
-    subplot 1: group 1
-    subplot 2: group 2
-    subplot 3: difference heatmap (raw value)
-    subplot 4: difference heatmap (absolute value)
-    
 
-    ARGUMENTS:
-    
-    Stim (str): The stimulus for which the heatmap is generated.
-    betwcond (str): The condition for between-group heatmap comparison.
-    
-    
-    OPTIONAL PARAMETERS
-    StimPath (str, optional): Path to the stimulus. Default is an empty string. if stimuli loaded before, this is not necessary
-    SD (int, optional): Optional parameter for heatmap smoothness, in pixels. Default is 25.
-    CutArea (int, optional): Cut fixations. For example if you use '1', it shows 99% percentile of fixations. Default is 0. SEt to 1, if stimulus does not cover the screen size eg: for  portrait orientation
-    Conds (int or list, optional): use automatically detected conditions conditions, as provided in betweencond column
-        othewise Conds=['MyCond1' MyCond2'], if we want to specify the order of access for betweencond column.
-    center: if stimulus area does not start at pixel 0, shifts image display using the plt.imshow(image, extent=)
-    cmap_ind=colormap for  each of the two group heatmaps (see matplotlib colormaps for options: https://matplotlib.org/stable/users/explain/colors/colormaps.html) (two top figures)
-    cmap_diff: colormap of difference heatmap (raw) in two directions (bottom left figure)
-    cmap_abs: colormap of absolute difference heatmap (bottom right figure)
-
-    alpha= transparency- 0-1 higher values less transparent
-    cutoff: shows areas below this threshold as blank
-    substring: match stimuli based on part of string --- if we want to compare two differently named stimuli, with part of the stimulus name matching
-    downsample: downampling size 8 reduced by a factor of 8*8 pixels for example (using skimage)
-    Nrand: number of random permutations to compute, default 100, for actual stats long run time and at least 1000 permutations are recommended, if set to 0 random permutation comparisonno performed
-    # optional paramter to control color of difference heatmap
-    '''
-
-    if substring:
-        
-        if type(Stim)==list:
-            assert len(Stim)==2,' length 2 list expected'
-            Stims=np.array(Stim)
-            stimn=np.zeros(2)
-            for cs,s in enumerate(Stims):
-                stimn[cs]=np.nonzero(self.stimuli==s)[0]
-                assert stimn[cs]>-1, 'stim not found'
-        else:    
-            self.stimuli=self.stimuli.astype('str')
-            stimn=np.char.find(self.stimuli,Stim)
-            
-            Stims=self.stimuli[stimn>-1]
-            stimn=np.nonzero(stimn>-1)[0]
-        print('stimns found:',stimn,Stims)
-
-        stimn=np.intp(stimn)
-        stimShow=Stims[0]
-
-    else:
-        stimShow=copy.copy(Stim)
-
-    WhichC,WhichCN=self.GetGroups(betwcond)
-    
-    StimIdxs=[[],[]]
-    if substring:
-        for cs,s in enumerate(self.subjects):
-            x1,y1=np.intp(self.GetFixationData(s,Stims[0]))
-            x2,y2=np.intp(self.GetFixationData(s,Stims[1]))
-            if len(x1)>0 and len(x2)>0:
-                warnings.warn('non unique stimulus - subject mapping error')
-            if len(x1)>0:
-                StimIdxs[0].append(cs)
-            elif len(x2)>0:
-                StimIdxs[1].append(cs)
-    print(StimIdxs)
-           
-    StimIdxs[0]=np.intp(np.array(StimIdxs[0]))    
-    StimIdxs[1]=np.intp(np.array(StimIdxs[1]))    
-
-    print(StimIdxs)
-
-    if hasattr(self,'subjects')==0:
-        self.GetParams()    
-    #Cols=['darkred','cornflowerblue']
-    fig,ax=plt.subplots(ncols=2,nrows=2,figsize=(10,8)) 
-    
-    if CutArea:
-        FixCounts=self.FixCountCalc(Stim,CutAct=1,substring=substring) 
-    else:
-        
-        FixCounts=self.FixCountCalc(Stim,CutAct=0,substring=substring) 
-    assert np.sum(FixCounts)>0,'!!no fixations found'
-    print('dimensions=',np.shape(FixCounts))
-    hmaps=[]
-    hmapsred=[]## reduced heatmaps, downsampled with scikit image (mean based downsampling)
-
-    red1=measure.block_reduce(FixCounts[0,:,:], (downsample,downsample), np.mean)  # just to get dimensions for the output
-    RedAll=np.zeros((np.shape(FixCounts)[0],np.shape(red1)[0],np.shape(red1)[1]))
-    for s in range(np.shape(FixCounts)[0]):
-        RedAll[s,:,:]=measure.block_reduce(FixCounts[s,:,:], (downsample,downsample), np.mean)
-        
-        
-    if type(Conds)==int:    
-        Conditions=np.copy(self.Conds)
-    else:
-        print('use provided conditions: ' ,Conds)
-        Conditions=np.copy(Conds)
-    N1=np.sum(WhichCN==Conditions[0])
-    N2=np.sum(WhichCN==Conditions[1])
-    print(f'num observers in group 1: {N1}') 
-    print(f'num observers in group 2: {N2}') 
-    print('fix counts',np.shape(FixCounts))
-    
-    stims=copy.copy(Stim)
-
-    if substring:
-        for cs,s in enumerate(stimn):
-            print(StimIdxs[cs])
-                
-           
-           # hmap_red=self.Heatmap(self.stimuli[s],SD=8,Ind=0,Vis=0,FixCounts=RedAll[StimIdxs[cs],:,:])#,CutArea=CutArea)
-           # hmapsred.append(hmap_red)
-            
-            ax[0,cs].set_title(self.stimuli[s])
-           # ax[0,cc].colorbar()
-            hmaps.append(heatmap)
-
-    
-    else:
-        for cc,c in enumerate(Conditions):
-            Idx=np.nonzero(WhichCN==c)[0]   
-            
-            print(cc,c,stims)
-            hmap=self.Heatmap(stims,SD=SD,Ind=0,Vis=1,FixCounts=FixCounts[Idx,:,:],CutArea=CutArea,substring=False,ax=ax[0,cc],cmap=cmap_ind,alpha=alpha,cutoff=cutoff)
-            
-           # hmap_red=self.Heatmap(stims,SD=8,Ind=0,Vis=0,FixCounts=RedAll[Idx,:,:])#,CutArea=CutArea)
-           # hmapsred.append(hmap_red)
-            
-            ax[0,cc].set_title(c)
-           # ax[0,cc].colorbar()
-            hmaps.append(hmap)
-    if hasattr(self,'images'):
-        ax[1,0].imshow( self.images[stimShow])
-
-    
-    Diff=hmaps[0]-hmaps[1]
-    DiffRed=hmapsred[0]-hmapsred[1]
-    im=ax[1,0].imshow(Diff,cmap=cmap_diff, vmin=-np.nanmax(np.abs(Diff)), vmax=np.nanmax(np.abs(Diff)),alpha=alpha)
-   
-    ax[1,0].set_title(str(Conditions[0])+' - '+str(Conditions[1]))
-    cbar=plt.colorbar(im,ax=ax[1,0], shrink=.6)
-    cbar.ax.get_yaxis().set_ticks([])
-    cbar.ax.get_yaxis().labelpad = 15
-    cbar.ax.set_ylabel(str(Conditions[0])+'<---->'+str(Conditions[1]), rotation=270)
-  
-    ### calculate permuted difference heatmaps
-    DiffPerm=np.zeros(Nrand)
-    print(f'{Nrand} permutations starting')
-    if Nrand>0:
-        for n in range(Nrand):
-            Idxs=np.random.permutation(N1+N2)
-            hmap1=self.Heatmap(stims,SD=8,Ind=0,Vis=0,FixCounts=RedAll[Idxs[0:N1],:,:],substring=substring)#,CutArea=CutArea)
-            hmap2=self.Heatmap(stims,SD=8,Ind=0,Vis=0,FixCounts=RedAll[Idxs[N1:],:,:],substring=substring)#,CutArea=CutArea)
-            DiffPerm[n]=np.nansum(np.abs(hmap1-hmap2))
-        
-    
-    if hasattr(self,'images'):
-       
-        ax[1,1].imshow(self.images[stimShow])
-    im=ax[1,1].imshow(np.abs(Diff), vmin=0, vmax=np.nanmax(np.abs(Diff)),alpha=alpha,cmap=cmap_abs)
-   
-    plt.colorbar(im,ax=ax[1,1], shrink=.6)
-    ax[1,1].set_title('Absolute diff: '+str(np.round(np.nansum(np.abs(Diff)),3)))
-    plt.tight_layout()
-    
-    for hora in range(2):
-        for vera in range(2):
-            if hasattr(self,'images'):
-                ax[hora,vera].set_xlim(0,np.shape(self.images[stimShow])[1])
-                ax[hora,vera].set_ylim(np.shape(self.images[stimShow])[0],0)
-            ax[hora,vera].set_xticks([])
-            ax[hora,vera].set_yticks([])
-    
-    truereddiff=np.nansum(np.abs(DiffRed))
-    # visualize permuted difference heatmap distribution
-    
-    if Nrand>0:
-        fig,ax2=plt.subplots()
-        ax2.hist(DiffPerm,color='olive')
-        ax2.axvline(np.nansum(np.abs(DiffRed)),color='k')
-        ax2.text(truereddiff,Nrand/20,'true difference')
-        ax2.set_title(f' {Stim} permuted {Nrand} vs true diff - p={np.sum(DiffPerm>truereddiff)/Nrand}')
-        ax2.set_xlabel('group difference')
-        ax2.set_ylabel('num random permutations')
-
-    return np.nansum(np.abs(Diff)),truereddiff,DiffPerm
 
     
     
@@ -333,7 +142,7 @@ def CompareWithinGroupsFix(self,withinColName):
     return
  
    
-def CompareGroupsHeatmap_N(self,Stim,betwcond=0,StimPath='',SD=25,CutArea=0,Conds=0,twostim=False,cmap_ind='plasma',cmap_diff='RdYlBu',cmap_abs='Greens',alpha=.5,cutoff='median',downsample=8, Nrand=100):
+def CompareGroupsHeatmap(self,Stim,betwcond=0,StimPath='',SD=25,CutArea=0,Conds=0,twostim=False,cmap_ind='plasma',cmap_diff='RdYlBu',cmap_abs='Greens',alpha=.5,cutoff='median',downsample=8, Nrand=100):
     ''' 
     DESCRIPTION: visualize  heatmap fopr two groups, 
     subplot 1: group 1
@@ -370,8 +179,10 @@ def CompareGroupsHeatmap_N(self,Stim,betwcond=0,StimPath='',SD=25,CutArea=0,Cond
     # optional paramter to control color of difference heatmap
     '''
 
-    if twostim:
+    if hasattr(self,'subjects')==0:
+        self.GetParams()   
         
+    if twostim:
         if type(Stim)==list:
             assert len(Stim)==2,' length 2 list expected'
             Stims=np.array(Stim)
@@ -395,7 +206,7 @@ def CompareGroupsHeatmap_N(self,Stim,betwcond=0,StimPath='',SD=25,CutArea=0,Cond
   
     
     if twostim:
-        StimIdxs=[[],[]]
+        StimIdxs=[[],[]]  # check which participant saw which stimulus
 
         for cs,s in enumerate(self.subjects):
             x1,y1=np.intp(self.GetFixationData(s,Stims[0]))
@@ -411,9 +222,7 @@ def CompareGroupsHeatmap_N(self,Stim,betwcond=0,StimPath='',SD=25,CutArea=0,Cond
         StimIdxs[1]=np.intp(np.array(StimIdxs[1]))    
 
 
-
-    if hasattr(self,'subjects')==0:
-        self.GetParams()    
+ 
     
     if twostim==False:
         FixCounts=self.FixCountCalc(Stim,CutAct=CutArea) 
@@ -478,8 +287,6 @@ def CompareGroupsHeatmap_N(self,Stim,betwcond=0,StimPath='',SD=25,CutArea=0,Cond
             hmap_red=SaliencyMapFilt(redcount,SD=8,Ind=0)
             hmapsred.append(hmap_red)
    
-
-    
     else:
         for cc,c in enumerate(Conditions):
             
