@@ -17,6 +17,15 @@ def SaliencyMapFilt(Fixies,SD=25,Ind=0):
         Smap=ndimage.gaussian_filter(Fixies,SD)
     return Smap
 
+def ReduceCounts(fixcounts,downsample):
+    from skimage import measure
+
+    red1=measure.block_reduce(fixcounts[0,:,:], (downsample,downsample), np.mean)  # just to get dimensions for the output
+    reduced=np.zeros((np.shape(fixcounts)[0],np.shape(red1)[0],np.shape(red1)[1]))
+    for s in range(np.shape(fixcounts)[0]):
+        reduced[s,:,:]=measure.block_reduce(fixcounts[s,:,:], (downsample,downsample), np.mean)
+    return reduced
+  
 
 def SaccadesTrial(TrialX,TrialY):
     ''' transform 2 arrays of fixations x-y positions, into approximate saccaddes

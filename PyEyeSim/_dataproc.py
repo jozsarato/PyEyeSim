@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from .statshelper import SaliencyMapFilt,SaccadesTrial
 from .scanpathshelpdebug import CreatAoiRects,SaccadeLine
 import platform
+import warnings
 
 
 def GetParams(self):
@@ -109,28 +110,19 @@ def GetStimuli(self,extension,path=0,infersubpath=False):
  
 
   
-def FixCountCalc(self,Stim,CutAct=False,substring=False):
+def FixCountCalc(self,Stim,CutAct=False):
     ''' Pixelwise fixation count for each participant, but for single stimulus  (Stim) 
     output: subjects*y*x --> num of fixaiton for each pixel
     if CutAct==1 in the end, only the within bounds areas is returned for further calculations
     optional parameter, substring for stimulus names containing the same substring'''
-    if substring==False:
-        assert np.sum(self.data['Stimulus']==Stim)>0, 'stimulus not found'
-        stimn=np.nonzero(self.stimuli==Stim)[0]
-        print('stimns found:',stimn,Stim)
-        if hasattr(self,'images')==False:
-            idims=np.array([self.y_size,self.x_size])
-        else:
-            idims=np.shape(self.images[Stim])
-
-    elif substring==True:  
-        self.stimuli=self.stimuli.astype('str')
-        stimn=np.char.find(self.stimuli,Stim)
-        Stims=self.stimuli[stimn>-1]
-        stimn=np.nonzero(stimn>-1)[0]
-        print('stimns found:',stimn,Stims)
-        
-        idims=np.shape(self.images[Stims[0]])
+ 
+    
+    if hasattr(self,'images')==False:
+         idims=np.array([self.y_size,self.x_size])
+    else:
+         idims=np.shape(self.images[Stim])
+    stimn=np.nonzero(self.stimuli==Stim)[0]
+    idims=np.shape(self.images[Stim])
     yimsize,ximsize=idims[0],idims[1]
     print('resolution x =', ximsize, ' y =',yimsize)
 
@@ -138,28 +130,17 @@ def FixCountCalc(self,Stim,CutAct=False,substring=False):
     
     
     for cs,s in enumerate(self.subjects):
-        if substring:
-            x,y=np.intp(self.GetFixationData(s,Stims[0]))
-            if len(x)==0: # if length of first match is zero
-                x,y=np.intp(self.GetFixationData(s,Stims[1])) # get second match
-                stimIdx=1
-            else:
-                stimIdx=0
+      
+        x,y=np.intp(self.GetFixationData(s,Stim))
+        if len(x)>0:
             Valid=np.nonzero((x<ximsize)&(x>=0)&(y>=0)&(y<yimsize))[0]
-
-        else:
-            x,y=np.intp(self.GetFixationData(s,Stim))
-         #   Valid=np.nonzero((x<self.boundsX[stimn,1])&(x>self.boundsX[stimn,0])&(y>self.boundsY[stimn,0])&(y<self.boundsY[stimn,1]))[0]
-            Valid=np.nonzero((x<ximsize)&(x>=0)&(y>=0)&(y<yimsize))[0]
-        X,Y=x[Valid],y[Valid]
-        for xx,yy in zip(X,Y):
-            FixCountInd[cs,yy,xx]+=1
-        #FixCountInd[cs,Y,X]+=1
-
-   # self.boundsX[stimn,0]:self.boundsX[stimn,1]
+            X,Y=x[Valid],y[Valid]
+            for xx,yy in zip(X,Y):
+                FixCountInd[cs,yy,xx]+=1
+        #if np.sum(FixCountInd[cs,:,:])==0:
+            #print('no fixations for', s ,'with', Stim)
+      
     if CutAct:
-        if len(stimn)>0:
-            stimn=stimn[0] # cut based on the bounds of the first if there are more matching stimuli
         FixCountInd=FixCountInd[:,:,int(np.round(self.boundsX[stimn,0])):int(np.round(self.boundsX[stimn,1]))]  # cut X
         FixCountInd=FixCountInd[:,int(np.round(self.boundsY[stimn,0])):int(np.round(self.boundsY[stimn,1])),:] # cut Y
     return FixCountInd
@@ -222,6 +203,24 @@ def GetCats(self,condColumn):
     WhichCat=np.array(WhichCat)
     assert len(np.unique(WhichCat))==len(np.unique(self.WithinConds)), 'stimulus category mapping problem'
     return WhichCat
+
+def GetStimSubjMap(self,Stims):
+    StimIdxs=[[],[]]  # check which participant saw which stimulus
+    for cs,s in enumerate(self.subjects):
+        x1,y1=np.intp(self.GetFixationData(s,Stims[0]))
+        x2,y2=np.intp(self.GetFixationData(s,Stims[1]))
+        if len(x1)>0 and len(x2)>0:
+            warnings.warn('non unique stimulus - subject mapping error')
+        if len(x1)>0:
+            StimIdxs[0].append(cs)
+        elif len(x2)>0:
+            StimIdxs[1].append(cs)
+           
+    StimIdxs[0]=np.intp(np.array(StimIdxs[0]))    
+    StimIdxs[1]=np.intp(np.array(StimIdxs[1]))    
+    return StimIdxs
+    
+
 
 def GetSaccades(self):
     ''' from fixations, make approximate saccades, and store it as saccade objects'''
@@ -298,21 +297,12 @@ def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax
   #  if hasattr(self,'fixcounts'):
    #     FixCountIndie=self.fixcounts['Stim']
     #else:    
-    if substring==False:
-        stimn=np.nonzero(self.stimuli==Stim)[0]
-        stimShow=Stim
-        if hasattr(self,'images')==False:
-            idims=np.array([self.y_size,self.x_size])
-        else:
-            idims=np.shape(self.images[Stim])
+    stimn=np.nonzero(self.stimuli==Stim)[0]
+    if hasattr(self,'images')==False:
+        idims=np.array([self.y_size,self.x_size])
     else:
-        self.stimuli=self.stimuli.astype('str')
-        stimn=np.char.find(self.stimuli,Stim)
-        Stims=self.stimuli[stimn>-1]
-        stimn=np.nonzero(stimn>-1)[0]
-        stimShow=Stims[0]
-        idims=np.shape(self.images[Stims[0]])
-    
+        idims=np.shape(self.images[Stim])
+        
     yimsize,ximsize=idims[0],idims[1]
 
     if hasattr(self,'boundsX')==False:
@@ -329,12 +319,6 @@ def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax
         print('WARNING NUM FIX FOUND: ',np.sum(FixCounts))
     if Ind==0:
         smap=SaliencyMapFilt(FixCounts,SD=SD,Ind=0)
-        if cutoff=='median':
-            cutThr=np.median(smap)
-        elif cutoff>0:
-            cutThr=np.percentile(smap,cutoff) 
-        else:
-            cutThr=0
         if CutArea:
             smapall=np.zeros((yimsize,ximsize))
             smapall[:]=np.NAN
@@ -348,26 +332,9 @@ def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax
         for cs,s in enumerate(self.subjects):
             smap[cs,:,:]=SaliencyMapFilt(FixCounts[cs,:,:],SD=SD,Ind=1)
         smapall=np.nanmean(smap,0)
-        if cutoff=='median':
-            cutThr=np.median(smapall)
-        elif cutoff>0:
-            cutThr=np.percentile(smapall,cutoff) 
-        else:
-            cutThr=0
-    
+       
     
     if Vis:
-        smapall[smapall<cutThr]=np.NAN  # replacing below threshold with NAN
-       
-        if ax==False:
-            fig,ax=plt.subplots()
-        if hasattr(self,'images')==True:
-            ax.imshow(self.images[stimShow])
-        ax.imshow(smapall,alpha=alpha,cmap=cmap) 
-        ax.set_xticks([])
-        ax.set_yticks([])
-        #ax.set_xlim([xs1,xs2])
-       # ax.set_ylim([ys2,ys1])
-            
+        self.VisHeatmap(Stim,smapall,ax=ax,cutoff=cutoff,cmap=cmap,alpha=alpha)
     return smapall
 
