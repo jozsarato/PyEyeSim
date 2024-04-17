@@ -287,13 +287,13 @@ def CalcImmRets(self,fixx,fixy,threshold,Vis=0,ax=0):
     
     
 
-def BinnedDescriptives(self,length,binsize,timecol,durcol,startime=0):
+def BinnedDescriptives(self,length=5000,binsize=500,timecol='CURRENT_FIX_START',durcol='duration',startime=0):
     ''' time-binned within trial descriptive progression
     INPUTS
-    length: maximum trial length of interest in ms
-    binsize: length of timebin 
+    length: maximum trial length of interest in ms  (default 5000ms)
+    binsize: length of timebin  (default 500 ms)
     timecol: name of column with time length information
-    durcol: name of column with fixation duration information '''
+    durcol: name of column with fixation duration information -- if this is already provided during initalization should not be provided again'''
     Bins=np.arange(startime,length+binsize,binsize)
     print(f'Bins {Bins}')
     self.tbins=Bins

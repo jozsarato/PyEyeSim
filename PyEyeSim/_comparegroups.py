@@ -370,7 +370,9 @@ def FixDurProgGroups(self,colName,nfixmax=10,between=0):
 def BinnedDescriptivesGroups(self,colName,between=0):
     ''' time-binned within trial descriptive progression, groups of stimuli or between groups of participants'''
     if hasattr(self,'binFixL')==False: 
-        print('run BinnedDescriptives first, than call this function for group wise visualization')
+        
+        warnings.warn('run BinnedDescriptives first to specify time columns and bins, than call this function for group wise visualization')
+        self.BinnedDescriptives()
     if between:
          print('running between group comparison')
 
@@ -381,33 +383,57 @@ def BinnedDescriptivesGroups(self,colName,between=0):
          WhichC=self.GetCats(colName)
  #   print(WhichC)
     Colors=['navy','salmon','olive','orange','gray']
+    
+    Measures=[self.binFixL,self.saccadeAmp,self.totLscanpath]
+    MeasureNames=['fixation duration (ms)','saccade ampl (pixel)','scanpath length (pixel)']
     fig,ax=plt.subplots(nrows=3,ncols=1,figsize=(4,10))
+    
+    Dats=[{},{}]
+   
     for cc,c in enumerate(self.WithinConds):
         if between:
             Idx=np.nonzero(WhichC==cc)[0]
             print(Idx)
         else:
             Idx=np.nonzero(WhichC==c)[0]
-            
-        if between:
-            axout=VisBinnedProg(self.tbins,np.nanmean(self.binFixL[Idx,:,:],1),'fixation duration (ms)',col=Colors[cc],label=c,axin=ax[0])
-            axout=VisBinnedProg(self.tbins,np.nanmean(self.saccadeAmp[Idx,:,:],1),'saccade ampl (pixel)',col=Colors[cc],label=c,axin=ax[1])
-            axout=VisBinnedProg(self.tbins,np.nanmean(self.totLscanpath[Idx,:,:],1),'scanpath length (pixel)',col=Colors[cc],label=c,axin=ax[2])
-          
-            ax1,ax2=JointBinnedPlot(self.tbins,np.nanmean(self.binFixL[Idx,:,:],1),np.nanmean(self.saccadeAmp[Idx,:,:],1),ylabel1='fixation duration (ms)',ylabel2='saccade ampl (pixel)')
-        else:
-            axout=VisBinnedProg(self.tbins,np.nanmean(self.binFixL[:,Idx,:],1),'fixation duration (ms)',col=Colors[cc],label=c,axin=ax[0])
-            axout=VisBinnedProg(self.tbins,np.nanmean(self.saccadeAmp[:,Idx,:],1),'saccade ampl (pixel)',col=Colors[cc],label=c,axin=ax[1])
-            axout=VisBinnedProg(self.tbins,np.nanmean(self.totLscanpath[:,Idx,:],1),'scanpath length (pixel)',col=Colors[cc],label=c,axin=ax[2])
-            
-            ax1,ax2=JointBinnedPlot(self.tbins,np.nanmean(self.binFixL[:,Idx,:],1),np.nanmean(self.saccadeAmp[:,Idx,:],1),ylabel1='fixation duration (ms)',ylabel2='saccade ampl (pixel)')
+        for cm,m in enumerate(Measures):
+   
+            if between:
+                dat=np.nanmean(m[Idx,:,:],1)
+                if cm==0:
+                    ax1,ax2=JointBinnedPlot(self.tbins,np.nanmean(self.binFixL[Idx,:,:],1),np.nanmean(self.saccadeAmp[Idx,:,:],1),ylabel1='fixation duration (ms)',ylabel2='saccade ampl (pixel)')
+            else:
+                dat=np.nanmean(m[:,Idx,:],1)
+                if cm==0:
+                    ax1,ax2=JointBinnedPlot(self.tbins,np.nanmean(self.binFixL[:,Idx,:],1),np.nanmean(self.saccadeAmp[:,Idx,:],1),ylabel1='fixation duration (ms)',ylabel2='saccade ampl (pixel)')
+            axout=VisBinnedProg(self.tbins,dat,MeasureNames[cm],col=Colors[cc],label=c,axin=ax[cm])
+            Dats[cc][MeasureNames[cm]]=dat
         ax1.set_title(c)
-        
+    tvals={}
+    pvals={}
+    for cm,m in enumerate(Measures):
+        if between:
+            t,p=stats.ttest_ind(Dats[0][MeasureNames[cm]],Dats[1][MeasureNames[cm]])
+        else:
+            t,p=stats.ttest_rel(Dats[0][MeasureNames[cm]],Dats[1][MeasureNames[cm]])
+        tvals[MeasureNames[cm]]=t
+        pvals[MeasureNames[cm]]=p
+        ypos=np.nanmean(np.concatenate((Dats[0][MeasureNames[cm]],Dats[1][MeasureNames[cm]])))
+        for c,p_i in enumerate(p):
+            xpos=(self.tbins[c]+self.tbins[c+1])/2
+            if p_i<.01:
+                ax[cm].scatter(xpos,ypos,marker='*', s=30,color='k')
+            elif  p_i<.05:
+                ax[cm].scatter(xpos,ypos,marker='*', s=17,color='k')
 
-    ax[0].legend()
-    ax[1].legend()
-    ax[2].legend()
+
+   #     print(cm,MeasureNames[cm],t,p)
+            
+
+    for a in range(3):
+        ax[a].legend()
     plt.tight_layout()      
+    return tvals, pvals
     
     
          
