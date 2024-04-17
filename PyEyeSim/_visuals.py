@@ -217,4 +217,33 @@ def Highlight_Sign(self,Stim,pvals,axis):
     axis.set_xlabel(f'num sign p<.05: {np.sum(pvals<.05)} ,chance expectation: {np.round(np.shape(pvals)[0]*np.shape(pvals)[1]*.05,1)} ')  
     return 
 
+
+def VisHeatmap(self,Stim,smap,ax=0,cutoff=0,alpha=.5,cmap='plasma',cbar=False,cbarlabel=False,title=''):
+    if cutoff=='median':
+        cutThr=np.median(smap)
+    elif cutoff>0:
+        cutThr=np.percentile(smap,cutoff) 
+    else:
+        cutThr=0
+    smap[smap<cutThr]=np.NAN  # replacing below threshold with NAN
+    if ax==False:
+        fig,ax=plt.subplots()
+    if hasattr(self,'images')==True:
+        ax.imshow(self.images[Stim])
+    cols=ax.imshow(smap,alpha=alpha,cmap=cmap) 
+    if cbar:
+        cb=plt.colorbar(cols,ax=ax,shrink=.6)
+        cb.ax.get_yaxis().set_ticks([])
+        cb.ax.get_yaxis().labelpad = 15
+        cb.ax.set_ylabel(cbarlabel, rotation=270)
+
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_xlim(0,np.shape(self.images[Stim])[1])
+    ax.set_ylim(np.shape(self.images[Stim])[0],0)
+    ax.set_title(title)
+   
+    return
+
+
 # %%
