@@ -313,13 +313,16 @@ def CompareGroupsHeatmap(self,Stim,betwcond=0,StimPath='',SD=25,CutArea=0,Conds=
     # visualize permuted difference heatmap distribution
     
     if Nrand>0:
-        fig,ax2=plt.subplots()
-        ax2.hist(DiffPerm,color='olive')
-        ax2.axvline(np.nansum(np.abs(DiffRed)),color='k')
-        ax2.text(truereddiff,Nrand/20,'true difference')
-        ax2.set_title(f' {Stim} permuted {Nrand} vs true diff - p={np.sum(DiffPerm>truereddiff)/Nrand}')
-        ax2.set_xlabel('group difference')
-        ax2.set_ylabel('num random permutations')
+        
+        HistPlot(DiffPerm,xtickL='group difference',ax=0,ylab='num random permutations',verline=truereddiff,title=f' {Stim} permuted {Nrand} vs true diff - p={np.sum(DiffPerm>truereddiff)/Nrand}',mean=False)
+        
+        # fig,ax2=plt.subplots()
+        # ax2.hist(DiffPerm,color='olive')
+        # ax2.axvline(np.nansum(np.abs(DiffRed)),color='k')
+        # ax2.text(truereddiff,Nrand/20,'true difference')
+        # ax2.set_title()
+        # ax2.set_xlabel('group difference')
+        # ax2.set_ylabel('num random permutations')
 
     return np.nansum(np.abs(Diff))#,truereddiff,DiffPerm
 
