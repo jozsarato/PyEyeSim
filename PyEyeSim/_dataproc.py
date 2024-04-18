@@ -122,7 +122,6 @@ def FixCountCalc(self,Stim,CutAct=False):
     else:
          idims=np.shape(self.images[Stim])
     stimn=np.nonzero(self.stimuli==Stim)[0]
-    idims=np.shape(self.images[Stim])
     yimsize,ximsize=idims[0],idims[1]
     print('resolution x =', ximsize, ' y =',yimsize)
 
