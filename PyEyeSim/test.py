@@ -104,7 +104,7 @@ def create_test_df(frameX, frameY, size = 1000,n_subjects = 3, groups = 1):
     print("test frame created")
     return test_img, test_df
 
-class TestFixCountCalc(unittest.TestCase):
+class TestGeneralFunctions(unittest.TestCase):
 
     #heatmap
     def test_heatmap(self):
@@ -136,6 +136,8 @@ class TestFixCountCalc(unittest.TestCase):
         test_res = test_eye_data.FixCountCalc(test_img, CutAct=0)
 
         self.assertEqual(np.sum(test_res), fixation_rows)
+
+class TestCompareFunctions(unittest.TestCase):
 
     def test_heatmap_compare(self):
         fixation_rows = 1000
