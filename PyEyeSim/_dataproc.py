@@ -12,8 +12,12 @@ import warnings
 
 def GetParams(self):
     """ Get stimulus and subject info of dataset """  
-    assert  'subjectID' in self.data.columns , 'subjectID column not found- DataInfo(subjectID=Your Column)'
-    assert  'Stimulus' in self.data.columns, 'Stimulus column not found- DataInfo(Stimulus=Your Column'
+    if 'subjectID' not in self.data.columns:
+        raise ValueError('subjectID column not found. Please set DataInfo(subjectID=Your Column)')
+
+    if 'Stimulus' not in self.data.columns:
+        raise ValueError('Stimulus column not found. Please set DataInfo(Stimulus=Your Column)')
+
 
     self.subjects=np.unique(self.data['subjectID'].to_numpy())
     self.stimuli=np.unique(self.data['Stimulus'].to_numpy())
@@ -47,7 +51,9 @@ def InferSize(self,Interval=99):
 def GetStimuli(self,extension,path=0,infersubpath=False):
     ''' load stimulus files from path'''
     #assert 'Stimulus' in self.data.columns, 'stimulus column not found'
-    assert len(self.stimuli)>0, '!stimuli not loaded!  provide: DataInfo(Stimulus=Your Column)'
+    if len(self.stimuli) <= 0:
+        raise ValueError('No stimuli loaded. Please provide: DataInfo(Stimulus=Your Column)')
+
 
     self.images={}
     if infersubpath==True:
@@ -180,7 +186,9 @@ def GetGroups(self,betwcond):
     for cs,s in enumerate(self.subjects):
         for cc,c in enumerate(self.Conds):
             PPc=np.unique(self.data[betwcond][self.data['subjectID']==s])
-            assert len(PPc)==1,'participant condition mapping not unique'
+            if len(PPc) != 1:
+                raise ValueError('Participant condition mapping not unique')
+
             if PPc==self.Conds[cc]:
                 WhichC[cs]=cc
                 WhichCN.append(c)
@@ -200,7 +208,9 @@ def GetCats(self,condColumn):
         #assert len(AssignCat)==1, ' category mapping not unique for a stimulus'
         WhichCat.append(AssignCat)
     WhichCat=np.array(WhichCat)
-    assert len(np.unique(WhichCat))==len(np.unique(self.WithinConds)), 'stimulus category mapping problem'
+    if len(np.unique(WhichCat)) != len(np.unique(self.WithinConds)):
+        raise ValueError('Stimulus category mapping problem')
+
     return WhichCat
 
 def GetStimSubjMap(self,Stims):
@@ -312,7 +322,9 @@ def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax
             FixCounts=self.FixCountCalc(Stim,CutAct=1,substring=substring) 
         else:
             FixCounts=self.FixCountCalc(Stim,CutAct=0,substring=substring) 
-    assert np.sum(FixCounts)>0,'!!no fixations found'
+    if np.sum(FixCounts) <= 0:
+        raise ValueError('No fixations found')
+
 
     if np.sum(FixCounts)<10:
         print('WARNING NUM FIX FOUND: ',np.sum(FixCounts))
