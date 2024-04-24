@@ -153,19 +153,22 @@ def MyTrainTestVis(self, DatTr,DatTest,lenTrain,lenTest,totest=0):
     self.MySaccadeVis(ax[1],DatTest,lenTest,title='test data '+titStr)
     return 
 
-def VisGrid(self,vals,Stim,ax=0,alpha=.3,cmap='inferno',cbar=0,vmax=0):
+def VisGrid(self,vals,Stim,ax=0,alpha=.3,cmap='inferno',cbar=0,vmax=0,inferS=0):
     '''  
-    visualize grid on image
+    visualize transparent grid of values on stimulus image
 
     Arguments:
     vals: values to lay over image
-    stimn: stimulus number
+    Stim: stimulus name
 
 
     optional:
-
-    center: needed if not full screen images
+    ax: provide axis to plot, if not new figure is opened
+    alpha: transparency
+    inferS: needed if not full screen images, with background--> not calculating value for full image in this case, but using BoundsX&Y
     cb: visualize colorbar --> also returned   
+    vmax: to fix colormap max and minimum values at x/- vmax(for stimulus comparabilty)
+    
     '''
     if type(ax)==int:
         fig,ax=plt.subplots()
@@ -173,17 +176,17 @@ def VisGrid(self,vals,Stim,ax=0,alpha=.3,cmap='inferno',cbar=0,vmax=0):
     yimsize,ximsize=idims[0],idims[1]
     
     ax.imshow(self.images[Stim])
-    if vmax==0:
-        cols=ax.pcolormesh(np.linspace(0,ximsize,np.shape(vals)[1]+1),np.linspace(0,yimsize,np.shape(vals)[0]+1),vals,alpha=alpha,cmap=cmap)
+    if inferS==0:
+        horcells=np.linspace(0,ximsize,np.shape(vals)[1]+1)
+        vercells=np.linspace(0,yimsize,np.shape(vals)[0]+1)
     else:
-        cols=ax.pcolormesh(np.linspace(0,ximsize,np.shape(vals)[1]+1),np.linspace(0,yimsize,np.shape(vals)[0]+1),vals,alpha=alpha,cmap=cmap,vmin=-vmax,vmax=vmax)
-
-#    else:
- #       stimId=self.stimuli==Stim
-  #      if vmax==0:
-   #         cols=ax.pcolormesh(np.linspace(self.boundsX[stimId,0],self.boundsX[stimId,1],np.shape(vals)[1]+1),np.linspace(self.boundsY[stimId,0],self.boundsY[stimId,1],np.shape(vals)[0]+1),vals,alpha=alpha,cmap=cmap)
-    #    else:
-     #       cols=ax.pcolormesh(np.linspace(self.boundsX[stimId,0],self.boundsX[stimId,1],np.shape(vals)[1]+1),np.linspace(self.boundsY[stimId,0],self.boundsY[stimId,1],np.shape(vals)[0]+1),vals,alpha=alpha,cmap=cmap,vmin=-vmax,vmax=vmax)
+        stimId=np.nonzero(self.stimuli==Stim)[0]   
+        horcells=np.linspace(self.boundsX[stimId,0],self.boundsX[stimId,1],np.shape(vals)[1]+1).flatten()
+        vercells=np.linspace(self.boundsY[stimId,0],self.boundsY[stimId,1],np.shape(vals)[0]+1).flatten()
+    if vmax==0:
+        cols=ax.pcolormesh(horcells,vercells,vals,alpha=alpha,cmap=cmap)
+    else:
+        cols=ax.pcolormesh(horcells,vercells,vals,alpha=alpha,cmap=cmap,vmin=-vmax,vmax=vmax)
     ax.set_xticks([])
     ax.set_yticks([])
     if cbar:
@@ -193,7 +196,7 @@ def VisGrid(self,vals,Stim,ax=0,alpha=.3,cmap='inferno',cbar=0,vmax=0):
     return cb
         
 
-def Hihglight_Sign(self,Stim,pvals,axis):
+def Highlight_Sign(self,Stim,pvals,axis):
     idims=np.shape(self.images[Stim])
     yimsize,ximsize=idims[0],idims[1]
     x,y=np.linspace(0,ximsize,np.shape(pvals)[1]+1),np.linspace(0,yimsize,np.shape(pvals)[0]+1)
@@ -213,5 +216,35 @@ def Hihglight_Sign(self,Stim,pvals,axis):
                     axis.plot([x[i], x[i + 1]], [y[j+1], y[j+1]], color='k',linestyle=linestyle)  # Horizontal lines
     axis.set_xlabel(f'num sign p<.05: {np.sum(pvals<.05)} ,chance expectation: {np.round(np.shape(pvals)[0]*np.shape(pvals)[1]*.05,1)} ')  
     return 
+
+
+def VisHeatmap(self,Stim,smap,ax=0,cutoff=0,alpha=.5,cmap='plasma',cbar=False,cbarlabel=False,title=''):
+    if cutoff=='median':
+        cutThr=np.median(smap)
+    elif cutoff>0:
+        cutThr=np.percentile(smap,cutoff) 
+    else:
+        cutThr=0
+    smap[smap<cutThr]=np.NAN  # replacing below threshold with NAN
+    if ax==False:
+        fig,ax=plt.subplots()
+    if hasattr(self,'images')==True:
+        ax.imshow(self.images[Stim])
+    cols=ax.imshow(smap,alpha=alpha,cmap=cmap) 
+    if cbar:
+        cb=plt.colorbar(cols,ax=ax,shrink=.6)
+        if cbarlabel!=' ':
+            cb.ax.get_yaxis().set_ticks([])
+            cb.ax.get_yaxis().labelpad = 15
+            cb.ax.set_ylabel(cbarlabel, rotation=270)
+
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_xlim(0,np.shape(self.images[Stim])[1])
+    ax.set_ylim(np.shape(self.images[Stim])[0],0)
+    ax.set_title(title)
+   
+    return
+
 
 # %%

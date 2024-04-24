@@ -25,25 +25,36 @@ def MeanPlot(N,Y,yLab=0,xtickL=0,color='darkred',label=None,ax=0):
 
 
 
-def HistPlot(Y,xtickL=0,ax=0):
+def HistPlot(Y,xtickL=0,ax=0,ylab='Num of observers',verline=False,mean=True,title=''):
     ''' expected data format: row-  subjects column- stimuli '''
-    assert len(np.shape(Y))==2, '2d data is expected: observer*stimulus'
     if type(ax)==int:
         fig,ax=plt.subplots()
-    ax.hist(np.nanmean(Y,1),color='darkred')
+        
+    if mean:
+        Y=np.nanmean(Y,1)
+        
+    ax.hist(Y,color='darkred')
     ax.set_xlabel(xtickL,fontsize=14)
-    ax.set_ylabel('Num observers',fontsize=13)
+    ax.set_ylabel(ylab,fontsize=13)
+    if verline:
+        ax.axvline(verline,color='k')
+    ax.set_title(title)
     return None
 
 
+
     
-def VisBinnedProg(bins,Y,ylabel,col='navy',label='',axin=0):
+def VisBinnedProg(bins,Y,ylabel,col='navy',label='',axin=0,ylim=False):
     if type(axin)==int:
         fig,axin=plt.subplots()
-    axin.errorbar((bins[0:-1]+bins[1:])/2,np.nanmean(Y,0),stats.sem(Y,0,nan_policy='omit'),color=col,linewidth=2,label=label)
+    axin.errorbar((bins[0:-1]+bins[1:])/2,np.nanmean(Y,0),stats.sem(Y,0,nan_policy='omit'),color=col,linewidth=2,label=label,alpha=.5)
     axin.set_xlabel('time (ms)')
     axin.yaxis.set_major_locator(ticker.MaxNLocator(5))
+    axin.set_xticks(np.round((bins[0:-1]+bins[1:])/2))
     axin.set_ylabel(ylabel)
+    if ylim:
+        axin.set_ylim(ylim)
+
     return axin
 
 
@@ -67,12 +78,14 @@ def JointBinnedPlot(bins,y1,y2,col1='olive',col2='orange',ylabel1='',ylabel2='')
     ax1.yaxis.set_major_locator(ticker.MaxNLocator(5))
     ax1.set_ylabel(ylabel1,color=col1)
     ax1.tick_params(axis='y', labelcolor=col1)
+    ax1.set_xticks(np.round((bins[0:-1]+bins[1:])/2))
 
     ax2 = ax1.twinx() 
     ax2.set_ylabel(ylabel2,color=col2)
     ax2.errorbar((bins[0:-1]+bins[1:])/2,np.nanmean(y2,0),stats.sem(y2,0,nan_policy='omit'),color=col2,linewidth=2)
     ax2.tick_params(axis='y', labelcolor=col2)
     ax2.yaxis.set_major_locator(ticker.MaxNLocator(5))
+
 
     return ax1,ax2
 

@@ -17,6 +17,15 @@ def SaliencyMapFilt(Fixies,SD=25,Ind=0):
         Smap=ndimage.gaussian_filter(Fixies,SD)
     return Smap
 
+def ReduceCounts(fixcounts,downsample):
+    from skimage import measure
+
+    red1=measure.block_reduce(fixcounts[0,:,:], (downsample,downsample), np.mean)  # just to get dimensions for the output
+    reduced=np.zeros((np.shape(fixcounts)[0],np.shape(red1)[0],np.shape(red1)[1]))
+    for s in range(np.shape(fixcounts)[0]):
+        reduced[s,:,:]=measure.block_reduce(fixcounts[s,:,:], (downsample,downsample), np.mean)
+    return reduced
+  
 
 def SaccadesTrial(TrialX,TrialY):
     ''' transform 2 arrays of fixations x-y positions, into approximate saccaddes
@@ -56,14 +65,13 @@ def DiffMat(x):
     return (XX1-XX2)**2
 
 def BonfHolm(ps,alpha=.05):
-    ''' perform bonferroni holm correction on unsroted array of p values
+    ''' perform bonferroni holm correction on unsorted array of p values
     return signifiance 1 or 0 in the original order'''
-    holmcorr=np.sort(ps)
+    ps=ps[np.isfinite(ps)]
     signCorr=np.zeros(len(ps))
-
-    for cn,n in enumerate(holmcorr):
+    for cn,n in enumerate(np.sort(ps)):
         if n<alpha/(len(ps)-cn):
-            signCorr[ps==n]=1
+            signCorr[cn]=1
         else:
             break
-    return signCorr
+    return np.sum(signCorr)
