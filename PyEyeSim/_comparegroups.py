@@ -183,7 +183,9 @@ def CompareGroupsHeatmap(self,Stim,betwcond,SD=25,CutArea=0,Conds=0,cmap_ind='pl
   
 
     FixCounts=self.FixCountCalc(Stim,CutAct=CutArea) 
-    assert np.sum(FixCounts)>0,'!!no fixations found'
+    if np.sum(fixcount) <= 0:
+        raise ValueError('!!no fixations found')
+
     print('dimensions=',np.shape(FixCounts))
     Reduced=ReduceCounts(FixCounts,downsample)
 
@@ -295,12 +297,16 @@ def CompareStimHeatmap(self,Stim,SD=25,CutArea=0,Conds=0,cmap_ind='plasma',cmap_
         self.GetParams()   
     
     if type(Stim)==list:
-        assert len(Stim)==2,' length 2 list expected'
+        if len(Stim) != 2:
+            raise ValueError('Length 2 list expected')
+
         Stims=np.array(Stim)
         stimn=np.zeros(2)
         for cs,s in enumerate(Stims):
             stimn[cs]=np.nonzero(self.stimuli==s)[0]
-            assert stimn[cs]>-1, 'stim not found'
+            if stimn[cs] <= -1:
+                raise ValueError('Stim not found')
+
     else:
         self.stimuli=self.stimuli.astype('str')
         stimn=np.char.find(self.stimuli,Stim)
@@ -318,7 +324,9 @@ def CompareStimHeatmap(self,Stim,SD=25,CutArea=0,Conds=0,cmap_ind='plasma',cmap_
     FixCounts=[]
     for s in Stims:
         fixcount=self.FixCountCalc(s,CutAct=0)
-        assert np.sum(fixcount)>0,'!!no fixations found'
+        if np.sum(fixcount) <= 0:
+            raise ValueError('!!no fixations found')
+
         HasFixIdx=np.sum(np.sum(fixcount,2),1)>0
         fixcount=fixcount[HasFixIdx,:,:]
         FixCounts.append(fixcount)
@@ -622,12 +630,16 @@ def CompareStimGridFix(self,Stim,Conds=0,nhor=5,nver=5,cmap_ind='plasma',cmap_di
     
     
     if type(Stim)==list:
-        assert len(Stim)==2,' length 2 list expected'
+        if len(Stim) != 2:
+            raise ValueError('Length 2 list expected')
+
         Stims=np.array(Stim)
         stimn=np.zeros(2)
         for cs,s in enumerate(Stims):
             stimn[cs]=np.nonzero(self.stimuli==s)[0]
-            assert stimn[cs]>-1, 'stim not found'
+            if stimn[cs] <= -1:
+                raise ValueError('Stim not found')
+
     else:    
         self.stimuli=self.stimuli.astype('str')
         stimn=np.char.find(self.stimuli,Stim)
