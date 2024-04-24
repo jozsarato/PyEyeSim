@@ -2,7 +2,7 @@ from PyEyeSim import EyeData
 import unittest
 import pandas as pd
 import numpy as np
-
+import matplotlib.pyplot as plt
 from scipy.ndimage import generate_binary_structure, binary_erosion, maximum_filter, gaussian_filter
 from scipy.spatial import distance
 
@@ -72,7 +72,7 @@ def extract_focus_peaks(x_coords, y_coords, dimensions, sal=25,):
     return focus_x, focus_y, finalHeatmap, LocalSalMapRaw
 
 
-def create_test_df(frameX, frameY, size = 1000,n_subjects = 3, groups = 1):
+def create_test_df(frameX, frameY, size = 1000,n_subjects = 3, groups = 1, nr_imgs = 1):
     """Creates a test DataFrame with randomly generated fixation data.
 
     Generates a DataFrame with the specified number of rows, containing random 
@@ -87,11 +87,11 @@ def create_test_df(frameX, frameY, size = 1000,n_subjects = 3, groups = 1):
     test_img: Test image filename.
     test_df: DataFrame containing generated fixation data.
     """
-    test_img = 'test_1.jpg'
+    test_imgs = ['test_{}.jpg'.format(i+1) for i in range(nr_imgs)]
     labels = ['tr_{}'.format(i + 1) for i in range(n_subjects)]
     test_df = pd.DataFrame({
         'RECORDING_SESSION_LABEL': np.random.choice(labels, size),
-        'image_1': [test_img] * size,
+        'image_1': np.random.choice(test_imgs, size), 
         'CURRENT_FIX_X': np.random.randint(0, frameX, size),  # generating random integers for X
         'CURRENT_FIX_Y': np.random.randint(0, frameY, size),  # generating random integers for Y
         'CURRENT_FIX_DURATION': np.random.randint(0, 501, size)  # generating random integers for duration
@@ -102,7 +102,7 @@ def create_test_df(frameX, frameY, size = 1000,n_subjects = 3, groups = 1):
         test_df['group'] = test_df['RECORDING_SESSION_LABEL'].map(group_dict)
 
     print("test frame created")
-    return test_img, test_df
+    return test_imgs, test_df
 
 class TestGeneralFunctions(unittest.TestCase):
 
@@ -139,17 +139,35 @@ class TestGeneralFunctions(unittest.TestCase):
 
 class TestCompareFunctions(unittest.TestCase):
 
-    def test_heatmap_compare(self):
+    def test_heatmap_compare_stim(self):
         fixation_rows = 1000
         sizeX,sizeY = 3840,2160
-        test_img, test_df = create_test_df(sizeX, sizeY, size=fixation_rows, n_subjects=40, groups=2)
+        test_img, test_df = create_test_df(sizeX, sizeY, size=fixation_rows, n_subjects=40, groups=2, nr_imgs=2)
 
         test_eye_data = EyeData('test_3', 'between', test_df, sizeX, sizeY)
         test_eye_data.DataInfo(Stimulus='image_1',subjectID='RECORDING_SESSION_LABEL',mean_x='CURRENT_FIX_X',mean_y='CURRENT_FIX_Y',FixDuration='CURRENT_FIX_DURATION')
 
-        test_eye_data.CompareGroupsHeatmap(test_img, 'group',SD=40,cmap='inferno',alpha=.6)
+        #test_eye_data.CompareStimHeatmap(test_img,SD=40,alpha=.6)
+    
+    def test_heatmap_compare_group(self):
+        fixation_rows = 1000
+        sizeX,sizeY = 3840,2160
+        test_img, test_df = create_test_df(sizeX, sizeY, size=fixation_rows, n_subjects=40, groups=2)
 
-        
+        test_eye_data = EyeData('test_4', 'between', test_df, sizeX, sizeY)
+        test_eye_data.DataInfo(Stimulus='image_1',subjectID='RECORDING_SESSION_LABEL',mean_x='CURRENT_FIX_X',mean_y='CURRENT_FIX_Y',FixDuration='CURRENT_FIX_DURATION')
+
+        #test_eye_data.CompareGroupHeatmap(test_img,'group',SD=40,alpha=.6)
+
+    def test_heatmap_compare_group_within(self):
+        fixation_rows = 1000
+        sizeX,sizeY = 3840,2160
+        test_img, test_df = create_test_df(sizeX, sizeY, size=fixation_rows, n_subjects=40, groups=2)
+
+        test_eye_data = EyeData('test_5', 'between', test_df, sizeX, sizeY)
+        test_eye_data.DataInfo(Stimulus='image_1',subjectID='RECORDING_SESSION_LABEL',mean_x='CURRENT_FIX_X',mean_y='CURRENT_FIX_Y',FixDuration='CURRENT_FIX_DURATION')
+
+        test_eye_data.CompareWithinGroupsFix('group')   
 
 if __name__ == '__main__':
     unittest.main()

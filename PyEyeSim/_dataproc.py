@@ -319,9 +319,9 @@ def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax
         self.RunDescriptiveFix()
     if type(FixCounts)==int:
         if CutArea:
-            FixCounts=self.FixCountCalc(Stim,CutAct=1,substring=substring) 
+            FixCounts=self.FixCountCalc(Stim,CutAct=1) 
         else:
-            FixCounts=self.FixCountCalc(Stim,CutAct=0,substring=substring) 
+            FixCounts=self.FixCountCalc(Stim,CutAct=0) 
     if np.sum(FixCounts) <= 0:
         raise ValueError('No fixations found')
 
