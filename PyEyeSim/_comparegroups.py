@@ -183,7 +183,7 @@ def CompareGroupsHeatmap(self,Stim,betwcond,SD=25,CutArea=0,Conds=0,cmap_ind='pl
   
 
     FixCounts=self.FixCountCalc(Stim,CutAct=CutArea) 
-    if np.sum(fixcount) <= 0:
+    if np.sum(FixCounts) <= 0:
         raise ValueError('!!no fixations found')
 
     print('dimensions=',np.shape(FixCounts))
