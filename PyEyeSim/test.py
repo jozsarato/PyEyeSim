@@ -147,7 +147,7 @@ class TestCompareFunctions(unittest.TestCase):
         test_eye_data = EyeData('test_3', 'between', test_df, sizeX, sizeY)
         test_eye_data.DataInfo(Stimulus='image_1',subjectID='RECORDING_SESSION_LABEL',mean_x='CURRENT_FIX_X',mean_y='CURRENT_FIX_Y',FixDuration='CURRENT_FIX_DURATION')
 
-        #test_eye_data.CompareStimHeatmap(test_img,SD=40,alpha=.6)
+        test_eye_data.CompareStimHeatmap(test_img,SD=40,alpha=.6)
     
     def test_heatmap_compare_group(self):
         fixation_rows = 1000
@@ -157,7 +157,7 @@ class TestCompareFunctions(unittest.TestCase):
         test_eye_data = EyeData('test_4', 'between', test_df, sizeX, sizeY)
         test_eye_data.DataInfo(Stimulus='image_1',subjectID='RECORDING_SESSION_LABEL',mean_x='CURRENT_FIX_X',mean_y='CURRENT_FIX_Y',FixDuration='CURRENT_FIX_DURATION')
 
-        #test_eye_data.CompareGroupHeatmap(test_img,'group',SD=40,alpha=.6)
+        test_eye_data.CompareGroupsHeatmap(test_img,'group',SD=40,alpha=.6)
 
     def test_heatmap_compare_group_within(self):
         fixation_rows = 1000
