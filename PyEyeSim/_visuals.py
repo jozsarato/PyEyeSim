@@ -230,6 +230,9 @@ def VisHeatmap(self,Stim,smap,ax=0,cutoff=0,alpha=.5,cmap='plasma',cbar=False,cb
         fig,ax=plt.subplots()
     if hasattr(self,'images')==True:
         ax.imshow(self.images[Stim])
+        ax.set_xlim(0,np.shape(self.images[Stim])[1])
+        ax.set_ylim(np.shape(self.images[Stim])[0],0)
+    
     cols=ax.imshow(smap,alpha=alpha,cmap=cmap) 
     if cbar:
         cb=plt.colorbar(cols,ax=ax,shrink=.6)
@@ -240,8 +243,7 @@ def VisHeatmap(self,Stim,smap,ax=0,cutoff=0,alpha=.5,cmap='plasma',cbar=False,cb
 
     ax.set_xticks([])
     ax.set_yticks([])
-    ax.set_xlim(0,np.shape(self.images[Stim])[1])
-    ax.set_ylim(np.shape(self.images[Stim])[0],0)
+    
     ax.set_title(title)
    
     return
