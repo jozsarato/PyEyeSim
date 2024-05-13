@@ -92,9 +92,9 @@ class EyeData:
         if StimPath == None:
             warnings.warn('Stim path not provided')
             return
-        
-        self.GetStimuli(StimExt,StimPath,infersubpath=infersubpath)
-        print('stimuli loaded succesfully, access as self.images')
+        else:
+            self.GetStimuli(StimExt,StimPath,infersubpath=infersubpath)
+            print('stimuli loaded succesfully, access as self.images')
 
     
     def setSubjStim(self):
