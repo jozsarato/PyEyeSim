@@ -100,13 +100,15 @@ def VisScanPath(self, stimn, ax=None, alpha=0.5, allS=True, scan_path_col='salmo
     if ax is None:
         fig, ax = plt.subplots()
     if center:
-        xs1=(self.x_size-np.shape(self.images[self.stimuli[stimn]])[1])/2
-        xs2=self.x_size-xs1
-        ys1=(self.y_size-np.shape(self.images[self.stimuli[stimn]])[0])/2
-        ys2=self.y_size-ys1
-        ax.imshow(self.images[self.stimuli[stimn]],extent=[xs1,xs2,ys2,ys1])
+        if hasattr(self,'images')==True:
+            xs1=(self.x_size-np.shape(self.images[self.stimuli[stimn]])[1])/2
+            xs2=self.x_size-xs1
+            ys1=(self.y_size-np.shape(self.images[self.stimuli[stimn]])[0])/2
+            ys2=self.y_size-ys1
+            ax.imshow(self.images[self.stimuli[stimn]],extent=[xs1,xs2,ys2,ys1])
     else:
-        ax.imshow(self.images[self.stimuli[stimn]])
+        if hasattr(self,'images')==True:
+            ax.imshow(self.images[self.stimuli[stimn]])
 
     if type(allS) == bool:
         for cs in range(self.ns):
@@ -172,10 +174,15 @@ def VisGrid(self,vals,Stim,ax=0,alpha=.3,cmap='inferno',cbar=0,vmax=0,inferS=0):
     '''
     if type(ax)==int:
         fig,ax=plt.subplots()
-    idims=np.shape(self.images[Stim])
-    yimsize,ximsize=idims[0],idims[1]
+    if hasattr(self,'images'):
+        idims=np.shape(self.images[Stim])
+        yimsize,ximsize=idims[0],idims[1]
     
-    ax.imshow(self.images[Stim])
+        ax.imshow(self.images[Stim])
+    else:
+        yimsize,ximsize=self.y_size, self.x_size
+
+        
     if inferS==0:
         horcells=np.linspace(0,ximsize,np.shape(vals)[1]+1)
         vercells=np.linspace(0,yimsize,np.shape(vals)[0]+1)
@@ -197,8 +204,12 @@ def VisGrid(self,vals,Stim,ax=0,alpha=.3,cmap='inferno',cbar=0,vmax=0,inferS=0):
         
 
 def Highlight_Sign(self,Stim,pvals,axis):
-    idims=np.shape(self.images[Stim])
-    yimsize,ximsize=idims[0],idims[1]
+    if hasattr(self,'images'):
+
+        idims=np.shape(self.images[Stim])
+        yimsize,ximsize=idims[0],idims[1]
+    else:
+        yimsize,ximsize=self.y_size, self.x_size
     x,y=np.linspace(0,ximsize,np.shape(pvals)[1]+1),np.linspace(0,yimsize,np.shape(pvals)[0]+1)
     for i in range(len(x) - 1):
         for j in range(len(y) - 1):
