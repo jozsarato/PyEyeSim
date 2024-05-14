@@ -100,14 +100,14 @@ def VisScanPath(self, stimn, ax=None, alpha=0.5, allS=True, scan_path_col='salmo
     if ax is None:
         fig, ax = plt.subplots()
     if center:
-        if hasattr(self,'images')==True:
+        if hasattr(self,'images'):
             xs1=(self.x_size-np.shape(self.images[self.stimuli[stimn]])[1])/2
             xs2=self.x_size-xs1
             ys1=(self.y_size-np.shape(self.images[self.stimuli[stimn]])[0])/2
             ys2=self.y_size-ys1
             ax.imshow(self.images[self.stimuli[stimn]],extent=[xs1,xs2,ys2,ys1])
     else:
-        if hasattr(self,'images')==True:
+        if hasattr(self,'images'):
             ax.imshow(self.images[self.stimuli[stimn]])
 
     if type(allS) == bool:
