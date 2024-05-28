@@ -155,7 +155,7 @@ def extract_heatmap_arrays(data,stims, dims, resize_to=(10,10)):
     penalty_dict = {}
     for stim in stims:
         salmap_dict[stim] = {}
-
+        penalty_dict[stim] = {}
         for s in data.data[data.data['Stimulus']==stim]['subjectID'].unique():
             sub_df = data.data[(data.data['Stimulus']==stim) & (data.data['subjectID']==s)]
             heatmap, penalty = extract_focus_peaks(sub_df.mean_x,sub_df.mean_y, dims, 25)
