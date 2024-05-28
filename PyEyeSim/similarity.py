@@ -63,11 +63,17 @@ def prune_sort_corr_angles(arr_1, arr_2, kind='euclidean'):
 def extract_angle_arrays(data, stims):
     angle_corrs = {}
 
+    len_bef = len(data.data[['subjectID', 'Stimulus']].drop_duplicates())
+
+    filtered_data = data.data[(data.data['mean_x'] <= 500) & (data.data['mean_x'] >= 0) & (data.data['mean_y'] <= 500) & (data.data['mean_y'] >= 0)]
+    if len_bef != len(filtered_data[['subjectID', 'Stimulus']].drop_duplicates()):
+        print(f"subjects were pruned by {len_bef - len(filtered_data[['subjectID', 'Stimulus']].drop_duplicates())} subjects")
+
     for stim in stims:
         angle_corrs[stim] = {}
 
-        for s in data.data[data.data['Stimulus']==stim]['subjectID'].unique():
-            sub_df = data.data[(data.data['Stimulus']==stim) & (data.data['subjectID']==s)]
+        for s in filtered_data[filtered_data['Stimulus']==stim]['subjectID'].unique():
+            sub_df = filtered_data[(filtered_data['Stimulus']==stim) & (filtered_data['subjectID']==s)]
             prev_x = sub_df['mean_x'].iloc[0]
             prev_y = sub_df['mean_y'].iloc[0]
 
