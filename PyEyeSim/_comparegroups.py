@@ -192,7 +192,7 @@ def CompareGroupsHeatmap(self,Stim,betwcond,SD=25,CutArea=0,Conds=0,cmap_ind='pl
     print('reduced dims',np.shape(Reduced))
 
 
-    WhichC,WhichCN=self.GetGroups(betwcond)
+    WhichC,WhichCN=self.GetGroups(betwcond,stim=Stim)
     if type(Conds)==int:    
         Conditions=np.copy(self.Conds)
     else:
@@ -549,7 +549,7 @@ def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,cmap_ind='plas
    
     stimn=np.nonzero(self.stimuli==Stim)[0]
 
-    WhichC,WhichCN=self.GetGroups(betwcond)
+    WhichC,WhichCN=self.GetGroups(betwcond,stim=Stim)
 
     if type(Conds)==int:    
         Conditions=np.copy(self.Conds)
