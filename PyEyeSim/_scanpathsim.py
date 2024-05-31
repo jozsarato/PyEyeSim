@@ -33,8 +33,10 @@ def AOIFix(self,p,FixTrialX,FixTrialY,nDivH,nDivV,InferS=1):
         AOIboundsH=AOIbounds(self.boundsX[p,0], self.boundsX[p,1],nDivH)       
         AOIboundsV=AOIbounds(self.boundsY[p,0], self.boundsY[p,1],nDivV)   
     elif InferS==2:
-        ims=np.shape(self.images[self.stimuli[p]])
-        
+        if hasattr(self,'images'):
+            ims=np.shape(self.images[self.stimuli[p]])
+        else:
+            ims=np.array([self.y_size,self.x_size])
         AOIboundsH=AOIbounds(0, ims[1],nDivH)       
         AOIboundsV=AOIbounds(0,ims[0],nDivV)  
 
