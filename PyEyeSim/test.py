@@ -169,5 +169,16 @@ class TestCompareFunctions(unittest.TestCase):
 
         test_eye_data.CompareWithinGroupsFix('group')   
 
+    def test_group_grid(self):
+        fixation_rows = 1000
+        sizeX,sizeY = 3840,2160
+        test_img, test_df = create_test_df(sizeX, sizeY, size=fixation_rows, n_subjects=40, groups=2)
+
+        test_eye_data = EyeData('test_5', 'between', test_df, sizeX, sizeY)
+        test_eye_data.DataInfo(Stimulus='image_1',subjectID='RECORDING_SESSION_LABEL',mean_x='CURRENT_FIX_X',mean_y='CURRENT_FIX_Y',FixDuration='CURRENT_FIX_DURATION')
+
+        test_eye_data.CompareGroupsGridFix(test_img, 'group')   
+
+
 if __name__ == '__main__':
     unittest.main()
