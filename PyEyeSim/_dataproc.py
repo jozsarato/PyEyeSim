@@ -176,7 +176,8 @@ def GetDurations(self,s,p):
 
 def GetGroups(self,betwcond,stim=False):
     ''' Between group comparison- 2 groups expected
-    get conditions from between group column, check if mapping of participants to conditions is unique'''
+    get conditions from between group column, check if mapping of participants to conditions is unique
+    if participant is not in either of the groups NAN in the output'''
     self.Conds=np.unique(self.data[betwcond])
     print('Conditions',self.Conds)
    
