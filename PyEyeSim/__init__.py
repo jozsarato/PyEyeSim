@@ -13,7 +13,7 @@ import pandas as pd
 from .visualhelper import MeanPlot,HistPlot
 
 from .statshelper import ScanpathL
-from .similarity import extract_heatmap_arrays, extract_angle_arrays, RSA_from_angles, RSA_from_heatmaps, RSA_from_mem
+from .similarity import extract_heatmap_arrays, extract_angle_arrays, RSA_from_angles, RSA_from_heatmaps, RSA_from_mem, extract_euc_dist_arrays, RSA_from_euc_dists
 import warnings
 
 class EyeData:

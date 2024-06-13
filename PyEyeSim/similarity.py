@@ -4,7 +4,7 @@ import numpy as np
 from scipy.ndimage import gaussian_filter
 from scipy.spatial import distance
 from skimage.transform import resize
-
+import warnings
 def angle_from_horizontal(row, prev_x, prev_y):
     """
     calculate the angle from the horizontal for a all given saccades
@@ -106,6 +106,8 @@ def RSA_from_mem(data, stims):
     return rdm_mem_per_img
 
 def RSA_from_angles(angles_per_img, kind='euclidean'):
+    if not isinstance(angles_per_img, dict):
+        raise ValueError('angles_per_img must be a dictionary')
     rdm_angles_per_img = {}
     for stim in angles_per_img:
         RDMs = np.zeros((len(angles_per_img[stim]), len(angles_per_img[stim])))
@@ -120,7 +122,9 @@ def RSA_from_angles(angles_per_img, kind='euclidean'):
         rdm_angles_per_img[key] = np.tril(matrix, -1)
     return rdm_angles_per_img
 
-def RSA_from_heatmaps(heatmaps_per_img):
+def RSA_from_heatmaps(heatmaps_per_img, penalty=None):
+    if not isinstance(heatmaps_per_img, dict):
+        raise ValueError('heatmaps_per_img must be a dictionary')
     for stim in heatmaps_per_img:
         for subj in heatmaps_per_img[stim]:
             heatmaps_per_img[stim][subj] = heatmaps_per_img[stim][subj].flatten()
@@ -129,7 +133,10 @@ def RSA_from_heatmaps(heatmaps_per_img):
         RDMs = np.zeros((len(heatmaps_per_img[stim]), len(heatmaps_per_img[stim])))
         for idx1, subj1 in enumerate(heatmaps_per_img[stim]):
             for idx2, subj2 in enumerate(heatmaps_per_img[stim]):
-                RDMs[idx1, idx2] = np.corrcoef(heatmaps_per_img[stim][subj1], heatmaps_per_img[stim][subj2])[0,1]
+                rdm_corr_coef = np.corrcoef(heatmaps_per_img[stim][subj1], heatmaps_per_img[stim][subj2])[0,1]
+                if penalty is not None: 
+                    rdm_corr_coef -= np.abs(rdm_corr_coef)*0.3 if penalty[stim][subj1] != 0 or penalty[stim][subj2] != 0 else 0
+                RDMs[idx1, idx2] = rdm_corr_coef
         rdm_per_img[stim] = RDMs
 
     for key, matrix in rdm_per_img.items():
@@ -169,3 +176,28 @@ def extract_heatmap_arrays(data,stims, dims, resize_to=(10,10)):
             salmap_dict[stim][s] = heatmap
             penalty_dict[stim][s] = penalty
     return salmap_dict, penalty_dict
+
+def extract_euc_dist_arrays(data, stims):
+    euc_dist_dict = {}
+    for stim in stims:
+        euc_dist_dict[stim] = {}
+        for s in data.data[data.data['Stimulus']==stim]['subjectID'].unique():
+            sub_df = data.data[(data.data['Stimulus']==stim) & (data.data['subjectID']==s)]
+            euc_dist_dict[stim][s] = sub_df[['mean_x', 'mean_y']].to_numpy()
+    return euc_dist_dict
+
+def RSA_from_euc_dists(euc_dist_dict):
+    if not isinstance(euc_dist_dict, dict):
+        raise ValueError('angle_dist_dict must be a dictionary')
+    rdm_angle_dist_dict = {}
+    for stim in euc_dist_dict:
+        RDMs = np.zeros((len(euc_dist_dict[stim]), len(euc_dist_dict[stim])))
+        for idx1, subj1 in enumerate(euc_dist_dict[stim]):
+            for idx2, subj2 in enumerate(euc_dist_dict[stim]):
+                rdm_euc_dist = np.mean(cdist(euc_dist_dict[stim][subj1], euc_dist_dict[stim][subj2], metric='euclidean'))
+                RDMs[idx1, idx2] = rdm_euc_dist
+        rdm_angle_dist_dict[stim] = RDMs
+
+    for key, matrix in rdm_angle_dist_dict.items():
+        rdm_angle_dist_dict[key] = np.tril(matrix, -1)
+    return rdm_angle_dist_dict    
