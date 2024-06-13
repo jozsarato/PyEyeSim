@@ -174,7 +174,7 @@ def GetDurations(self,s,p):
     durations=np.array(self.data['duration'].iloc[TrialSubIdx]) # get y data for trial
     return durations
 
-def GetGroups(self,betwcond):
+def GetGroups(self,betwcond,stim=False):
     ''' Between group comparison- 2 groups expected
     get conditions from between group column, check if mapping of participants to conditions is unique'''
     self.Conds=np.unique(self.data[betwcond])
@@ -185,7 +185,11 @@ def GetGroups(self,betwcond):
     WhichCN=[]
     for cs,s in enumerate(self.subjects):
         for cc,c in enumerate(self.Conds):
-            PPc=np.unique(self.data[betwcond][self.data['subjectID']==s])
+            if stim==False:
+                PPc=np.unique(self.data[betwcond][self.data['subjectID']==s])
+            else:
+                dat=self.data[self.data['Stimulus']==stim]
+                PPc=np.unique(dat[betwcond][dat['subjectID']==s])
             if len(PPc) != 1:
                 raise ValueError('Participant condition mapping not unique')
 
