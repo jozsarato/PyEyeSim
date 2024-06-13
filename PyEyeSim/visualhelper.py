@@ -17,7 +17,8 @@ def MeanPlot(N,Y,yLab=0,xtickL=0,color='darkred',label=None,ax=0):
         fig,ax=plt.subplots(figsize=(N/2,5))
     ax.errorbar(np.arange(N),np.nanmean(Y,0),stats.sem(Y,0,nan_policy="omit")*2,linestyle='None',marker='o',color=color,label=label)
     if type(xtickL)!=int:
-        ax.set_xticks(np.arange(N),labels=xtickL,fontsize=9,rotation=60)
+        ax.set_xticks(np.arange(N))
+        ax.set_xticklabels(labels=xtickL,fontsize=9,rotation=60)
     ax.set_xlabel('Stimulus',fontsize=14)
     ax.set_ylabel(yLab,fontsize=14)
     return None
