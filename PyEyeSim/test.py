@@ -136,14 +136,13 @@ class TestGeneralFunctions(unittest.TestCase):
         test_res = test_eye_data.FixCountCalc(test_img, CutAct=0)
 
         self.assertEqual(np.sum(test_res), fixation_rows)
-
 class TestCompareFunctions(unittest.TestCase):
 
     def test_heatmap_compare_stim(self):
         fixation_rows = 1000
         sizeX,sizeY = 3840,2160
         test_img, test_df = create_test_df(sizeX, sizeY, size=fixation_rows, n_subjects=40, groups=2, nr_imgs=2)
-
+ 
         test_eye_data = EyeData('test_3', 'between', test_df, sizeX, sizeY)
         test_eye_data.DataInfo(Stimulus='image_1',subjectID='RECORDING_SESSION_LABEL',mean_x='CURRENT_FIX_X',mean_y='CURRENT_FIX_Y',FixDuration='CURRENT_FIX_DURATION')
 
@@ -157,7 +156,7 @@ class TestCompareFunctions(unittest.TestCase):
         test_eye_data = EyeData('test_4', 'between', test_df, sizeX, sizeY)
         test_eye_data.DataInfo(Stimulus='image_1',subjectID='RECORDING_SESSION_LABEL',mean_x='CURRENT_FIX_X',mean_y='CURRENT_FIX_Y',FixDuration='CURRENT_FIX_DURATION')
 
-        test_eye_data.CompareGroupsHeatmap(test_img,'group',SD=40,alpha=.6)
+        test_eye_data.CompareGroupsHeatmap(test_img[0],'group',SD=40,alpha=.6)
 
     def test_heatmap_compare_group_within(self):
         fixation_rows = 1000
@@ -177,7 +176,7 @@ class TestCompareFunctions(unittest.TestCase):
         test_eye_data = EyeData('test_5', 'between', test_df, sizeX, sizeY)
         test_eye_data.DataInfo(Stimulus='image_1',subjectID='RECORDING_SESSION_LABEL',mean_x='CURRENT_FIX_X',mean_y='CURRENT_FIX_Y',FixDuration='CURRENT_FIX_DURATION')
 
-        test_eye_data.CompareGroupsGridFix(test_img, 'group')   
+        test_eye_data.CompareGroupsGridFix(test_img[0], 'group')   
 
     def test_group_fix(self):
         fixation_rows = 1000
