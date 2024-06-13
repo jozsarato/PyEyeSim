@@ -182,7 +182,10 @@ def GetGroups(self,betwcond,stim=False):
    
   #  assert len(self.Conds)==2, 'you need 2 groups'
     WhichC=np.zeros(self.ns)
-    WhichCN=[]
+    WhichC[:]=np.NAN
+    WhichCN=np.zeros(self.ns)
+    WhichCN[:]=np.NAN
+
     for cs,s in enumerate(self.subjects):
         for cc,c in enumerate(self.Conds):
             if stim==False:
@@ -190,12 +193,12 @@ def GetGroups(self,betwcond,stim=False):
             else:
                 dat=self.data[self.data['Stimulus']==stim]
                 PPc=np.unique(dat[betwcond][dat['subjectID']==s])
-            if len(PPc) != 1:
+            if len(PPc) > 1:
                 raise ValueError('Participant condition mapping not unique')
-
+                
             if PPc==self.Conds[cc]:
                 WhichC[cs]=cc
-                WhichCN.append(c)
+                WhichCN[cs]=c
     self.whichC=WhichC
     return WhichC,np.array(WhichCN)
 
