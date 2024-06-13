@@ -192,7 +192,7 @@ def CompareGroupsHeatmap(self,Stim,betwcond,SD=25,CutArea=0,Conds=0,cmap_ind='pl
     print('reduced dims',np.shape(Reduced))
 
 
-    WhichC,WhichCN=self.GetGroups(betwcond)
+    WhichC,WhichCN=self.GetGroups(betwcond,stim=Stim)
     if type(Conds)==int:    
         Conditions=np.copy(self.Conds)
     else:
@@ -529,7 +529,7 @@ def CompareGroupsMat(self,group,indsimmat):
         
 
 
-def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,cmap_ind='plasma',cmap_diff='RdYlBu',alpha=.5,t_abs=False,timemin=0, timemax=np.inf, timecol=0,useT=True,cutoff=-1): 
+def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,cmap_ind='plasma',cmap_diff='RdYlBu',alpha=.5,t_abs=False,timemin=0, timemax=np.inf, timecol=0,useT=True,cutoff=-1,InferS=2): 
     ''' 
 
     Stim: stimulus name
@@ -549,7 +549,7 @@ def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,cmap_ind='plas
    
     stimn=np.nonzero(self.stimuli==Stim)[0]
 
-    WhichC,WhichCN=self.GetGroups(betwcond)
+    WhichC,WhichCN=self.GetGroups(betwcond,stim=Stim)
 
     if type(Conds)==int:    
         Conditions=np.copy(self.Conds)
@@ -558,7 +558,7 @@ def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,cmap_ind='plas
         Conditions=np.copy(Conds)
       
    
-    statPMat,statEntropyMat=self.CalcStatPs(nhor,nver,MinFix=5,InferS=2,timemin=timemin, timemax=timemax, timecol=timecol)
+    statPMat,statEntropyMat=self.CalcStatPs(nhor,nver,MinFix=5,InferS=InferS,timemin=timemin, timemax=timemax, timecol=timecol)
 
    # if substring and len(stimn)==2:
 
