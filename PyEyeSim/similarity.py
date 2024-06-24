@@ -5,6 +5,8 @@ from scipy.ndimage import gaussian_filter
 from scipy.spatial import distance
 from skimage.transform import resize
 import warnings
+from scipy.stats import entropy
+
 def angle_from_horizontal(row, prev_x, prev_y):
     """
     calculate the angle from the horizontal for a all given saccades
@@ -186,7 +188,7 @@ def extract_euc_dist_arrays(data, stims):
             euc_dist_dict[stim][s] = sub_df[['mean_x', 'mean_y']].to_numpy()
     return euc_dist_dict
 
-def RSA_from_euc_dists(euc_dist_dict):
+def RSA_from_euc_dists(euc_dist_dict, kind='all'):
     if not isinstance(euc_dist_dict, dict):
         raise ValueError('angle_dist_dict must be a dictionary')
     rdm_angle_dist_dict = {}
@@ -194,10 +196,41 @@ def RSA_from_euc_dists(euc_dist_dict):
         RDMs = np.zeros((len(euc_dist_dict[stim]), len(euc_dist_dict[stim])))
         for idx1, subj1 in enumerate(euc_dist_dict[stim]):
             for idx2, subj2 in enumerate(euc_dist_dict[stim]):
-                rdm_euc_dist = np.mean(cdist(euc_dist_dict[stim][subj1], euc_dist_dict[stim][subj2], metric='euclidean'))
+                distance_set = cdist(euc_dist_dict[stim][subj1], euc_dist_dict[stim][subj2], metric='euclidean')
+                if kind == 'all':
+                    rdm_euc_dist = np.mean(distance_set)
+                elif kind == 'single':
+                    closest_t = distance_set[np.arange(distance_set.shape[0]), np.argmin(distance_set, axis=1)]
+                    rdm_euc_dist = np.mean(closest_t)
+                else:
+                    raise ValueError('kind must be one of ["all", "single"]')
                 RDMs[idx1, idx2] = rdm_euc_dist
         rdm_angle_dist_dict[stim] = RDMs
 
     for key, matrix in rdm_angle_dist_dict.items():
         rdm_angle_dist_dict[key] = np.tril(matrix, -1)
     return rdm_angle_dist_dict    
+
+def entropy_fix(data, num_bins = 10):#
+
+    # Compute bins along each axis
+    x_bins = np.linspace(data[:,0].min(), data[:,0].max(), num_bins + 1)
+    y_bins = np.linspace(data[:,1].min(), data[:,1].max(), num_bins + 1)
+
+    # Digitize (or bin) the coordinate data
+    x_digitized = np.digitize(data[:,0], bins=x_bins)
+    y_digitized = np.digitize(data[:,1], bins=y_bins)
+
+    # Combine digitized x and y to create unique bin pairs for each fixation
+    bin_pairs = np.array(list(zip(x_digitized, y_digitized)))
+        # Convert bin pairs to tuple for counting unique pairs
+    bin_pairs_tuples = [tuple(pair) for pair in bin_pairs]
+
+    # Count each unique bin pair
+    unique, counts = np.unique(bin_pairs_tuples, return_counts=True)
+
+    # Calculate probabilities
+    probabilities = counts / counts.sum()
+    entropy_in_bits = entropy(probabilities, base=2)
+
+    return entropy_in_bits
