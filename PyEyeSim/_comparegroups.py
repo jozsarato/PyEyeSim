@@ -348,7 +348,7 @@ def CompareStimHeatmap(self,Stim,SD=25,CutArea=0,Conds=0,cmap_ind='plasma',cmap_
     hmaps=[]
     hmapsred=[]## reduced heatmaps, downsampled with scikit image (mean based downsampling)
     
-    for cs,s in enumerate(stimn):
+    for cs,s in enumerate(stimn):  # loop throught stimuli
             
         
         heatmap=SaliencyMapFilt(FixCounts[cs],SD=SD,Ind=0)
@@ -366,13 +366,13 @@ def CompareStimHeatmap(self,Stim,SD=25,CutArea=0,Conds=0,cmap_ind='plasma',cmap_
 
     colorbarlabel=str(Stims[0])+'<---->'+str(Stims[1])
 
-    self.VisHeatmap(stimShow,Diff,ax=ax[1,0],cutoff=cutoff,alpha=alpha,cmap=cmap_diff,cbar=True,cbarlabel=colorbarlabel,title='difference')
+    self.VisHeatmap(stimShow,Diff,ax=ax[1,0],cutoff=cutoff,alpha=alpha,cmap=cmap_diff,cbar=True,cbarlabel=colorbarlabel,title='difference')   # bottom left- raw difference heatmap with direction
     
-    self.VisHeatmap(stimShow,np.abs(Diff),ax=ax[1,1],cutoff=cutoff,alpha=alpha,cmap=cmap_abs,cbar=True,cbarlabel=' ',title='absolute difference')
+    self.VisHeatmap(stimShow,np.abs(Diff),ax=ax[1,1],cutoff=cutoff,alpha=alpha,cmap=cmap_abs,cbar=True,cbarlabel=' ',title='absolute difference')  # bottom right figure - absolute difference heatmap
     
     
     
-    DiffRed=hmapsred[0]-hmapsred[1]
+    DiffRed=hmapsred[0]-hmapsred[1]  # calculate heatmap difference for downsampled heatmaps - as basis for permutation
    
     ### calculate permuted difference heatmaps
     DiffPerm=np.zeros(Nrand)
@@ -387,10 +387,10 @@ def CompareStimHeatmap(self,Stim,SD=25,CutArea=0,Conds=0,cmap_ind='plasma',cmap_
    
 
 
-    truereddiff=np.nansum(np.abs(DiffRed))
+    truereddiff=np.nansum(np.abs(DiffRed)) # total true diff on downsampled
     # visualize permuted difference heatmap distribution
     
-    if Nrand>0:
+    if Nrand>0:   ## if permutation was performed, visualize the result of permutation
         
         HistPlot(DiffPerm,xtickL='group difference',ax=0,ylab='num random permutations',verline=truereddiff,title=f' {Stim} permuted {Nrand} vs true diff - p={np.sum(DiffPerm>truereddiff)/Nrand}',mean=False)
         
@@ -436,7 +436,7 @@ def FixDurProgGroups(self,colName,nfixmax=10,between=0):
         else:
             Y=np.nanmean(np.nanmean(self.durprog[:,Idx,:],1),0)
             Err=stats.sem(np.nanmean(self.durprog[:,Idx,:],1),0,nan_policy='omit')
-        PlotDurProg(nfixmax,Y,Err,c,ax=ax)
+        PlotDurProg(nfixmax,Y,Err,c,ax=ax)  #visualize
     plt.legend()
 
 
