@@ -28,7 +28,7 @@ jobs:
           pip install -e .
           pip install xarray
 
-          pip install numpy==1.21.4
+          pip install numpy==1.26.4
 
       - name: Test with pytest
         run: |
