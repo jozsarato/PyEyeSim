@@ -176,13 +176,17 @@ def GetDurations(self,s,p):
 
 def GetGroups(self,betwcond,stim=False):
     ''' Between group comparison- 2 groups expected
-    get conditions from between group column, check if mapping of participants to conditions is unique'''
+    get conditions from between group column, check if mapping of participants to conditions is unique
+    if participant is not in either of the groups NAN in the output'''
     self.Conds=np.unique(self.data[betwcond])
     print('Conditions',self.Conds)
    
   #  assert len(self.Conds)==2, 'you need 2 groups'
     WhichC=np.zeros(self.ns)
-    WhichCN=[]
+    WhichC[:]=np.NAN
+    WhichCN=np.zeros(self.ns,dtype='object')
+    WhichCN[:]=np.NAN
+
     for cs,s in enumerate(self.subjects):
         for cc,c in enumerate(self.Conds):
             if stim==False:
@@ -190,12 +194,12 @@ def GetGroups(self,betwcond,stim=False):
             else:
                 dat=self.data[self.data['Stimulus']==stim]
                 PPc=np.unique(dat[betwcond][dat['subjectID']==s])
-            if len(PPc) != 1:
+            if len(PPc) > 1:
                 raise ValueError('Participant condition mapping not unique')
-
+                
             if PPc==self.Conds[cc]:
                 WhichC[cs]=cc
-                WhichCN.append(c)
+                WhichCN[cs]=c
     self.whichC=WhichC
     return WhichC,np.array(WhichCN)
 
