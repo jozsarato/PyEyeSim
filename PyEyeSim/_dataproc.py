@@ -184,7 +184,7 @@ def GetGroups(self,betwcond,stim=False):
   #  assert len(self.Conds)==2, 'you need 2 groups'
     WhichC=np.zeros(self.ns)
     WhichC[:]=np.NAN
-    WhichCN=np.zeros(self.ns)
+    WhichCN=np.zeros(self.ns,dtype='object')
     WhichCN[:]=np.NAN
 
     for cs,s in enumerate(self.subjects):
