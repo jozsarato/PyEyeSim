@@ -183,9 +183,9 @@ def GetGroups(self,betwcond,stim=False):
    
   #  assert len(self.Conds)==2, 'you need 2 groups'
     WhichC=np.zeros(self.ns)
-    WhichC[:]=np.NAN
+    WhichC[:]=np.nan
     WhichCN=np.zeros(self.ns,dtype='object')
-    WhichCN[:]=np.NAN
+    WhichCN[:]=np.nan
 
     for cs,s in enumerate(self.subjects):
         for cc,c in enumerate(self.Conds):
@@ -263,7 +263,7 @@ def GetSaccades(self):
                     self.saccadelenghts[cs,cp]/=csac
             
                 else:
-                    self.saccadelenghts[cs,cp]=np.NAN
+                    self.saccadelenghts[cs,cp]=np.nan
     return SaccadeObj
 
 
@@ -340,7 +340,7 @@ def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax
         smap=SaliencyMapFilt(FixCounts,SD=SD,Ind=0)
         if CutArea:
             smapall=np.zeros((yimsize,ximsize))
-            smapall[:]=np.NAN
+            smapall[:]=np.nan
             if len(stimn)>0:
                 stimn=stimn[0]
             smapall[int(self.boundsY[stimn,0]):int(self.boundsY[stimn,1]),int(self.boundsX[stimn,0]):int(self.boundsX[stimn,1])]=smap

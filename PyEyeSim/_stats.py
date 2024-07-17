@@ -44,7 +44,7 @@ def FixDurProg(self,nfixmax=10,Stim=0,Vis=1):
     ''' within trial fixation duration progression
     nfixmax controls the first n fixations to compare'''
     self.durprog=np.zeros((self.ns,self.np,nfixmax))
-    self.durprog[:]=np.NAN
+    self.durprog[:]=np.nan
     for cs,s in enumerate(self.subjects):
         for cp,p in enumerate(self.stimuli):      
             Durs=self.GetDurations(s,p)
@@ -136,8 +136,8 @@ def CalcStatPs(self,nHor,nVer,MinFix=10,InferS=1,timemin=0, timemax=np.inf, time
                 statPMat[cs,cp,:,:]=StatPtrial.reshape(nVer,nHor)
                 statEntropyMat[cs,cp]=StatEntropy(statPMat[cs,cp,:,:].reshape(-1,1))
             else:
-                statEntropyMat[cs,cp]=np.NAN
-                statPMat[cs,cp,:,:]=np.NAN
+                statEntropyMat[cs,cp]=np.nan
+                statPMat[cs,cp,:,:]=np.nan
             
     return statPMat,statEntropyMat
 
@@ -245,7 +245,7 @@ def CalcRets(self,fixx,fixy,threshold,Vis=0,ax=0):
     xdiff=DiffMat(fixx)
     ydiff=DiffMat(fixy)
     difm=np.sqrt(xdiff+ydiff)
-    difm[np.tril_indices(len(fixx))]=np.NAN
+    difm[np.tril_indices(len(fixx))]=np.nan
     smaller=difm<self.AngtoPix(threshold)
     for ci in np.arange(2,len(fixx)):
         smidx=np.nonzero(smaller[:,ci]==True)[0]
@@ -315,9 +315,9 @@ def BinnedDescriptives(self,length=5000,binsize=500,timecol='CURRENT_FIX_START',
 
         cb+=1
     
-    self.saccadeAmp[self.saccadeAmp==0]=np.NAN
-    self.totLscanpath[self.totLscanpath==0]=np.NAN
-    self.binFixL[self.binFixL==0]=np.NAN
+    self.saccadeAmp[self.saccadeAmp==0]=np.nan
+    self.totLscanpath[self.totLscanpath==0]=np.nan
+    self.binFixL[self.binFixL==0]=np.nan
 
     VisBinnedProg(Bins,np.nanmean(self.binFixL,1),'fixation duration (ms)')  
     VisBinnedProg(Bins,np.nanmean(self.saccadeAmp,1),'saccade ampl (pixel)')  

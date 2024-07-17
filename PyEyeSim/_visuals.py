@@ -236,7 +236,7 @@ def VisHeatmap(self,Stim,smap,ax=0,cutoff=0,alpha=.5,cmap='plasma',cbar=False,cb
         cutThr=np.percentile(smap,cutoff) 
     else:
         cutThr=0
-    smap[smap<cutThr]=np.NAN  # replacing below threshold with NAN
+    smap[smap<cutThr]=np.nan  # replacing below threshold with NAN
     if ax==False:
         fig,ax=plt.subplots()
     if hasattr(self,'images')==True:
