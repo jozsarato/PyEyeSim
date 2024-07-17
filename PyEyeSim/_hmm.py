@@ -196,7 +196,7 @@ def HMMSimPipeline(self,ncomps=[4,6],verb=False):
     
     print(np.shape(StimSimsHMM))
     StimSimsHMMall=np.zeros((len(ncomps),self.ns,self.np))
-    StimSimsHMMall[:]=np.NAN
+    StimSimsHMMall[:]=np.nan
     for cncomp, ncomp in enumerate(ncomps):
         print(f'fitting HMM with {ncomp} components')
         for cp in range(self.np):

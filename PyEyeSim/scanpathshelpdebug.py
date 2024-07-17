@@ -21,7 +21,7 @@ def CheckCoor(AOIs,FixLoc):
             AOI=coor
             break
         else: # if gaze out of screen
-            AOI=np.NAN                      
+            AOI=np.nan                      
     return AOI 
 
 

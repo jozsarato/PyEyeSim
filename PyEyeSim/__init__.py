@@ -149,7 +149,7 @@ class EyeData:
         self.boundsX,self.boundsY=self.InferSize(Interval=99)
         self.actsize=(self.boundsX[:,1]-self.boundsX[:,0])*(self.boundsY[:,1]-self.boundsY[:,0])
         self.nfixations=np.zeros((self.ns,self.np))
-        self.nfixations[:]=np.NAN
+        self.nfixations[:]=np.nan
         self.sacc_ampl=np.zeros((self.ns,self.np))
         self.len_scanpath=np.zeros((self.ns,self.np))
 
@@ -171,10 +171,10 @@ class EyeData:
                     if duration:
                         self.durations[cs,cp]=np.mean(self.GetDurations(s,p))     
                 else:
-                    MeanFixXY[cs,cp,:],SDFixXY[cs,cp,:]=np.NAN,np.NAN
-                    self.sacc_ampl[cs,cp],self.len_scanpath[cs,cp]=np.NAN,np.NAN
+                    MeanFixXY[cs,cp,:],SDFixXY[cs,cp,:]=np.nan,np.nan
+                    self.sacc_ampl[cs,cp],self.len_scanpath[cs,cp]=np.nan,np.nan
                     if duration:
-                        self.durations[cs,cp]=np.NAN
+                        self.durations[cs,cp]=np.nan
                         
         print('Mean fixation number: ',np.round(np.nanmean(np.nanmean(self.nfixations,1)),2),' +/- ',np.round(np.nanstd(np.nanmean(self.nfixations,1)),2))
         if duration:

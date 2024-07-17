@@ -570,7 +570,7 @@ def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,cmap_ind='plas
         print(np.shape(np.nanmean(statPMat[Idx,stimn,:,:],0)))
         Statpm=np.nanmean(statPMat[Idx,stimn,:,:],0)
         if cutoff>-1:
-            Statpm[Statpm<np.nanpercentile(Statpm,cutoff)]=np.NAN
+            Statpm[Statpm<np.nanpercentile(Statpm,cutoff)]=np.nan
         self.VisGrid(Statpm,Stim,ax=ax[0,ccond],alpha=alpha,cmap=cmap_ind)
         ax[0,ccond].set_title(cond)
         statmats.append(statPMat[Idx,stimn,:,:])
@@ -659,7 +659,7 @@ def CompareStimGridFix(self,Stim,Conds=0,nhor=5,nver=5,cmap_ind='plasma',cmap_di
     for cs,s in enumerate(stimn):
         Statpm=np.nanmean(statPMat[:,s,:,:],0)
         if cutoff>-1:
-            Statpm[Statpm<np.nanpercentile(Statpm,cutoff)]=np.NAN
+            Statpm[Statpm<np.nanpercentile(Statpm,cutoff)]=np.nan
         self.VisGrid(Statpm,Stims[cs],ax=ax[0,cs],alpha=alpha,cmap=cmap_ind)
         ax[0,cs].set_title(Stims[cs])
         statmats.append(statPMat[:,s,:,:])
