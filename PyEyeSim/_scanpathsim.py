@@ -52,7 +52,7 @@ def AOIFix(self,p,FixTrialX,FixTrialY,nDivH,nDivV,InferS=1):
         WhichAOIV[x]=CheckCoor(AOIboundsV,FixTrialY[x]) # store which vertical AOI each fixation is
 
     WhichAOI=np.zeros(NFix)
-    WhichAOI[:]=np.NAN
+    WhichAOI[:]=np.nan
     for x in range(NFix):
         if WhichAOIV[x]>-1 and WhichAOIH[x]>-1:   # only use valid idx
             WhichAOI[x]=AOInums[np.intp(WhichAOIV[x]),np.intp(WhichAOIH[x])]  # get combined vertival and horizontal
@@ -83,9 +83,9 @@ def SaccadeSel(self,SaccadeObj,nHor,nVer=0,InferS=False):
         for p in range(self.np):
             SaccadeAOIAngles[s].append(np.zeros(((int(self.nsac[s,p]),nVer,nHor))))
            # print(s,p,NSac[s,p])
-            SaccadeAOIAngles[s][p][:]=np.NAN
+            SaccadeAOIAngles[s][p][:]=np.nan
             SaccadeAOIAnglesCross[s].append(np.zeros(((int(self.nsac[s,p]),nVer,nHor))))
-            SaccadeAOIAnglesCross[s][p][:]=np.NAN
+            SaccadeAOIAnglesCross[s][p][:]=np.nan
             for sac in range(len(SaccadeObj[s][p])):
                 SaccadeDots=SaccadeObj[s][p][sac].LinePoints()
                 
@@ -120,7 +120,7 @@ def SacSim1Group(self,Saccades,Thr=5,p='all',normalize='add'):
     nHor=np.shape(Saccades)[3]
         
     SimSacP=np.zeros((self.ns,self.ns,self.np,nVer,nHor))  
-    SimSacP[:]=np.NaN
+    SimSacP[:]=np.nan
     for s1 in range(self.ns):
         for s2 in range(self.ns):
             if s1!=s2:
