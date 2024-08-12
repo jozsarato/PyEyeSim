@@ -72,8 +72,10 @@ def VisHMM(self,dat,hmmfitted,ax=0,showim=1,stim=0,lengths=0,incol=False):
             color2='olive'
 
         ax.scatter(dat[preds==c1,0],dat[preds==c1,1],color=color1,alpha=alph)
+        print(np.shape(hmmfitted.covars_[c1]))
+       # draw_ellipse((hmmfitted.means_[c1,0],hmmfitted.means_[c1,1]),hmmfitted.covars_[c1],ax=ax,facecolor='none',edgecolor=color2,linewidth=2)
+        draw_ellipse(hmmfitted.means_[c1,0],hmmfitted.means_[c1,1],hmmfitted.covars_[c1],ax=ax,facecolor='none',edgecolor=color2,linewidth=2)
 
-        draw_ellipse((hmmfitted.means_[c1,0],hmmfitted.means_[c1,1]),hmmfitted.covars_[c1],ax=ax,facecolor='none',edgecolor=color2,linewidth=2)
         for c2 in range(hmmfitted.n_components):
             if c1!=c2:
                 ax.plot([hmmfitted.means_[c1,0],hmmfitted.means_[c2,0]],[hmmfitted.means_[c1,1],hmmfitted.means_[c2,1]],linewidth=hmmfitted.transmat_[c1,c2]*5,color='r')
