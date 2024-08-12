@@ -48,7 +48,7 @@ def InferSize(self,Interval=99):
     #self.boundsY=BoundsY
     return BoundsX,BoundsY
 
-def GetStimuli(self,extension,path=0,infersubpath=False):
+def GetStimuli(self,extension,path=0,infersubpath=False,sizecorrect=True):
     ''' load stimulus files from path'''
     #assert 'Stimulus' in self.data.columns, 'stimulus column not found'
     if len(self.stimuli) <= 0:
@@ -61,7 +61,7 @@ def GetStimuli(self,extension,path=0,infersubpath=False):
             self.data.rename(columns={'category':'Category'},inplace=True)
         print('infer path from database categeory')
     for cs,s in enumerate(self.stimuli):
-        
+        print(s)
         if infersubpath==True:
             cat=int(np.unique(self.data['Category'][self.data['Stimulus']==s])[0])
             if platform.platform().find('mac')>-1:
@@ -97,20 +97,27 @@ def GetStimuli(self,extension,path=0,infersubpath=False):
         Res=np.shape(Stim)
         ## implement correction for difference between screen and stimulus/image resolution!
         # and and y values are shifted, so that stimuli start at 0
-        if Res[0] != self.y_size:   
-            print("!y size incosistency warning expected",self.y_size,'vs actual', Res)
-            ys1=(self.y_size-np.shape(self.images[s])[0])/2
-#            ys2=self.y_size-ys1
-            self.data.loc[self.data.Stimulus==s, 'mean_y']= self.data.mean_y[self.data.Stimulus==s]-ys1
-        if Res[1] != self.x_size:
-            print("!x size incosistency warning, expected",self.x_size,'vs actual', Res)
-            xs1=(self.x_size-np.shape(self.images[s])[1])/2
-           # self.data['mean_x'][self.data.Stimulus==s] -= xs1
-            self.data.loc[self.data.Stimulus==s, 'mean_x']= self.data.mean_x[self.data.Stimulus==s]-xs1
+        if sizecorrect:
 
-            print('correctiona applied, assuming central stimulus presentation')
+            if Res[0] != self.y_size:   
+                print("!y size incosistency warning expected",self.y_size,'vs actual', Res[0])
+                ys1=(self.y_size-np.shape(self.images[s])[0])/2        
+    #            ys2=self.y_size-ys1
+                self.data.loc[self.data.Stimulus==s, 'mean_y']= self.data.mean_y[self.data.Stimulus==s]-ys1
+            else:
+                print('stimulus size in y is full screen')
+            if Res[1] != self.x_size:
+                print("!x size incosistency warning, expected",self.x_size,'vs actual', Res[1])
+                xs1=(self.x_size-np.shape(self.images[s])[1])/2
+               # self.data['mean_x'][self.data.Stimulus==s] -= xs1
+                self.data.loc[self.data.Stimulus==s, 'mean_x']= self.data.mean_x[self.data.Stimulus==s]-xs1
+
+                print('correction applied, assuming central stimulus presentation')
+            else:
+                print('stimulus size in x full screen')
 
        
+        print(' ')
         
     pass 
  

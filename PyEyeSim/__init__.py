@@ -34,26 +34,23 @@ class EyeData:
         warnings.warn('scikit image not found, compare groups heatmap will not work - scikit image needed for downsampling')
 
 
-    def __init__(self, name, design,data,x_size,y_size):
+    def __init__(self,data,x_size,y_size):
         ''' 
         Description: initalizing eye-tracking data object.
         
         Arguments:
-        name (str): A name associated with the eye-tracking data.
-        design (str): Information about the study design.
+       
         data (pandas.DataFrame): The eye-tracking data.
         x_size (int): Screen size in pixels (width).
         y_size (int): Screen size in pixels (height).
         '''
-        self.name = name
-        self.design = design  # remove design ?
+        
         self.data=data
         self.x_size=x_size
         self.y_size=y_size
 
 
         print('dataset size: ',np.shape(self.data))
-        print('study design: ',self.design)
         print('presentation size:  x=',self.x_size,'pixels y=',self.y_size,' pixels')
         print('presentation size:  x=',self.x_size,'pixels y=',self.y_size,' pixels')
         DefColumns={'Stimulus':'Stimulus','subjectID':'subjectID','mean_x':'mean_x','mean_y':'mean_y'}
@@ -71,8 +68,7 @@ class EyeData:
         '''
         print('screen x_size',self.x_size)
         print('screen y_size',self.y_size)
-        print(self.name)
-        print(self.design,'design')
+       
 
     def data(self):
         ''' 
@@ -88,12 +84,12 @@ class EyeData:
             self.data=self.data.rename(columns={Stimulus:'Stimulus',subjectID:'subjectID',mean_x: 'mean_x',mean_y: 'mean_y'})
  
 
-    def setStimuliPath(self, StimPath = None, StimExt='.jpg',infersubpath=False):
+    def setStimuliPath(self, StimPath = None, StimExt='.jpg',infersubpath=False,sizecorrect=True):
         if StimPath == None:
             warnings.warn('Stim path not provided')
             return
         else:
-            self.GetStimuli(StimExt,StimPath,infersubpath=infersubpath)
+            self.GetStimuli(StimExt,StimPath,infersubpath=infersubpath,sizecorrect=sizecorrect)
             print('stimuli loaded succesfully, access as self.images')
 
     
@@ -105,7 +101,7 @@ class EyeData:
             warnings.warn('stimulus and subject info not found')
 
 
-    def DataInfo(self,Stimulus='Stimulus',subjectID='subjectID',mean_x='mean_x',mean_y='mean_y',FixDuration=0,StimPath=None,StimExt='.jpg',infersubpath=False, Visual=False):
+    def DataInfo(self,Stimulus='Stimulus',subjectID='subjectID',mean_x='mean_x',mean_y='mean_y',FixDuration=0,StimPath=None,StimExt='.jpg',infersubpath=False, Visual=False,sizecorrect=True):
 
         ''' 
         Description: Provide information about amount of stimuli and subjects.
@@ -119,14 +115,18 @@ class EyeData:
         StimPath (str): Path to stimuli. Set to 0 if not provided.
         StimExt (str): File extension of stimuli (default: '.jpg').
         infersubpath (bool): Flag to infer stimulus subpaths based on subject IDs (default: False).  -- if stimuli are stored in subfolders for multiple categories
+        sizecorrect--> if True correct with stimulus resolution - screen difference, assuming central presentation
         '''
 
         #pipeline
         self.setColumns(Stimulus,subjectID,mean_x,mean_y,FixDuration)
 
         self.setSubjStim()      
-
-        self.setStimuliPath(StimPath,StimExt,infersubpath)
+        if sizecorrect:
+            print('if stimulus not full screen, assume central presentation, use correction')
+        else:
+            print('no correction for stimulus size and screen difference-- (eg for non full screen stimuli starting at pixel 0)')
+        self.setStimuliPath(StimPath,StimExt,infersubpath,sizecorrect=sizecorrect)
 
         print('run descriptive analysis')
         self.RunDescriptiveFix(Visual=Visual)
