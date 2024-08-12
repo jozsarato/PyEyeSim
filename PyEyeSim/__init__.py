@@ -123,9 +123,9 @@ class EyeData:
 
         self.setSubjStim()      
         if sizecorrect:
-            print('if stimulus not full screen, assume central presentation, use correction')
+            print('sizecorrect = ',sizecorrect,'; If stimulus not full screen, assume central presentation, use correction')
         else:
-            print('no correction for stimulus size and screen difference-- (eg for non full screen stimuli starting at pixel 0)')
+            print('sizecorrect =' ,sizecorrect,'; No correction for stimulus size and screen difference-- (eg for non full screen stimuli starting at pixel 0)')
         self.setStimuliPath(StimPath,StimExt,infersubpath,sizecorrect=sizecorrect)
 
         print('run descriptive analysis')
