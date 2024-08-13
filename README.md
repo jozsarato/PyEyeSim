@@ -30,7 +30,7 @@ if you cloned the library and are in the root folder of the library using the te
 
 
 #### Demo:
-for examples of using the library, see the PyEyeDemoBasic.ipynb in the Notebooks folder
+for examples of using the library, see the PyEyeSimDemo.ipynb in the Notebooks folder
 
 
 #### Dependencies:
