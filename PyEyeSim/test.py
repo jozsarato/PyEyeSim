@@ -113,7 +113,7 @@ class TestGeneralFunctions(unittest.TestCase):
         N = 3
         test_img, test_df = create_test_df( frameX=sizeX, frameY=sizeY, size=fixation_rows, n_subjects = N)
 
-        test_eye_data = EyeData('test_2', 'between', test_df, sizeX, sizeY)
+        test_eye_data = EyeData(test_df, sizeX, sizeY)
         test_eye_data.DataInfo(Stimulus='image_1',subjectID='RECORDING_SESSION_LABEL',mean_x='CURRENT_FIX_X',mean_y='CURRENT_FIX_Y',FixDuration='CURRENT_FIX_DURATION')
 
         xs, ys, heatmap, salmap = extract_focus_peaks(test_eye_data.data.mean_x, test_eye_data.data.mean_y, (sizeX, sizeY))
@@ -130,7 +130,7 @@ class TestGeneralFunctions(unittest.TestCase):
         sizeX,sizeY = 3840,2160
         test_img, test_df = create_test_df(sizeX, sizeY, size=fixation_rows)
 
-        test_eye_data = EyeData('test_1', 'between', test_df, sizeX, sizeY)
+        test_eye_data = EyeData( test_df, sizeX, sizeY)
         test_eye_data.DataInfo(Stimulus='image_1',subjectID='RECORDING_SESSION_LABEL',mean_x='CURRENT_FIX_X',mean_y='CURRENT_FIX_Y',FixDuration='CURRENT_FIX_DURATION')
 
         test_res = test_eye_data.FixCountCalc(test_img, CutAct=0)
@@ -143,7 +143,7 @@ class TestCompareFunctions(unittest.TestCase):
         sizeX,sizeY = 3840,2160
         test_img, test_df = create_test_df(sizeX, sizeY, size=fixation_rows, n_subjects=40, groups=2, nr_imgs=2)
  
-        test_eye_data = EyeData('test_3', 'between', test_df, sizeX, sizeY)
+        test_eye_data = EyeData(test_df, sizeX, sizeY)
         test_eye_data.DataInfo(Stimulus='image_1',subjectID='RECORDING_SESSION_LABEL',mean_x='CURRENT_FIX_X',mean_y='CURRENT_FIX_Y',FixDuration='CURRENT_FIX_DURATION')
 
         test_eye_data.CompareStimHeatmap(test_img,SD=40,alpha=.6)
@@ -153,7 +153,7 @@ class TestCompareFunctions(unittest.TestCase):
         sizeX,sizeY = 3840,2160
         test_img, test_df = create_test_df(sizeX, sizeY, size=fixation_rows, n_subjects=40, groups=2)
 
-        test_eye_data = EyeData('test_4', 'between', test_df, sizeX, sizeY)
+        test_eye_data = EyeData( test_df, sizeX, sizeY)
         test_eye_data.DataInfo(Stimulus='image_1',subjectID='RECORDING_SESSION_LABEL',mean_x='CURRENT_FIX_X',mean_y='CURRENT_FIX_Y',FixDuration='CURRENT_FIX_DURATION')
 
         test_eye_data.CompareGroupsHeatmap(test_img[0],'group',SD=40,alpha=.6)
@@ -163,7 +163,7 @@ class TestCompareFunctions(unittest.TestCase):
         sizeX,sizeY = 3840,2160
         test_img, test_df = create_test_df(sizeX, sizeY, size=fixation_rows, n_subjects=40, groups=2)
 
-        test_eye_data = EyeData('test_5', 'between', test_df, sizeX, sizeY)
+        test_eye_data = EyeData( test_df, sizeX, sizeY)
         test_eye_data.DataInfo(Stimulus='image_1',subjectID='RECORDING_SESSION_LABEL',mean_x='CURRENT_FIX_X',mean_y='CURRENT_FIX_Y',FixDuration='CURRENT_FIX_DURATION')
 
         test_eye_data.CompareWithinGroupsFix('group')   
@@ -173,7 +173,7 @@ class TestCompareFunctions(unittest.TestCase):
         sizeX,sizeY = 3840,2160
         test_img, test_df = create_test_df(sizeX, sizeY, size=fixation_rows, n_subjects=40, groups=2)
 
-        test_eye_data = EyeData('test_5', 'between', test_df, sizeX, sizeY)
+        test_eye_data = EyeData( test_df, sizeX, sizeY)
         test_eye_data.DataInfo(Stimulus='image_1',subjectID='RECORDING_SESSION_LABEL',mean_x='CURRENT_FIX_X',mean_y='CURRENT_FIX_Y',FixDuration='CURRENT_FIX_DURATION')
 
         test_eye_data.CompareGroupsGridFix(test_img[0], 'group')   
@@ -183,7 +183,7 @@ class TestCompareFunctions(unittest.TestCase):
         sizeX,sizeY = 3840,2160
         test_img, test_df = create_test_df(sizeX, sizeY, size=fixation_rows, n_subjects=40, groups=2)
 
-        test_eye_data = EyeData('test_6', 'between', test_df, sizeX, sizeY)
+        test_eye_data = EyeData(test_df, sizeX, sizeY)
         test_eye_data.DataInfo(Stimulus='image_1',subjectID='RECORDING_SESSION_LABEL',mean_x='CURRENT_FIX_X',mean_y='CURRENT_FIX_Y',FixDuration='CURRENT_FIX_DURATION')
 
         test_eye_data.CompareGroupsFix('group')   

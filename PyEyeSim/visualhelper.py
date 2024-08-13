@@ -92,7 +92,7 @@ def JointBinnedPlot(bins,y1,y2,col1='olive',col2='orange',ylabel1='',ylabel2='')
 
 
 
-def draw_ellipse(position, covariance, ax=None, **kwargs):
+def draw_ellipse(posx,posy, covariance, ax=None, facecolor='none',edgecolor='red',linewidth=2):
     """Draw an ellipse with a given position and covariance
     source:
     https://jakevdp.github.io/PythonDataScienceHandbook/05.12-gaussian-mixtures.html """
@@ -109,8 +109,8 @@ def draw_ellipse(position, covariance, ax=None, **kwargs):
     
     # Draw the Ellipse
     for nsig in range(1, 2):
-        ax.add_patch(Ellipse(position, nsig * width, nsig * height,
-                             angle, **kwargs))
+        ax.add_patch(Ellipse(np.array([posx,posy]), nsig * width, nsig * height,
+                             angle=angle,facecolor=facecolor,edgecolor=edgecolor,linewidth=linewidth))
         
 
 
