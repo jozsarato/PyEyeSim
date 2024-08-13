@@ -74,7 +74,7 @@ def SaccadeSel(self,SaccadeObj,nHor,nVer=0,InferS=False):
             self.RunDescriptiveFix()  
         AOIRects=CreatAoiRects(nHor,nVer,self.boundsX,self.boundsY)
     else:
-        AOIRects=CreatAoiRects(nHor,nVer,self.x_size,self.y_size)
+        AOIRects=CreatAoiRects(nHor,nVer,self.x_size,self.y_size,allsame=self.np)
 
     Saccades=np.zeros((((self.ns,self.np,nVer,nHor))),dtype=np.ndarray)  # store an array of saccades that cross the cell, for each AOI rectangle of each trial for each partiicpant
     for s in np.arange(self.ns):
@@ -184,11 +184,15 @@ def ScanpathSim2Groups(self,stim,betwcond,nHor=5,nVer=0,inferS=False,Thr=5,norma
                         
     for cc,cond in enumerate(self.Conds):
         Idxs.append(np.nonzero(WhichCN==cond)[0])
+    SimVals=np.zeros((2,2))
+    SimValsSD=np.zeros((2,2))
+
     for cgr1,gr1 in enumerate(self.Conds):
         for cgr2,gr2 in enumerate(self.Conds):
-            
             Vals=np.nanmean(np.nanmean(SimSacP[Idxs[cgr1],:,stimn,:,:][:,Idxs[cgr2],:,:],0),0)  
+            SimVals[cgr1,cgr2]=np.nanmean(Vals)
+            SimValsSD[cgr1,cgr2]=np.nanstd(Vals)
             self.VisGrid(Vals,stim,ax=ax[cgr1,cgr2],cbar=True,inferS=inferS,alpha=.8)
-            ax[cgr1,cgr2].set_title(gr1+' '+gr2)
+            ax[cgr1,cgr2].set_title(str(gr1)+' '+str(gr2)+' mean= '+str(np.round(SimVals[cgr1,cgr2],3)))
     
-    return 
+    return SimVals,SimValsSD

@@ -23,18 +23,28 @@ def AOIbounds(start,end,nDiv):
     return np.linspace(start,end,nDiv+1)  
 
 
-def CreatAoiRects(nHorD,nVerD,BoundsX,BoundsY):
+def CreatAoiRects(nHorD,nVerD,BoundsX,BoundsY,allsame=0):
     AOIRects=[]
-    for p in range(np.shape(BoundsX)[0]):
-        AOIboundsH=AOIbounds(BoundsX[p,0],BoundsX[p,1],nHorD)
-        AOIboundsV=AOIbounds(BoundsY[p,0],BoundsY[p,1],nVerD)
-      #  print(AOIboundsH)
-       # print(AOIboundsV)
-        AOIRects.append([])
-        for h in range(nHorD):
-            AOIRects[p].append([])
-            for v in range(nVerD):
-                AOIRects[p][h].append(Rect(AOIboundsH[h],AOIboundsV[v],AOIboundsH[h+1],AOIboundsV[v+1]))  # store AOIs as objects
+    if type(BoundsX)==int:
+        for a in range(allsame):
+            AOIRects.append([])
+            AOIboundsH=AOIbounds(0,BoundsX,nHorD)
+            AOIboundsV=AOIbounds(0,BoundsY,nVerD)
+            for h in range(nHorD):
+                AOIRects[a].append([])
+                for v in range(nVerD):
+                    AOIRects[a][h].append(Rect(AOIboundsH[h],AOIboundsV[v],AOIboundsH[h+1],AOIboundsV[v+1]))  # store AOIs as objects
+    else:
+        for p in range(np.shape(BoundsX)[0]):
+            AOIboundsH=AOIbounds(BoundsX[p,0],BoundsX[p,1],nHorD)
+            AOIboundsV=AOIbounds(BoundsY[p,0],BoundsY[p,1],nVerD)
+          #  print(AOIboundsH)
+           # print(AOIboundsV)
+            AOIRects.append([])
+            for h in range(nHorD):
+                AOIRects[p].append([])
+                for v in range(nVerD):
+                    AOIRects[p][h].append(Rect(AOIboundsH[h],AOIboundsV[v],AOIboundsH[h+1],AOIboundsV[v+1]))  # store AOIs as objects
     return AOIRects
 
 
