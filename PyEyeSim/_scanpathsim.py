@@ -114,7 +114,8 @@ def SacSim1Group(self,Saccades,Thr=5,p='all',normalize='add'):
     ''' calculate saccade similarity for each stimulus, between each pair of participants ,
     needs saccades stored as PyEyeSim saccade objects stored in AOIs as input,
     vertical and horizontal dimensions are inferred from the input
-    Thr=5: threshold for similarity'''
+    Thr=5: threshold for similarity
+    normalize, if provided must be add or mult '''
     
     nVer=np.shape(Saccades)[2]
     nHor=np.shape(Saccades)[3]
@@ -133,7 +134,7 @@ def SacSim1Group(self,Saccades,Thr=5,p='all',normalize='add'):
                                     simsacn=CalcSim(Saccades[s1,p1,v,h],Saccades[s2,p1,v,h],Thr=Thr)
                                     if normalize=='add':
                                         SimSacP[s1,s2,p1,v,h]=simsacn/(len(Saccades[s1,p1,v,h])+len(Saccades[s2,p1,v,h]))
-                                    else:
+                                    elif normalize=='mult':
                                         SimSacP[s1,s2,p1,v,h]=simsacn/(len(Saccades[s1,p1,v,h])*len(Saccades[s2,p1,v,h]))
  
     return SimSacP
@@ -141,18 +142,19 @@ def SacSim1Group(self,Saccades,Thr=5,p='all',normalize='add'):
   
 
 
-def SacSimPipeline(self,divs=[4,5,7,9],Thr=5,InferS=True):
+def SacSimPipeline(self,divs=[4,5,7,9],Thr=5,InferS=True,normalize='add'):
     SaccadeObj=self.GetSaccades()
     StimSims=np.zeros((len(divs),self.np))
     StimSimsInd=np.zeros((len(divs),self.ns,self.np))
-
+    SimsAll=[]
     for cd,ndiv in enumerate(divs):
         print(cd,ndiv)
         sacDivSel=self.SaccadeSel(SaccadeObj,ndiv,InferS=InferS)
-        SimSacP=self.SacSim1Group(sacDivSel,Thr=Thr)
+        SimSacP=self.SacSim1Group(sacDivSel,Thr=Thr,normalize=normalize)
         StimSimsInd[cd,:,:]=np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0)
         StimSims[cd,:]=np.nanmean(np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0),0)
-    return StimSims,np.nanmean(StimSimsInd,0)
+        SimsAll.append(SimSacP)
+    return StimSims,np.nanmean(StimSimsInd,0),SimsAll
 
 
 def ScanpathSim2Groups(self,stim,betwcond,nHor=5,nVer=0,inferS=False,Thr=5,normalize='add'):
