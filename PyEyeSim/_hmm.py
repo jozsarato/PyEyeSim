@@ -88,7 +88,9 @@ def FitLOOHMM(self,ncomp,stim,covar='full',verb=False):
 def FitVisHMM(self,stim,ncomp=3,covar='full',ax=0,ax2=0,NTest=5,showim=True,verb=False,incol=False,vis=True):
     ''' fit and visualize HMM -- beta version
     different random train - test split for each iteration-- noisy results
-    covar: covariance structure 'full','diag'
+    stim: stimulus name
+    ncomp: number of HMM components
+    covar: covariance structure full','tied','spherical' ,'diag'
     Ntest: number of participants to test'''
     xx,yy,lengths=self.DataArrayHmm(stim,tolerance=80,verb=verb)
     Dat=np.column_stack((xx,yy))
@@ -117,9 +119,20 @@ def FitVisHMM(self,stim,ncomp=3,covar='full',ax=0,ax2=0,NTest=5,showim=True,verb
   
     return HMMfitted,meanscore,meanscoreTe
     
-def FitVisHMMGroups(self,stim,betwcond,ncomp=3,covar='full',ax=0,ax2=0,NTest=3,showim=False,Rep=1,groupnames=0):
-    ''' fit and visualize HMM -- beta version
-    different random train - test split for each iteration-- noisy results'''
+def FitVisHMMGroups(self,stim,betwcond,ncomp=3,covar='full',ax=0,ax2=0,NTest=3,showim=False,Rep=1):
+    ''' fit and visualize HMM
+    stim: stimulus name
+    betwcond: between group condition
+    ncomp: number of HMM components
+    covar: HMM gaussian covariance type , must be one of 'full','tied','spherical' ,'diag'
+    ax: figure to show fitted hmms and fixations
+    ax2: confusion matrix
+    NTest: number of test participants (randomly selected) 
+    showim: =True show image-- throws error if image has not been loaded previously
+    Rep=nNum times to repeat the whole process
+    
+    note that due to the inherent randomness of hmm-s,and the different random train - test split for each iteration, the resutls are quite noisy for a single iteration.'''
+    
     self.GetGroups(betwcond)
     Grs=np.unique(self.data[betwcond])
     
@@ -171,12 +184,9 @@ def FitVisHMMGroups(self,stim,betwcond,ncomp=3,covar='full',ax=0,ax2=0,NTest=3,s
     for pl in range(2):
         ax2[pl].set_xlabel('fitted')
         ax2[pl].set_xticks(np.arange(len(Grs))+.5)
-        if type(groupnames)==int:
-            ax2[pl].set_xticklabels(Grs)
-            ax2[pl].set_yticklabels(Grs,rotation=90)
-        else:
-            ax2[pl].set_xticklabels(groupnames)
-            ax2[pl].set_yticklabels(groupnames,rotation=90)
+        ax2[pl].set_xticklabels(Grs)
+        ax2[pl].set_yticklabels(Grs,rotation=90)
+        
         ax2[pl].set_yticks(np.arange(len(Grs))+.5)
     fig2.subplots_adjust(right=0.8)
     cbar_ax = fig2.add_axes([0.85, 0.15, 0.05, 0.7])
@@ -188,11 +198,14 @@ def FitVisHMMGroups(self,stim,betwcond,ncomp=3,covar='full',ax=0,ax2=0,NTest=3,s
     return ScoresTrain, ScoresTest
 
 
-def HMMSimPipeline(self,ncomps=[4,6],verb=False):
+def HMMSimPipeline(self,ncomps=[4,6],verb=False,covar='full'):
     ''' fit l hidden markov model to data, with different number of components, each participants likelihood with leave-one-out cross validation
     can have a long run time with longer viewing time/lot of data 
     return the individual loo log likelihoods from the best model (highest log likelihood) for each stimulus 
-    verb=True: print line for subjects with not enough fixations. - too much printing for many subjects wiht low number of fixations '''
+    verb=True: print line for subjects with not enough fixations. - too much printing for many subjects wiht low number of fixations 
+    ncomp: list of integers with the number of components to fit 
+    covar: HMM gaussian covariance type , must be one of 'full','tied','spherical' ,'diag'
+    '''
     StimSimsHMM=np.zeros((len(ncomps),self.np))
     
     print(np.shape(StimSimsHMM))
@@ -202,7 +215,7 @@ def HMMSimPipeline(self,ncomps=[4,6],verb=False):
         print(f'fitting HMM with {ncomp} components')
         for cp in range(self.np):
             print(f'for stimulus {self.stimuli[cp]}')
-            Dat,lengths,ScoresLOO=self.FitLOOHMM(ncomp,self.stimuli[cp],covar='tied',verb=verb)
+            Dat,lengths,ScoresLOO=self.FitLOOHMM(ncomp,self.stimuli[cp],covar=covar,verb=verb)
             missS=np.setdiff1d(self.subjects,self.suseHMM)
             if len(missS)>0:
                 idxs=np.array([],dtype=int)
