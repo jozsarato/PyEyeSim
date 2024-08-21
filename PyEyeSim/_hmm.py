@@ -87,7 +87,9 @@ def FitLOOHMM(self,ncomp,stim,covar='full',verb=False):
     return Dat,lengths,ScoresLOO
 def FitVisHMM(self,stim,ncomp=3,covar='full',ax=0,ax2=0,NTest=5,showim=True,verb=False,incol=False,vis=True):
     ''' fit and visualize HMM -- beta version
-    different random train - test split for each iteration-- noisy results'''
+    different random train - test split for each iteration-- noisy results
+    covar: covariance structure 'full','diag'
+    Ntest: number of participants to test'''
     xx,yy,lengths=self.DataArrayHmm(stim,tolerance=80,verb=verb)
     Dat=np.column_stack((xx,yy))
     
@@ -106,9 +108,11 @@ def FitVisHMM(self,stim,ncomp=3,covar='full',ax=0,ax2=0,NTest=5,showim=True,verb
         ax.set_title('n: '+str(ncomp)+' train ll: '+str(np.round(meanscore,2))+' test ll: '+str(np.round(meanscoreTe,2)),fontsize=9)
         ax2.scatter(ncomp,meanscore,color='g',label='training')
         ax2.scatter(ncomp,meanscoreTe,color='r',label='test')
+        handles, labels = ax2.get_legend_handles_labels()
+
         ax2.set_xlabel('num components')
         ax2.set_ylabel('log likelihood')
-        ax2.legend()
+        ax2.legend(handles[:2], labels[:2])
 
   
     return HMMfitted,meanscore,meanscoreTe
@@ -147,11 +151,8 @@ def FitVisHMMGroups(self,stim,betwcond,ncomp=3,covar='full',ax=0,ax2=0,NTest=3,s
             HMMfitted,meanscore,meanscoreTe=FitScoreHMMGauss(ncomp,XXTrain[cgr],XXTest[cgr],LengthsTrain[cgr],LengthsTest[cgr],covar=covar)
             if rep==0:
                 self.VisHMM(XXTrain[cgr],HMMfitted,ax=ax[cgr],showim=showim,stim=stim,lengths=LengthsTrain[cgr])
-                if type(groupnames)==int:
-                    ax[cgr].set_title(cgr)
-
-                else:
-                    ax[cgr].set_title(groupnames[cgr])
+                
+                ax[cgr].set_title(str(gr))
             for cgr2,gr2 in enumerate(Grs):
                 ScoresTrain[rep,cgr2,cgr]=HMMfitted.score(XXTrain[cgr2],LengthsTrain[cgr2])/np.sum(LengthsTrain[cgr2])
                 ScoresTest[rep,cgr2,cgr]=HMMfitted.score(XXTest[cgr2],LengthsTest[cgr2])/np.sum(LengthsTest[cgr2])
