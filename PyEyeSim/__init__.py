@@ -23,7 +23,7 @@ class EyeData:
     from ._stats import AngleCalc,AngtoPix,PixdoDeg,Entropy,FixDurProg,BinnedCount,GetInddiff,GetInddiff_v2,RunDiffDivs,GetBinnedStimFixS,StatPDiffInd2,StatPDiffInd1,CalcStatPs,CalcRets,CalcImmRets,BinnedDescriptives
     from ._comparegroups import CompareGroupsFix,CompareWithinGroupsFix,FixDurProgGroups,BinnedDescriptivesGroups,CompareGroupsMat,CompareGroupsGridFix,CompareStimHeatmap,CompareStimGridFix
     from ._scanpathsim import AOIFix,SacSimPipeline,SacSim1Group,SaccadeSel,ScanpathSim2Groups
-
+    from .similarity import RSA_heatmap_pipeline
     try: 
         from ._hmm import DataArrayHmm,MyTrainTest,FitLOOHMM,FitVisHMM,FitVisHMMGroups,HMMSimPipeline
     except:
