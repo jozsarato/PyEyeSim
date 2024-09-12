@@ -9,6 +9,13 @@ from scipy.stats import entropy
 
 
 def RSA_heatmap_pipeline(self, stims, dims, resize_to=(10, 10)):
+    '''
+    extract heatmaps for all stimuli and calculate the RSA for each stimulus
+    @param stims: list of stimuli
+    @param dims: dimensions of the image
+    @param resize_to: dimensions to resize the heatmaps to
+    @return: rdm_per_img: dictionary of rdm_per_img for each stimulus
+    '''
     heatmaps_per_img,_ = extract_heatmap_arrays_threaded(self, stims, dims, resize_to)
     rdm_per_img = RSA_from_heatmaps(heatmaps_per_img)
     return rdm_per_img
@@ -112,26 +119,6 @@ def extract_angle_arrays(data, stims):
             angle_corrs[stim][s] = angles
     return angle_corrs
 
-
-def RSA_from_mem(data, stims):
-    rdm_mem_per_img = {}
-    for stim in stims:
-        unique_subIDs = data.data[data.data["Stimulus"] == stim]["subjectID"].unique()
-        RDMs = np.zeros((len(unique_subIDs), len(unique_subIDs)))
-        for idx1, subj1 in enumerate(unique_subIDs):
-            for idx2, subj2 in enumerate(unique_subIDs):
-                mem1 = data.data[
-                    (data.data["Stimulus"] == stim) & (data.data["subjectID"] == subj1)
-                ]["memory_bin"].values[0]
-                mem2 = data.data[
-                    (data.data["Stimulus"] == stim) & (data.data["subjectID"] == subj2)
-                ]["memory_bin"].values[0]
-                RDMs[idx1, idx2] = 2 if (mem1 == 1 and mem2 == 1) else 1
-        rdm_mem_per_img[stim] = RDMs
-
-    for key, matrix in rdm_mem_per_img.items():
-        rdm_mem_per_img[key] = np.tril(matrix, -1)
-    return rdm_mem_per_img
 
 
 def RSA_from_angles(angles_per_img, kind="euclidean"):
