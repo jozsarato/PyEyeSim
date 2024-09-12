@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 from .statshelper import ScanpathL
 import warnings
 
+from .similarity import extract_heatmap_arrays, extract_angle_arrays, RSA_from_angles, RSA_from_heatmaps, RSA_from_mem, extract_euc_dist_arrays, RSA_from_euc_dists, entropy_fix
 
 class EyeData:
 
@@ -78,6 +79,9 @@ class EyeData:
         SaccadeSel,
         ScanpathSim2Groups,
     )
+    
+    from .similarity import RSA_heatmap_pipeline
+
 
     try:
         from ._hmm import (
