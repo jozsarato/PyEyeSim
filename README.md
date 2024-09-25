@@ -46,3 +46,17 @@ for examples of using the library, see the PyEyeSimDemo.ipynb in the Notebooks f
 
 ##### on pip
 https://pypi.org/project/pyeyesim/
+
+
+
+#### for the demo notebooks:
+dataset is from: 
+Wilming, N., Onat, S., Ossandón, J. P., Açık, A., Kietzmann, T. C., Kaspar, K., ... & König, P. (2017). An extensive dataset of eye movements during viewing of complex images. Scientific data, 4(1), 1-11.
+
+to run the demo download the CSV from:
+https://ucloud.univie.ac.at/index.php/s/3FF3iqZDzc3MxK9
+
+images can be downloaded from:
+https://datadryad.org/stash/dataset/doi:10.5061/dryad.9pf75
+only download images:  Stimuli_8.zip
+
