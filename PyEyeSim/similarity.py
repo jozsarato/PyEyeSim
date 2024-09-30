@@ -22,6 +22,17 @@ def RSA_heatmap_pipeline(self, dims, resize_to=(10, 10), stims=None):
     rdm_per_img = RSA_from_heatmaps(heatmaps_per_img)
     return rdm_per_img
 
+def RSA_distances_pipeline(self, stims=None):
+    '''
+    extract euclidean distances for all stimuli and calculate the RSA for each stimulus
+    @param stims: list of stimuli
+    @return: rdm_per_img: dictionary of rdm_per_img for each stimulus
+    '''
+    if stims is None:
+        stims = self.stimuli
+    euc_dist_per_img = extract_euc_dist_arrays(self, stims)
+    rdm_per_img = RSA_from_euc_dists(euc_dist_per_img)
+    return rdm_per_img
 
 def angle_from_horizontal(row, prev_x, prev_y):
     """

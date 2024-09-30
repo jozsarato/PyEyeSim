@@ -80,7 +80,7 @@ class EyeData:
         ScanpathSim2Groups,
     )
     
-    from .similarity import RSA_heatmap_pipeline
+    from .similarity import RSA_heatmap_pipeline, RSA_distances_pipeline
 
 
     try:
