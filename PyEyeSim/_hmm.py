@@ -79,7 +79,8 @@ def FitLOOHMM(self,ncomp,stim,covar='full',verb=False):
     xx,yy,lengths=self.DataArrayHmm(stim,tolerance=80,verb=verb)
     Dat=np.column_stack((xx,yy))
     ScoresLOO=np.zeros(len(self.suseHMM))
-    print('num valid observers',len(ScoresLOO))
+    if verb:
+        print('num valid observers',len(ScoresLOO))
     for cs,s in enumerate(self.suseHMM):
         DatTr,DatTest,lenTrain,lenTest=self.MyTrainTest(Dat,lengths,NTest,vis=0,rand=0,totest=cs)
         HMMfitted,sctr,scte=FitScoreHMMGauss(ncomp,DatTr,DatTest,lenTrain,lenTest,covar=covar)
