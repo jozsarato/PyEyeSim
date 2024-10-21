@@ -28,7 +28,7 @@ class EyeData:
         MyTrainTestVis,
         VisGrid,
         Highlight_Sign,
-        VisHeatmap,
+        VisHeatmap,VisSimmat
     )
     from ._dataproc import (
         GetParams,
@@ -78,6 +78,8 @@ class EyeData:
         SacSim1Group,
         SaccadeSel,
         ScanpathSim2Groups,
+        SacSimPipelineAll2All,SacSim1GroupAll2All
+        
     )
     
     from .similarity import RSA_heatmap_pipeline
@@ -91,6 +93,7 @@ class EyeData:
             FitVisHMM,
             FitVisHMMGroups,
             HMMSimPipeline,
+            HMMSimPipelineAll2All
         )
     except:
         warnings.warn(

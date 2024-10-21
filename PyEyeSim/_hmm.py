@@ -230,3 +230,45 @@ def HMMSimPipeline(self,ncomps=[4,6],verb=False,covar='full'):
     return StimSimsHMM,np.nanmean(StimSimsHMMall,0), StimSimsHMMall
 
 
+def HMMSimPipelineAll2All(self,ncomp=4,verb=False,covar='full',ntest=3):
+    ''' all2all across compariosn evaluation of hidden markov model to data,
+    with different number of components, each participants likelihood with leave-one-out cross validation
+    can have a long run time with longer viewing time/lot of data 
+    
+    return the individual loo log likelihoods from the best model (highest log likelihood) for each stimulus 
+    verb=True: print line for subjects with not enough fixations. - too much printing for many subjects wiht low number of fixations 
+    ncomp: list of integers with the number of components to fit 
+    covar: HMM gaussian covariance type , must be one of 'full','tied','spherical' ,'diag'
+    '''
+    
+    StimSimsHMMTrain=np.zeros((self.np,self.np))
+    StimSimsHMMTest=np.zeros((self.np,self.np))
+    
+    DatsTrain={}
+    DatsTest={}
+    DatsTrainL={}
+    DatsTestL={}
+    
+    for cp,stim in enumerate(self.stimuli):
+        xx,yy,lengths=self.DataArrayHmm(stim,tolerance=80,verb=verb)
+        Dat=np.column_stack((xx,yy))
+
+        DatTr,DatTest,lenTrain,lenTest=self.MyTrainTest(Dat,lengths,ntest=ntest,vis=0,rand=0)
+        DatsTrain[stim]=DatTr
+        DatsTrainL[stim]=lenTrain
+        DatsTest[stim]=DatTest
+        DatsTestL[stim]=lenTest
+        
+    for cp1,stim1 in enumerate(self.stimuli):
+        HMMfitted,sctr,scte=FitScoreHMMGauss(ncomp,DatsTrain[stim1],DatsTest[stim1], DatsTrainL[stim1],DatsTestL[stim1],covar=covar)
+        for cp2,stim2 in enumerate(self.stimuli):
+            StimSimsHMMTrain[cp2,cp1]=HMMfitted.score(DatsTrain[stim2],DatsTrainL[stim2])/np.sum(DatsTrainL[stim2])
+            StimSimsHMMTest[cp2,cp1]=HMMfitted.score(DatsTest[stim2],DatsTestL[stim2])/np.sum(DatsTestL[stim2])
+
+    self.VisSimmat(StimSimsHMMTrain,'Train')
+    self.VisSimmat(StimSimsHMMTest,'Test')
+    
+    return StimSimsHMMTrain,StimSimsHMMTest
+
+
+

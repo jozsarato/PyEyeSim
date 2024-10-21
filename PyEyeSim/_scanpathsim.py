@@ -189,15 +189,15 @@ def SacSimPipeline(self,divs=[4,5,7,9],Thr=5,InferS=True,normalize='add'):
 
 def SacSimPipelineAll2All(self,divs=[4,5,7,9],Thr=5,InferS=True,normalize='add'):
     SaccadeObj=self.GetSaccades()
-    StimSims=np.zeros((len(divs),self.np))
-    StimSimsInd=np.zeros((len(divs),self.ns,self.np))
+    StimSims=np.zeros((len(divs),self.np,self.np))
+    StimSimsInd=np.zeros((len(divs),self.ns,self.np,self.np))
     SimsAll=[]
     for cd,ndiv in enumerate(divs):
         print(cd,ndiv)
         sacDivSel=self.SaccadeSel(SaccadeObj,ndiv,InferS=InferS)
         SimSacP=self.SacSim1GroupAll2All(sacDivSel,Thr=Thr,normalize=normalize)
-        StimSimsInd[cd,:,:]=np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0)
-        StimSims[cd,:]=np.nanmean(np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0),0)
+        StimSimsInd[cd,:,:]=np.nanmean(np.nanmean(np.nanmean(SimSacP,5),4),0)
+        StimSims[cd,:,:]=np.nanmean(np.nanmean(np.nanmean(np.nanmean(SimSacP,5),4),0),0)
         SimsAll.append(SimSacP)
     return StimSims,np.nanmean(StimSimsInd,0),SimsAll
 
