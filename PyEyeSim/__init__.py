@@ -93,7 +93,8 @@ class EyeData:
             FitVisHMM,
             FitVisHMMGroups,
             HMMSimPipeline,
-            HMMSimPipelineAll2All
+            HMMSimPipelineAll2All,
+            HMMIndividual1Stim
         )
     except:
         warnings.warn(

@@ -262,11 +262,12 @@ def VisHeatmap(self,Stim,smap,ax=0,cutoff=0,alpha=.5,cmap='plasma',cbar=False,cb
     return
 
 
-def VisSimmat(self,simdat,title=''):
+def VisSimmat(self,simdat,ax=0,title=''):
 
-    fig,ax=plt.subplots()
+    if type(ax)==int:
+        fig,ax=plt.subplots()
     cols=ax.pcolor(simdat)
-    ax.set_xticks(np.arange(self.np)+.5,self.stimuli,rotation=50)
+    ax.set_xticks(np.arange(self.np)+.5,self.stimuli,rotation=70)
     ax.set_yticks(np.arange(self.np)+.5,self.stimuli) #,rotation=50)
     ax.scatter(np.arange(self.np)+.5,np.argmax(simdat,1)+.5,color='r')
     plt.colorbar(cols,ax=ax)
