@@ -132,3 +132,13 @@ def CalcSim(saccades1,saccades2,Thr=5):
     return simsacn
 
 
+
+def CalcSimAlt(saccades1,saccades2,Thr=5):
+    ''' calculcate angle based similarity for two arrays of saccade objects (for each cell)'''
+    saccades1[saccades1>180]-=180
+    saccades2[saccades2>180]-=180
+    A=saccades1[:,np.newaxis]
+    B=saccades2[np.newaxis,:]
+    simsacn=np.sum(np.abs(A-B)<Thr)
+    return simsacn
+
