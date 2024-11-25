@@ -11,7 +11,7 @@ from scipy import stats,ndimage
 import pandas as pd
 import matplotlib.pyplot as plt
 import time
-from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,SaccadeLine,CalcSim, CheckCoor,CalcSimAlt
+from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,SaccadeLine,CalcSim, CheckCoor,CalcSimAlt,angle_difference_power,angle_difference
 
 
 
@@ -110,11 +110,12 @@ def SaccadeSel(self,SaccadeObj,nHor,nVer=0,InferS=False):
     return Saccades
 
 
-def SacSim1Group(self,Saccades,Thr=5,p='all',normalize='add',simcalc=True):
+def SacSim1Group(self,Saccades,Thr=5,p='all',normalize='add',power=1):
     ''' calculate saccade similarity for each stimulus, between each pair of participants ,
     needs saccades stored as PyEyeSim saccade objects stored in AOIs as input,
     vertical and horizontal dimensions are inferred from the input
-    Thr=5: threshold for similarity
+    Thr=5: threshold for similarity in degree
+    !! if Thr is 0, use power function for difference in angle, for now this is a difference score, not a similarity
     normalize, if provided must be add or mult 
     simcalc: True all angles transformed to below 180 before calculating similarity'''
     
@@ -131,25 +132,28 @@ def SacSim1Group(self,Saccades,Thr=5,p='all',normalize='add',simcalc=True):
                         for h in range(nHor):
                             for v in range(nVer):
                                 if len(Saccades[s1,p1,v,h])>0 and len(Saccades[s2,p1,v,h])>0:
-                                        
-                                    if simcalc==True:
-                                        simsacn=CalcSimAlt(Saccades[s1,p1,v,h],Saccades[s2,p1,v,h],Thr=Thr)
-                                    else:
-                                        simsacn=CalcSim(Saccades[s1,p1,v,h],Saccades[s2,p1,v,h],Thr=Thr)
                                     
-                                    if normalize=='add':
-                                        SimSacP[s1,s2,p1,v,h]=simsacn/(len(Saccades[s1,p1,v,h])+len(Saccades[s2,p1,v,h]))
-                                    elif normalize=='mult':
-                                        SimSacP[s1,s2,p1,v,h]=simsacn/(len(Saccades[s1,p1,v,h])*len(Saccades[s2,p1,v,h]))
+                                    if Thr==0:
+                                        SimSacP[s1,s2,p1,v,h]=angle_difference_power(Saccades[s1,p1,v,h],Saccades[s2,p1,v,h],power=power)
+                                        
+                                    else:          
+                                       
+                                        simsacn=CalcSimAlt(Saccades[s1,p1,v,h],Saccades[s2,p1,v,h],Thr=Thr)                       
+                                        if normalize=='add':
+                                            SimSacP[s1,s2,p1,v,h]=simsacn/(len(Saccades[s1,p1,v,h])+len(Saccades[s2,p1,v,h]))
+                                        elif normalize=='mult':
+                                            SimSacP[s1,s2,p1,v,h]=simsacn/(len(Saccades[s1,p1,v,h])*len(Saccades[s2,p1,v,h]))
  
     return SimSacP
 
   
-def SacSim1GroupAll2All(self,Saccades,Thr=5,p='all',normalize='add',simcalc=0):
+def SacSim1GroupAll2All(self,Saccades,Thr=5,p='all',normalize='add',power=1):
     ''' calculate saccade similarity for each stimulus, and across all stimuli, between each pair of participants ,
     needs saccades stored as PyEyeSim saccade objects stored in AOIs as input,
     vertical and horizontal dimensions are inferred from the input
-    Thr=5: threshold for similarity
+    Thr=5: threshold for similarity    
+    !! if Thr is 0, use power function for difference in angle, for now this is a difference score, not a similarity
+
     normalize, if provided must be add or mult '''
     
     nVer=np.shape(Saccades)[2]
@@ -166,22 +170,23 @@ def SacSim1GroupAll2All(self,Saccades,Thr=5,p='all',normalize='add',simcalc=0):
                             for h in range(nHor):
                                 for v in range(nVer):
                                     if len(Saccades[s1,p1,v,h])>0 and len(Saccades[s2,p2,v,h])>0:
-                                        if simcalc==True:
-                                            simsacn=CalcSimAlt(Saccades[s1,p1,v,h],Saccades[s2,p2,v,h],Thr=Thr)
+                                        
+                                        if Thr==0:
+                                            SimSacP[s1,s2,p1,p2,v,h]=angle_difference_power(Saccades[s1,p1,v,h],Saccades[s2,p2,v,h],power=power)
 
                                         else:
-                                            simsacn=CalcSim(Saccades[s1,p1,v,h],Saccades[s2,p2,v,h],Thr=Thr)
-                                        if normalize=='add':
-                                            SimSacP[s1,s2,p1,p2,v,h]=simsacn/(len(Saccades[s1,p1,v,h])+len(Saccades[s2,p2,v,h]))
-                                        elif normalize=='mult':
-                                            SimSacP[s1,s2,p1,p2,v,h]=simsacn/(len(Saccades[s1,p1,v,h])*len(Saccades[s2,p2,v,h]))
- 
+                                            simsacn=CalcSimAlt(Saccades[s1,p1,v,h],Saccades[s2,p2,v,h],Thr=Thr)
+                                            if normalize=='add':
+                                                SimSacP[s1,s2,p1,p2,v,h]=simsacn/(len(Saccades[s1,p1,v,h])+len(Saccades[s2,p2,v,h]))
+                                            elif normalize=='mult':
+                                                SimSacP[s1,s2,p1,p2,v,h]=simsacn/(len(Saccades[s1,p1,v,h])*len(Saccades[s2,p2,v,h]))
+     
     return SimSacP
 
 
 
 
-def SacSimPipeline(self,divs=[4,5,7,9],Thr=5,InferS=True,normalize='add',simcalc=True):
+def SacSimPipeline(self,divs=[4,5,7,9],Thr=5,InferS=True,normalize='add',power=1):
     SaccadeObj=self.GetSaccades()
     StimSims=np.zeros((len(divs),self.np))
     StimSimsInd=np.zeros((len(divs),self.ns,self.np))
@@ -189,13 +194,13 @@ def SacSimPipeline(self,divs=[4,5,7,9],Thr=5,InferS=True,normalize='add',simcalc
     for cd,ndiv in enumerate(divs):
         print(cd,ndiv)
         sacDivSel=self.SaccadeSel(SaccadeObj,ndiv,InferS=InferS)
-        SimSacP=self.SacSim1Group(sacDivSel,Thr=Thr,normalize=normalize,simcalc=simcalc)
+        SimSacP=self.SacSim1Group(sacDivSel,Thr=Thr,normalize=normalize)
         StimSimsInd[cd,:,:]=np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0)
         StimSims[cd,:]=np.nanmean(np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0),0)
         SimsAll.append(SimSacP)
     return StimSims,np.nanmean(StimSimsInd,0),SimsAll
 
-def SacSimPipelineAll2All(self,divs=[4,5,7,9],Thr=5,InferS=True,normalize='add',simcalc=True):
+def SacSimPipelineAll2All(self,divs=[4,5,7,9],Thr=5,InferS=True,normalize='add',power=1):
     SaccadeObj=self.GetSaccades()
     StimSims=np.zeros((len(divs),self.np,self.np))
     StimSimsInd=np.zeros((len(divs),self.ns,self.np,self.np))
@@ -204,7 +209,7 @@ def SacSimPipelineAll2All(self,divs=[4,5,7,9],Thr=5,InferS=True,normalize='add',
         start_time = time.time()
         print(cd,ndiv)
         sacDivSel=self.SaccadeSel(SaccadeObj,ndiv,InferS=InferS)
-        SimSacP=self.SacSim1GroupAll2All(sacDivSel,Thr=Thr,normalize=normalize,simcalc=simcalc)
+        SimSacP=self.SacSim1GroupAll2All(sacDivSel,Thr=Thr,normalize=normalize)
         StimSimsInd[cd,:,:]=np.nanmean(np.nanmean(np.nanmean(SimSacP,5),4),0)
         StimSims[cd,:,:]=np.nanmean(np.nanmean(np.nanmean(np.nanmean(SimSacP,5),4),0),0)
         SimsAll.append(SimSacP)
@@ -215,7 +220,7 @@ def SacSimPipelineAll2All(self,divs=[4,5,7,9],Thr=5,InferS=True,normalize='add',
 
 
 
-def ScanpathSim2Groups(self,stim,betwcond,nHor=5,nVer=0,inferS=False,Thr=5,normalize='add',simcalc=True):
+def ScanpathSim2Groups(self,stim,betwcond,nHor=5,nVer=0,inferS=False,Thr=5,normalize='add'):
     if hasattr(self,'subjects')==0:
         self.GetParams()  
     SaccadeObj=self.GetSaccades()
@@ -231,7 +236,7 @@ def ScanpathSim2Groups(self,stim,betwcond,nHor=5,nVer=0,inferS=False,Thr=5,norma
         nVer=nHor  #
     
     SaccadeDiv=self.SaccadeSel(SaccadeObj,nHor=nHor,nVer=nVer,InferS=inferS)    
-    SimSacP=self.SacSim1Group(SaccadeDiv,Thr=Thr,normalize=normalize,simcalc=simcalc)
+    SimSacP=self.SacSim1Group(SaccadeDiv,Thr=Thr,normalize=normalize)
     WhichC,WhichCN=self.GetGroups(betwcond)
     Idxs=[]
    
