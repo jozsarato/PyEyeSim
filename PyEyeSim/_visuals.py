@@ -273,5 +273,21 @@ def VisSimmat(self,simdat,ax=0,title=''):
     plt.colorbar(cols,ax=ax)
     ax.set_title(title)
     
+    
+def Vis_Saccade_Angles(self,stim,subj='all',color='darkgreen',width= np.pi / 25,binsize=10):
+    if hasattr(self,'saccadeangles')==False:
+        self.GetSaccades()
+    stimn=int(np.nonzero(self.stimuli==stim)[0])
+    binss=np.arange(0,360+binsize,binsize)
+    
+    saccarray=np.concatenate((self.saccadeangles[:,stimn]))  #self.stimuli==stim]
+
+    bincounts, edges=np.histogram(saccarray,bins=binss)
+
+    ax=plt.subplot(projection='polar')
+    ax.bar(np.deg2rad(edges[:-1]),bincounts,width=width,bottom=0.0,color=color)
+  
+    ax.set_title(stim)
+    
 
 # %%
