@@ -132,3 +132,30 @@ def CalcSim(saccades1,saccades2,Thr=5):
     return simsacn
 
 
+
+def CalcSimAlt(saccades1,saccades2,Thr=5):
+    ''' calculcate angle based similarity for two arrays of saccade objects (for each cell)
+    all angles are transformed to below 180 degrees before comparison'''
+    saccades1[saccades1>180]-=180
+    saccades2[saccades2>180]-=180
+    A=saccades1[:,np.newaxis]
+    B=saccades2[np.newaxis,:]
+    simsacn=np.sum(np.abs(A-B)<Thr)
+    return simsacn
+
+# def CompPower(saccades1,saccades2):
+#     #saccades1[saccades1>180]-=180
+#     #saccades2[saccades2>180]-=180
+#     A=saccades1[:,np.newaxis]
+#     B=saccades2[np.newaxis,:]
+#     return  np.mean(((A-B)/180)**2)
+
+
+
+def angle_difference_power(saccades1,saccades2,power=1):
+    ''' this methods calculates differences between 0 and 90 degrees, between all pairs of saccades, than normalizes to the range 0-1, than averages
+    by default it is just the mean absolute difference, but can be used for different exponentials by changing power from the default of 1'''
+    diffs = np.abs(saccades1[:, np.newaxis] - saccades2) % 360
+    mask = diffs > 180
+    diffs[mask] = 360 - diffs[mask]
+    return np.mean(np.abs((np.minimum(diffs, 180 - diffs)/90))**power)

@@ -50,3 +50,16 @@ def FitScoreHMMGauss(ncomp,xx,xxt,lenx,lenxxt,covar='full'):
     scte=HMM.score(xxt,lenxxt)/np.sum(lenxxt)
     return HMM,sctr,scte
 
+def FitScoreHMMGauss_ind(ncomp,dat,lengths,trainsubj_idx,covar='full'):
+    ''' for fitting on one observer and testing on all other '''
+    IdxEnd=np.cumsum(lengths)
+    IdxStart=np.append(0,np.cumsum(lengths)[:-1 ]) 
+    HMM=hmm.GaussianHMM(n_components=ncomp, covariance_type=covar)
+    
+    datrain=dat[IdxStart[trainsubj_idx]:IdxEnd[trainsubj_idx]]    
+    HMM.fit(datrain)
+    scores=np.zeros(len(lengths))
+    for s in range(len(lengths)):  
+        dattest=dat[IdxStart[s]:IdxEnd[s]]           
+        scores[s]=HMM.score(dattest)/(IdxEnd[s]-IdxStart[s])
+    return HMM,scores

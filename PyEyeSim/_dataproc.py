@@ -4,7 +4,7 @@ from numpy import matlib
 #from scipy import stats,ndimage
 import pandas as pd
 import matplotlib.pyplot as plt
-from .statshelper import SaliencyMapFilt,SaccadesTrial
+from .statshelper import SaliencyMapFilt,SaccadesTrial,calculate_angle
 from .scanpathshelpdebug import CreatAoiRects,SaccadeLine
 import platform
 import warnings
@@ -252,6 +252,8 @@ def GetSaccades(self):
     
     self.nsac=np.zeros((self.ns,self.np))
     self.saccadelenghts=np.zeros((self.ns,self.np))
+    self.saccadeangles=np.zeros((self.ns,self.np),dtype=object) 
+    
     for cs,s in enumerate(self.subjects):
             SaccadeObj.append([])        
             for cp,p in enumerate(self.stimuli):
@@ -260,6 +262,8 @@ def GetSaccades(self):
                 StartTrialX,StartTrialY,EndTrialX,EndTrialY=SaccadesTrial(FixTrialX,FixTrialY)
                 SaccadesSubj=np.column_stack((StartTrialX,StartTrialY,EndTrialX,EndTrialY)) 
                 csac=0
+                
+                self.saccadeangles[cs,cp]=calculate_angle(StartTrialX,StartTrialY,EndTrialX,EndTrialY)
                 for sac in range(len(StartTrialX)):
                     if np.isfinite(SaccadesSubj[sac,0])==True:
                         SaccadeObj[cs][cp].append(SaccadeLine(SaccadesSubj[sac,:]))  # store saccades as list of  objects 
@@ -272,6 +276,7 @@ def GetSaccades(self):
                 else:
                     self.saccadelenghts[cs,cp]=np.nan
     return SaccadeObj
+
 
 
 def GetEntropies(self,fixsize=0,binsize_h=50):
