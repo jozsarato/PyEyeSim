@@ -75,3 +75,15 @@ def BonfHolm(ps,alpha=.05):
         else:
             break
     return np.sum(signCorr)
+
+
+def calculate_angle(x_start, y_start, x_end, y_end):
+    # Calculate the difference in x and y
+    delta_x = x_end - x_start
+    delta_y = y_end - y_start
+    
+    # Compute the angle in radians
+    angle_radians = np.arctan2(delta_y, delta_x)
+    # Convert to degrees
+    return np.rad2deg(angle_radians)% 360
+    

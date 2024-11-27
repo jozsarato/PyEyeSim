@@ -11,7 +11,7 @@ from scipy import stats,ndimage
 import pandas as pd
 import matplotlib.pyplot as plt
 import time
-from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,SaccadeLine,CalcSim, CheckCoor,CalcSimAlt,angle_difference_power,angle_difference
+from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,SaccadeLine,CalcSim, CheckCoor,CalcSimAlt,angle_difference_power
 
 
 
@@ -187,6 +187,11 @@ def SacSim1GroupAll2All(self,Saccades,Thr=5,p='all',normalize='add',power=1):
 
 
 def SacSimPipeline(self,divs=[4,5,7,9],Thr=5,InferS=True,normalize='add',power=1):
+    ''' if Thr>0, threshold based similarity ratio,
+    if Thr=0, average saccadic angle difference 
+    if Thr=0 and power>1, average saccadic angle difference on the value defined by power
+    this pipeline compares observers within each stimulus
+    '''
     SaccadeObj=self.GetSaccades()
     StimSims=np.zeros((len(divs),self.np))
     StimSimsInd=np.zeros((len(divs),self.ns,self.np))
@@ -194,13 +199,19 @@ def SacSimPipeline(self,divs=[4,5,7,9],Thr=5,InferS=True,normalize='add',power=1
     for cd,ndiv in enumerate(divs):
         print(cd,ndiv)
         sacDivSel=self.SaccadeSel(SaccadeObj,ndiv,InferS=InferS)
-        SimSacP=self.SacSim1Group(sacDivSel,Thr=Thr,normalize=normalize)
+        SimSacP=self.SacSim1Group(sacDivSel,Thr=Thr,normalize=normalize,power=power)
         StimSimsInd[cd,:,:]=np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0)
         StimSims[cd,:]=np.nanmean(np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0),0)
         SimsAll.append(SimSacP)
     return StimSims,np.nanmean(StimSimsInd,0),SimsAll
 
 def SacSimPipelineAll2All(self,divs=[4,5,7,9],Thr=5,InferS=True,normalize='add',power=1):
+    ''' if Thr>0, threshold based similarity ratio,
+    if Thr=0, average saccadic angle difference 
+    if Thr=0 and power>1, average saccadic angle difference on the value defined by power
+    the all to all pipeline compares observers both within and also between stimuli, therefore has a longer runtime
+    
+    '''
     SaccadeObj=self.GetSaccades()
     StimSims=np.zeros((len(divs),self.np,self.np))
     StimSimsInd=np.zeros((len(divs),self.ns,self.np,self.np))
@@ -209,7 +220,7 @@ def SacSimPipelineAll2All(self,divs=[4,5,7,9],Thr=5,InferS=True,normalize='add',
         start_time = time.time()
         print(cd,ndiv)
         sacDivSel=self.SaccadeSel(SaccadeObj,ndiv,InferS=InferS)
-        SimSacP=self.SacSim1GroupAll2All(sacDivSel,Thr=Thr,normalize=normalize)
+        SimSacP=self.SacSim1GroupAll2All(sacDivSel,Thr=Thr,normalize=normalize,power=power)
         StimSimsInd[cd,:,:]=np.nanmean(np.nanmean(np.nanmean(SimSacP,5),4),0)
         StimSims[cd,:,:]=np.nanmean(np.nanmean(np.nanmean(np.nanmean(SimSacP,5),4),0),0)
         SimsAll.append(SimSacP)
