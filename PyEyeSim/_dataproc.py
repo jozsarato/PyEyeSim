@@ -103,14 +103,25 @@ def GetStimuli(self,extension,path=0,infersubpath=False,sizecorrect=True):
                 print("!y size incosistency warning expected",self.y_size,'vs actual', Res[0])
                 ys1=(self.y_size-np.shape(self.images[s])[0])/2        
     #            ys2=self.y_size-ys1
-                self.data.loc[self.data.Stimulus==s, 'mean_y']= self.data.mean_y[self.data.Stimulus==s]-ys1
+                if self.saccadedat:
+                    self.data.loc[self.data.Stimulus==s, 'start_y']= self.data.start_y[self.data.Stimulus==s]-ys1
+                    self.data.loc[self.data.Stimulus==s, 'end_y']= self.data.end_y[self.data.Stimulus==s]-ys1
+
+
+                else:
+                    self.data.loc[self.data.Stimulus==s, 'mean_y']= self.data.mean_y[self.data.Stimulus==s]-ys1
             else:
                 print('stimulus size in y is full screen')
             if Res[1] != self.x_size:
                 print("!x size incosistency warning, expected",self.x_size,'vs actual', Res[1])
                 xs1=(self.x_size-np.shape(self.images[s])[1])/2
                # self.data['mean_x'][self.data.Stimulus==s] -= xs1
-                self.data.loc[self.data.Stimulus==s, 'mean_x']= self.data.mean_x[self.data.Stimulus==s]-xs1
+                if self.saccadedat:
+                    self.data.loc[self.data.Stimulus==s, 'start_x']= self.data.start_x[self.data.Stimulus==s]-xs1
+                    self.data.loc[self.data.Stimulus==s, 'end_x']= self.data.end_x[self.data.Stimulus==s]-xs1
+
+                else:
+                    self.data.loc[self.data.Stimulus==s, 'mean_x']= self.data.mean_x[self.data.Stimulus==s]-xs1
 
                 print('correction applied, assuming central stimulus presentation')
             else:

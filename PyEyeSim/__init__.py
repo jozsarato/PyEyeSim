@@ -29,7 +29,8 @@ class EyeData:
         VisGrid,
         Highlight_Sign,
         VisHeatmap,VisSimmat,
-        Vis_Saccade_Angles
+        Vis_Saccade_Angles,
+        VisSaccadedat
     )
     from ._dataproc import (
         GetParams,
@@ -109,7 +110,7 @@ class EyeData:
             "scikit image not found, compare groups heatmap will not work - scikit image needed for downsampling"
         )
 
-    def __init__(self, data, x_size, y_size):
+    def __init__(self, data, x_size, y_size,saccadedat=False):
         """
         Description: initalizing eye-tracking data object.
 
@@ -123,6 +124,10 @@ class EyeData:
         self.data = data
         self.x_size = x_size
         self.y_size = y_size
+        if saccadedat:
+            self.saccadedat=True
+        else:
+            self.saccadedat=False
 
         print("dataset size: ", np.shape(self.data))
         print(
@@ -131,12 +136,23 @@ class EyeData:
         print(
             "presentation size:  x=", self.x_size, "pixels y=", self.y_size, " pixels"
         )
-        DefColumns = {
-            "Stimulus": "Stimulus",
-            "subjectID": "subjectID",
-            "mean_x": "mean_x",
-            "mean_y": "mean_y",
-        }
+        if saccadedat:
+            DefColumns = {
+                "Stimulus": "Stimulus",
+                "subjectID": "subjectID",
+                "start_x": "start_x",
+                "start_y": "start_y",
+                "end_x": "end_x",
+                "end_y": "end_y",
+            }
+        
+        else:
+            DefColumns = {
+                "Stimulus": "Stimulus",
+                "subjectID": "subjectID",
+                "mean_x": "mean_x",
+                "mean_y": "mean_y",
+            }
 
         for df in DefColumns:
             try:
@@ -192,6 +208,26 @@ class EyeData:
                 }
             )
 
+    def setColumnsSac(self,
+                      Stimulus= "Stimulus",
+                      subjectID= "subjectID",
+                      start_x= "start_x",
+                      start_y= "start_y",
+                      end_x= "end_x",
+                      end_y= "end_y"):
+        self.data = self.data.rename(
+            columns={
+                Stimulus: "Stimulus",
+                subjectID: "subjectID",
+                start_x: "start_x",
+                start_y: "start_y",
+                end_x: "end_x",
+                end_y: "end_y"
+            }
+        )
+
+
+
     def setStimuliPath(
         self, StimPath=None, StimExt=".jpg", infersubpath=False, sizecorrect=True
     ):
@@ -246,6 +282,8 @@ class EyeData:
         """
 
         # pipeline
+
+  
         self.setColumns(Stimulus, subjectID, mean_x, mean_y, FixDuration)
 
         self.setSubjStim()
@@ -266,6 +304,60 @@ class EyeData:
         print("run descriptive analysis")
         self.RunDescriptiveFix(Visual=Visual)
         pass
+    def SaccadeDataInfo(
+        self,
+        Stimulus="Stimulus",
+        subjectID="subjectID",
+        start_x="start_x",
+        start_y="start_y",
+        end_x="end_x",
+        end_y="end_y",
+        FixDuration=0,
+        StimPath=None,
+        StimExt=".jpg",
+        infersubpath=False,
+        Visual=False,
+        sizecorrect=True,
+    ):
+        """
+        Description: Provide information about amount of stimuli and subjects.
+        Arguments:
+        Stimulus (str): Column name for stimulus information in the eye-tracking data.
+        subjectID (str): Column name for subject ID information in the eye-tracking data.
+        mean_x (str): Column name for mean x-coordinate of fixations in the eye-tracking data.
+        mean_y (str): Column name for mean y-coordinate of fixations in the eye-tracking data.
+        FixDuration (int or str): Column name or integers for fixation duration in the eye-tracking data.
+            If an integer, fixation duration column is assumed absent. It will be renamed "duration" afterwards
+        StimPath (str): Path to stimuli. Set to 0 if not provided.
+        StimExt (str): File extension of stimuli (default: '.jpg').
+        infersubpath (bool): Flag to infer stimulus subpaths based on subject IDs (default: False).  -- if stimuli are stored in subfolders for multiple categories
+        sizecorrect--> if True correct with stimulus resolution - screen difference, assuming central presentation
+        """
+
+        # pipeline
+
+  
+        self.setColumnsSac(Stimulus, subjectID,start_x,start_y, end_x,end_y)
+
+        self.setSubjStim()
+        if sizecorrect:
+            print(
+                "sizecorrect = ",
+                sizecorrect,
+                "; If stimulus not full screen, assume central presentation, use correction",
+            )
+        else:
+            print(
+                "sizecorrect =",
+                sizecorrect,
+                "; No correction for stimulus size and screen difference-- (eg for non full screen stimuli starting at pixel 0)",
+            )
+        self.setStimuliPath(StimPath, StimExt, infersubpath, sizecorrect=sizecorrect)
+
+    
+        pass
+    
+
 
     def RunDescriptiveFix(self, Visual=0, duration=0):
         """
