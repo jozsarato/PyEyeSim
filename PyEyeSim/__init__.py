@@ -45,6 +45,7 @@ class EyeData:
         Heatmap,
         FixCountCalc,
         GetStimSubjMap,
+        GetSaccadeData
     )
     from ._stats import (
         AngleCalc,
