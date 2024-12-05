@@ -103,14 +103,25 @@ def GetStimuli(self,extension,path=0,infersubpath=False,sizecorrect=True):
                 print("!y size incosistency warning expected",self.y_size,'vs actual', Res[0])
                 ys1=(self.y_size-np.shape(self.images[s])[0])/2        
     #            ys2=self.y_size-ys1
-                self.data.loc[self.data.Stimulus==s, 'mean_y']= self.data.mean_y[self.data.Stimulus==s]-ys1
+                if self.saccadedat:
+                    self.data.loc[self.data.Stimulus==s, 'start_y']= self.data.start_y[self.data.Stimulus==s]-ys1
+                    self.data.loc[self.data.Stimulus==s, 'end_y']= self.data.end_y[self.data.Stimulus==s]-ys1
+
+
+                else:
+                    self.data.loc[self.data.Stimulus==s, 'mean_y']= self.data.mean_y[self.data.Stimulus==s]-ys1
             else:
                 print('stimulus size in y is full screen')
             if Res[1] != self.x_size:
                 print("!x size incosistency warning, expected",self.x_size,'vs actual', Res[1])
                 xs1=(self.x_size-np.shape(self.images[s])[1])/2
                # self.data['mean_x'][self.data.Stimulus==s] -= xs1
-                self.data.loc[self.data.Stimulus==s, 'mean_x']= self.data.mean_x[self.data.Stimulus==s]-xs1
+                if self.saccadedat:
+                    self.data.loc[self.data.Stimulus==s, 'start_x']= self.data.start_x[self.data.Stimulus==s]-xs1
+                    self.data.loc[self.data.Stimulus==s, 'end_x']= self.data.end_x[self.data.Stimulus==s]-xs1
+
+                else:
+                    self.data.loc[self.data.Stimulus==s, 'mean_x']= self.data.mean_x[self.data.Stimulus==s]-xs1
 
                 print('correction applied, assuming central stimulus presentation')
             else:
@@ -171,6 +182,27 @@ def GetFixationData(self,subj,stim,timemin=0,timemax=np.inf,timecol=0):
     FixTrialX=np.array(self.data['mean_x'].iloc[TrialSubIdx]) # get x data for trial
     FixTrialY=np.array(self.data['mean_y'].iloc[TrialSubIdx]) # get y data for trial
     return FixTrialX,FixTrialY
+
+def GetSaccadeData(self,subj,stim,timemin=0,timemax=np.inf,timecol=0):
+    """get X,Y start and sequence for a subject and stimulus saccades
+    this function is working with Saccade data format, with start_x, start_y,end_x,end_y
+    output 1: array of pixel x for sequence of saccade start y
+    output 2: array of pixel y for sequence of saccade start y
+    output 3: array of pixel x for sequence of saccade end x
+    output 4: array of pixel y for sequence of saccade end y
+    
+    """
+    SubjIdx=np.nonzero(self.data['subjectID'].to_numpy()==subj)  #idx for subject
+    TrialSubIdx=np.intersect1d(np.nonzero(self.data['Stimulus'].to_numpy()==stim),SubjIdx) # idx for subject and painting
+    if type(timecol)!=int:
+        TimeIdx=np.nonzero((self.data[timecol]>timemin)&(self.data[timecol]<timemax))[0]
+        TrialSubIdx=np.intersect1d(TrialSubIdx, TimeIdx)
+    StartTrialX=np.array(self.data['start_x'].iloc[TrialSubIdx]) # get x data for trial
+    StartTrialY=np.array(self.data['start_y'].iloc[TrialSubIdx]) # get y data for trial
+    EndTrialX=np.array(self.data['end_x'].iloc[TrialSubIdx]) # get y data for trial
+    EndTrialY=np.array(self.data['end_y'].iloc[TrialSubIdx]) # get y data for trial
+    return StartTrialX,StartTrialY,EndTrialX,EndTrialY
+
 
 def GetDurations(self,s,p):
     """get fixations durations for a trials
@@ -258,8 +290,11 @@ def GetSaccades(self):
             SaccadeObj.append([])        
             for cp,p in enumerate(self.stimuli):
                 SaccadeObj[cs].append([])
-                FixTrialX,FixTrialY=self.GetFixationData(s,p)
-                StartTrialX,StartTrialY,EndTrialX,EndTrialY=SaccadesTrial(FixTrialX,FixTrialY)
+                if self.saccadedat==True: ##  if already in saccade format
+                    StartTrialX,StartTrialY,EndTrialX,EndTrialY=self.GetSaccadeData(s,p)
+                else: # if transformed from fixation format
+                    FixTrialX,FixTrialY=self.GetFixationData(s,p)
+                    StartTrialX,StartTrialY,EndTrialX,EndTrialY=SaccadesTrial(FixTrialX,FixTrialY)
                 SaccadesSubj=np.column_stack((StartTrialX,StartTrialY,EndTrialX,EndTrialY)) 
                 csac=0
                 

@@ -183,7 +183,42 @@ def SacSim1GroupAll2All(self,Saccades,Thr=5,p='all',normalize='add',power=1):
      
     return SimSacP
 
+def SacSim2GroupAll2All(self,Saccades1,Saccades2,Thr=5,p='all',normalize='add',power=1):
+    ''' calculate saccade similarity for each stimulus, from two different observations,  across all stimuli, between each pair of participants ,
+    needs saccades stored as PyEyeSim saccade objects divided into grid AOIs as input,
+    vertical and horizontal dimensions are inferred from the input, have to match between the two datasets
+    Thr=5: threshold for similarity    
+    !! if Thr is 0, use power function for difference in angle, for now this is a difference score, not a similarity
 
+    normalize, if provided must be add or mult '''
+    
+    nVer1=np.shape(Saccades1)[2]
+    nHor1=np.shape(Saccades1)[3]
+    nVer2=np.shape(Saccades2)[2]
+    nHor2=np.shape(Saccades2)[3]
+    assert nVer1==nVer2,'vertical grid division mismatch'
+    assert nHor1==nHor2,'horizontal grid division mismatch'
+
+    SimSacP=np.zeros((self.ns,self.ns,self.np,self.np,nVer1,nHor1))  
+    SimSacP[:]=np.nan
+    for s1 in range(self.ns):
+        for s2 in range(self.ns):
+            for p1 in range(self.np):
+                for p2 in range(self.np):
+                    for h in range(nHor1):
+                        for v in range(nVer1):
+                            if len(Saccades1[s1,p1,v,h])>0 and len(Saccades2[s2,p2,v,h])>0:                                 
+                                if Thr==0:
+                                    SimSacP[s1,s2,p1,p2,v,h]=angle_difference_power(Saccades1[s1,p1,v,h],Saccades2[s2,p2,v,h],power=power)
+
+                                else:
+                                    simsacn=CalcSimAlt(Saccades1[s1,p1,v,h],Saccades2[s2,p2,v,h],Thr=Thr)
+                                    if normalize=='add':
+                                        SimSacP[s1,s2,p1,p2,v,h]=simsacn/(len(Saccades1[s1,p1,v,h])+len(Saccades2[s2,p2,v,h]))
+                                    elif normalize=='mult':
+                                        SimSacP[s1,s2,p1,p2,v,h]=simsacn/(len(Saccades1[s1,p1,v,h])*len(Saccades2[s2,p2,v,h]))
+ 
+    return SimSacP
 
 
 def SacSimPipeline(self,divs=[4,5,7,9],Thr=5,InferS=True,normalize='add',power=1):

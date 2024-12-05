@@ -289,5 +289,30 @@ def Vis_Saccade_Angles(self,stim,subj='all',color='darkgreen',width= np.pi / 25,
   
     ax.set_title(stim)
     
+def VisSaccadedat(self, stimn, ax=None, alpha=0.5, allS=True, scan_path_col='salmon', fixation_col='blue', visFix=False,center=False):
+    ''' 
+    Description: Visualize scan path for a given stimulus.
+    Arguments:
+    stimn: stimulus index.
+    ax: if not provided, a new figure is created.
+    alpha: Transparency level for scan path. Defaults to 0.5.
+    allS:  Default=True, visualize scan paths for all participants; otherwise specify participant index.
+    scan_path_col: Color for the scan path. Defaults to 'salmon'.
+    fixation_col: Color for fixation points. Defaults to 'blue'.
+    VisFix: Default=False. If True, Visualize fixations with scatter points.
+    num_fixations: Number of fixations to visualize. If not provided all fixations will be enumerated.
+    Returns:
+    '''
+    if ax is None:
+        fig, ax = plt.subplots()
+    if hasattr(self,'images'):
+         ax.imshow(self.images[self.stimuli[stimn]])
 
+    idx=self.data.Stimulus==self.stimuli[stimn]
+    x=ax.plot([self.data.start_x[idx],self.data.end_x[idx]],[self.data.start_y[idx],self.data.end_y[idx]],color='k',alpha=alpha)
+    ax.set_title(self.stimuli[stimn])
+    ax.set_xlim([0, self.x_size])
+    ax.set_ylim([self.y_size, 0])
+    ax.set_xticks([])
+    ax.set_yticks([])
 # %%
