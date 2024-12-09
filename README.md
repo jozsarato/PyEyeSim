@@ -49,8 +49,7 @@ https://pypi.org/project/pyeyesim/
 
 
 
-#### for the demo notebooks:
-dataset is from: 
+#### for the demo notebooks, the dataset is from:
 Wilming, N., Onat, S., Ossandón, J. P., Açık, A., Kietzmann, T. C., Kaspar, K., ... & König, P. (2017). An extensive dataset of eye movements during viewing of complex images. Scientific data, 4(1), 1-11.
 
 to run the demo download the CSV from:
