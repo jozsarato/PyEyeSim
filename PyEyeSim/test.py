@@ -122,7 +122,7 @@ class TestGeneralFunctions(unittest.TestCase):
 
         testHM = test_eye_data.Heatmap(test_img, CutArea=0)
 
-        self.assertTrue(np.allclose(testHM, heatmap, rtol=1e-03, atol=1e-04))             
+        self.assertTrue(np.allclose(testHM, heatmap, rtol=1e-04, atol=1e-04))             
      #fixCount#
         
     def test_fixCountCalc(self):
