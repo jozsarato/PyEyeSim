@@ -83,8 +83,7 @@ def VisHMM(self,dat,hmmfitted,ax=0,showim=1,stim=0,lengths=0,incol=False):
      Positional arguments
      ----------
     dat : sequence of fixations
-    hmmfitted : TYPE
-        DESCRIPTION.
+    hmmfitted : fitted hmmlearn hidden markov model object
 
     
      Optional arguments
@@ -383,14 +382,12 @@ def VisSimmat(self,simdat,ax=0,title=''):
     
 def Vis_Saccade_Angles(self,stim,subj='all',color='darkgreen',width= np.pi / 25,binsize=10):
     '''
-    
+    visualizes saccade angle for all or a given subject
 
     Parameters
     ----------
-    stim : TYPE
-        DESCRIPTION.
-    subj : TYPE, optional
-        DESCRIPTION. The default is 'all'.
+    stim : stimulus name.
+    subj : subject numnber,. The default is 'all'.
     color : TYPE, optional
         DESCRIPTION. The default is 'darkgreen'.
     width : TYPE, optional
