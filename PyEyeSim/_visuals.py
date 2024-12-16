@@ -12,7 +12,22 @@ from matplotlib.patches import Ellipse
 from .visualhelper import draw_ellipse
 
 def MySaccadeVis(self,ax,XYdat,lengths,title='',alpha=1):
-    ''' saccade visualization, on input ax, based on combined data 2d array, and lengths 1d array'''
+    '''
+    saccade visualization, on input ax, based on combined data 2d array, and lengths 1d array
+
+    Parameters
+    ----------
+    ax : axis handle
+    XYdat : XY data of fixations
+    lengths : legnth of segments -- so that fixations from subsequent participants are not connected with "fake saccades"
+    title : image title The default is ''.
+    alpha : line transparency, The default is 1.
+
+    Returns
+    -------
+    None.
+
+    '''
     ax.set_title(title)
     ax.set_xlim([0,self.x_size])
     ax.set_ylim([self.y_size,0])
@@ -27,7 +42,24 @@ def MySaccadeVis(self,ax,XYdat,lengths,title='',alpha=1):
     return
 
 def VisLOOHMM(self,Dat,lengths,ScoresLOO,nshow=3,title='',showim=False,stimname=0):
-    ''' visualize least and most typical sequences, from above fitted HMM'''
+    '''
+    visualize least and most typical sequences of fixations based on log-likelihood, from  fitted HMM
+
+    Parameters
+    ----------
+    Dat : concateanted eye movement sequences .
+    lengths : list of lengths for each segment
+    ScoresLOO :  leave-one-out cross validation scores 
+    nshow : num of colums of examples
+    title : figure title The default is ''.
+    showim : show stimulus below fixations, The default is False.
+    stimname : stimulus name, The default is 0, has to be provided if showim=True
+
+    Returns
+    -------
+    None.
+
+    '''
     Sorted=np.argsort(ScoresLOO)
     fig,ax=plt.subplots(ncols=nshow,nrows=2,figsize=(10,7))
     for a in range(nshow):
@@ -42,10 +74,32 @@ def VisLOOHMM(self,Dat,lengths,ScoresLOO,nshow=3,title='',showim=False,stimname=
     plt.tight_layout() 
 
 def VisHMM(self,dat,hmmfitted,ax=0,showim=1,stim=0,lengths=0,incol=False):
-    ''' visualize fixations and fitted hidden markov model
-    dat: fixations
+    '''
+     visualize fixations and fitted hidden markov model
     hmmfitted: fitted hidden markov model
-    ax: if not provided, new figure opens '''
+    ax: if not provided, new figure opens 
+
+    
+     Positional arguments
+     ----------
+    dat : sequence of fixations
+    hmmfitted : TYPE
+        DESCRIPTION.
+
+    
+     Optional arguments
+     ----------
+    ax:  provide axis handle for the plot, if not new figure is opened The default is 0.
+    showim : show stimulus if True The default is 1.
+    stim : stimulus name
+    lengths : length of time series sequences (needed for multiple sequences)
+    incol : If True, use sequence of colorsm differing for each component. The default is False.
+
+    Returns
+    -------
+    None.
+
+    '''
     
     colors=['k','gray','salmon','olive','m','c','g','y','navy','orange','darkred','r','darkgreen','k','gray','salmon','olive','y','m','g','c']
     if type(ax)==int:
@@ -88,8 +142,14 @@ def VisHMM(self,dat,hmmfitted,ax=0,showim=1,stim=0,lengths=0,incol=False):
 def VisScanPath(self, stimn, ax=None, alpha=0.5, allS=True, scan_path_col='salmon', fixation_col='blue', visFix=False, num_fixations=None,center=False):
     ''' 
     Description: Visualize scan path for a given stimulus.
-    Arguments:
+    
+    
+     Positional arguments
+     ----------
     stimn: stimulus index.
+    
+    Optional arguments
+    ----------
     ax: if not provided, a new figure is created.
     alpha: Transparency level for scan path. Defaults to 0.5.
     allS:  Default=True, visualize scan paths for all participants; otherwise specify participant index.
@@ -161,13 +221,15 @@ def VisGrid(self,vals,Stim,ax=0,alpha=.3,cmap='inferno',cbar=0,vmax=0,inferS=0):
     '''  
     visualize transparent grid of values on stimulus image
 
-    Arguments:
+     Positional arguments
+     ----------
     vals: values to lay over image
     Stim: stimulus name
 
 
-    optional:
-    ax: provide axis to plot, if not new figure is opened
+     Optional arguments
+     ----------
+    ax: provide axis handle for the plot, if not new figure is opened
     alpha: transparency
     inferS: needed if not full screen images, with background--> not calculating value for full image in this case, but using BoundsX&Y
     cb: visualize colorbar --> also returned   
@@ -206,6 +268,14 @@ def VisGrid(self,vals,Stim,ax=0,alpha=.3,cmap='inferno',cbar=0,vmax=0,inferS=0):
         
 
 def Highlight_Sign(self,Stim,pvals,axis):
+    '''
+    Positional arguments
+    ----------
+    highlight cells in grid comparisons
+    Stim: stimulus name
+    pvals:  matrix of p values for the grid
+    axis: axis handle
+    '''
     if hasattr(self,'images'):
 
         idims=np.shape(self.images[Stim])
@@ -232,6 +302,29 @@ def Highlight_Sign(self,Stim,pvals,axis):
 
 
 def VisHeatmap(self,Stim,smap,ax=0,cutoff=0,alpha=.5,cmap='plasma',cbar=False,cbarlabel=False,title=''):
+    '''
+    visualize pre-calculated heatmap 
+    
+    Positional arguments
+    ----------
+    Stim : stimulus name
+    smap : previously calculated heatmap matrix
+    
+    Optional arguments
+    ----------
+    ax : axis handle, if zero opens new figure
+    cutoff: threshold, below values are shown transparent (makes the image below the heatmap more visible)
+    alpha:  transparenc of heatmap. The default is .5.
+    cmap : colormap of heatmap The default is 'plasma'.
+    cbar : create colorbar if True The default is False.
+    cbarlabel : y label of colorbar  The default is False.
+    title : title of the figure (string) The default is ''.
+
+    Returns
+    -------
+    None.
+
+    '''
     if cutoff=='median':
         cutThr=np.median(smap)
     elif cutoff>0:
@@ -263,6 +356,20 @@ def VisHeatmap(self,Stim,smap,ax=0,cutoff=0,alpha=.5,cmap='plasma',cbar=False,cb
 
 
 def VisSimmat(self,simdat,ax=0,title=''):
+    '''
+    Visualize similarity matrix, with highest value for each column- most similar stimulus for each stimulus
+    
+    Arguments
+    ----------
+    simdat : matrix values (num stimuli  * num stimuli length)
+    ax : axis handle, if 0 (default) opens new figure
+    title : title of the figure. The default is '' - no visible title.
+
+    Returns
+    -------
+    None.
+
+    '''
 
     if type(ax)==int:
         fig,ax=plt.subplots()
@@ -275,6 +382,27 @@ def VisSimmat(self,simdat,ax=0,title=''):
     
     
 def Vis_Saccade_Angles(self,stim,subj='all',color='darkgreen',width= np.pi / 25,binsize=10):
+    '''
+    
+
+    Parameters
+    ----------
+    stim : TYPE
+        DESCRIPTION.
+    subj : TYPE, optional
+        DESCRIPTION. The default is 'all'.
+    color : TYPE, optional
+        DESCRIPTION. The default is 'darkgreen'.
+    width : TYPE, optional
+        DESCRIPTION. The default is np.pi / 25.
+    binsize : TYPE, optional
+        DESCRIPTION. The default is 10.
+
+    Returns
+    -------
+    None.
+
+    '''
     if hasattr(self,'saccadeangles')==False:
         self.GetSaccades()
     stimn=int(np.nonzero(self.stimuli==stim)[0])
