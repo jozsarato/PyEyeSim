@@ -14,12 +14,16 @@ from .visualhelper import draw_ellipse
 def MySaccadeVis(self,ax,XYdat,lengths,title='',alpha=1):
     '''
     saccade visualization, on input ax, based on combined data 2d array, and lengths 1d array
-
-    Parameters
+   
+     Positional arguments
     ----------
     ax : axis handle
     XYdat : XY data of fixations
     lengths : legnth of segments -- so that fixations from subsequent participants are not connected with "fake saccades"
+    
+    
+     Optional arguments
+     ----------
     title : image title The default is ''.
     alpha : line transparency, The default is 1.
 
@@ -45,11 +49,15 @@ def VisLOOHMM(self,Dat,lengths,ScoresLOO,nshow=3,title='',showim=False,stimname=
     '''
     visualize least and most typical sequences of fixations based on log-likelihood, from  fitted HMM
 
-    Parameters
-    ----------
+    
+     Positional arguments
+     ----------
     Dat : concateanted eye movement sequences .
     lengths : list of lengths for each segment
     ScoresLOO :  leave-one-out cross validation scores 
+    
+     Optional arguments
+     ----------
     nshow : num of colums of examples
     title : figure title The default is ''.
     showim : show stimulus below fixations, The default is False.
@@ -202,7 +210,25 @@ def VisScanPath(self, stimn, ax=None, alpha=0.5, allS=True, scan_path_col='salmo
     ax.set_yticks([])
 
 def MyTrainTestVis(self, DatTr,DatTest,lenTrain,lenTest,totest=0):    
-    ''' make figure for training test - set visualization'''
+    '''
+    make figure for training test - set saccade visualization
+    creates a figure with 2 subplots, visualizing the training and test set saccades
+
+    Positional arguments
+    ----------
+    DatTr : training data HMM
+    DatTest : test data HMM
+    lenTrain : list of lengths of training set sequences
+    lenTest : list of lengths of test set sequences
+    Optional argument
+    ----------
+    totest : if list, specified participants for test. The default is 0.
+
+    Returns
+    -------
+    None.
+
+    '''
     fig,ax=plt.subplots(ncols=2,figsize=(8,3.5))
     self.MySaccadeVis(ax[0],DatTr,lenTrain,title='training data',alpha=.3)
     if type(totest)==int:
@@ -358,9 +384,13 @@ def VisSimmat(self,simdat,ax=0,title=''):
     '''
     Visualize similarity matrix, with highest value for each column- most similar stimulus for each stimulus
     
-    Arguments
-    ----------
+    
+     Positional argument
+     ----------
     simdat : matrix values (num stimuli  * num stimuli length)
+    
+     Optional arguments
+     ----------
     ax : axis handle, if 0 (default) opens new figure
     title : title of the figure. The default is '' - no visible title.
 
@@ -384,9 +414,14 @@ def Vis_Saccade_Angles(self,stim,subj='all',color='darkgreen',width= np.pi / 25,
     '''
     visualizes saccade angle for all or a given subject
 
-    Parameters
+    
+     Positional arguments
     ----------
     stim : stimulus name.
+    
+
+     optional arguments
+     ----------
     subj : subject numnber,. The default is 'all'.
     color : TYPE, optional
         DESCRIPTION. The default is 'darkgreen'.
@@ -417,8 +452,12 @@ def Vis_Saccade_Angles(self,stim,subj='all',color='darkgreen',width= np.pi / 25,
 def VisSaccadedat(self, stimn, ax=None, alpha=0.5, allS=True, scan_path_col='salmon', fixation_col='blue', visFix=False,center=False):
     ''' 
     Description: Visualize scan path for a given stimulus.
-    Arguments:
-    stimn: stimulus index.
+    Positional Argument:
+      -------
+      stimn: stimulus index.
+      
+    Optional Arguments:
+     -------    
     ax: if not provided, a new figure is created.
     alpha: Transparency level for scan path. Defaults to 0.5.
     allS:  Default=True, visualize scan paths for all participants; otherwise specify participant index.

@@ -531,10 +531,13 @@ def CompareGroupsMat(self,group,indsimmat):
 
 def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,cmap_ind='plasma',cmap_diff='RdYlBu',alpha=.5,t_abs=False,timemin=0, timemax=np.inf, timecol=0,useT=True,cutoff=-1,InferS=2): 
     ''' 
-
+    Positional arguments
+    ----------
     Stim: stimulus name
     betwcond: between subject condition (if substring=True, this is not used)
     
+     Optional arguments
+     ----------    
     Conds: explicitly provide conditions (if there are more than 2, this is necessary)
     t_abs: default=False,  absolute t value vs raw t-values grid
     nhor: number of horizonal cells for the grid
