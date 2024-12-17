@@ -20,7 +20,30 @@ from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,SaccadeLine,CalcSim,
 
 
 def AOIFix(self,p,FixTrialX,FixTrialY,nDivH,nDivV,InferS=1):
-    """ given a sequence of X,Y fixation data and AOI divisions, calculate static N and p matrix) """ 
+    '''
+    given a sequence of X,Y fixation data and AOI divisions, calculate static N and p matrix)
+
+    Positional arguments
+   ----------
+    p : stimulus index
+    FixTrialX : np array of fixation x positions
+    FixTrialY : np array of fixation y positions
+    nDivH : int, num of horizontal divisions
+    nDivV : int, num of vertical divisions
+     
+     Optional arguments
+     ----------
+    InferS : infer size of compared area from eye movement location distribution The default is 1.
+            if zero, comparisons is for the whole screen,
+            if 2, and images have been loaded, uses the size of each image (if images not found, falls back to 0)
+
+    Returns
+    -------
+    NFix : number of fixations.
+    StatPtrial : statitic fixation probability distribution across divisions
+    StatNtrial : static fixation counts
+
+    '''
     nAOI=nDivH*nDivV
     AOInums=np.arange(nAOI).reshape(nDivV,nDivH)
     NFix=len(FixTrialX)  # num of data points
@@ -63,7 +86,25 @@ def AOIFix(self,p,FixTrialX,FixTrialY,nDivH,nDivV,InferS=1):
 
     
 def SaccadeSel(self,SaccadeObj,nHor,nVer=0,InferS=False): 
-    ''' select saccades for angle comparison method'''
+    '''
+    select saccades for angle comparison method, return array of saccade angles for each participant, stimulus and cell for a given hor by ver division
+    
+
+    Positional arguments
+   ----------
+    SaccadeObj : saccade object as input (as defined in scanpathsimhelper.py)
+    nHor : num horizontal divisons
+     
+     Optional arguments
+     ----------
+    nVer : num vertical divisions (if zero, equals to horizontal)
+    InferS : infer size of stimulus from eye movement location distribution, default is False.
+
+    Returns
+    -------
+    Saccades :  num observers * num stimuli * num vertical * num horizontal matrix, each entry is an array of saccade angles for that cell
+
+    '''
     if nVer==0:
         nVer=nHor  # if number of vertical divisions not provided -- use same as the number of horizontal
     SaccadeAOIAngles=[]
