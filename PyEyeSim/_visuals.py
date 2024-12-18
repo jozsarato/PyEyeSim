@@ -242,7 +242,7 @@ def MyTrainTestVis(self, DatTr,DatTest,lenTrain,lenTest,totest=0):
     self.MySaccadeVis(ax[1],DatTest,lenTest,title='test data '+titStr)
     return 
 
-def VisGrid(self,vals,Stim,ax=0,alpha=.3,cmap='inferno',cbar=0,vmax=0,inferS=0):
+def VisGrid(self,vals,Stim,ax=0,alpha=.3,cmap='inferno',cbar=0,vmax=0):
     '''  
     visualize transparent grid of values on stimulus image
 
@@ -264,21 +264,11 @@ def VisGrid(self,vals,Stim,ax=0,alpha=.3,cmap='inferno',cbar=0,vmax=0,inferS=0):
     if type(ax)==int:
         fig,ax=plt.subplots()
     if hasattr(self,'images'):
-        idims=np.shape(self.images[Stim])
-        yimsize,ximsize=idims[0],idims[1]
-    
         ax.imshow(self.images[Stim])
-    else:
-        yimsize,ximsize=self.y_size, self.x_size
-
-        
-    if inferS==0:
-        horcells=np.linspace(0,ximsize,np.shape(vals)[1]+1)
-        vercells=np.linspace(0,yimsize,np.shape(vals)[0]+1)
-    else:
-        stimId=np.nonzero(self.stimuli==Stim)[0]   
-        horcells=np.linspace(self.boundsX[stimId,0],self.boundsX[stimId,1],np.shape(vals)[1]+1).flatten()
-        vercells=np.linspace(self.boundsY[stimId,0],self.boundsY[stimId,1],np.shape(vals)[0]+1).flatten()
+  
+    stimId=np.nonzero(self.stimuli==Stim)[0]   
+    horcells=np.linspace(self.boundsX[stimId,0],self.boundsX[stimId,1],np.shape(vals)[1]+1).flatten()
+    vercells=np.linspace(self.boundsY[stimId,0],self.boundsY[stimId,1],np.shape(vals)[0]+1).flatten()
     if vmax==0:
         cols=ax.pcolormesh(horcells,vercells,vals,alpha=alpha,cmap=cmap)
     else:

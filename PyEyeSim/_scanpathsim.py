@@ -19,7 +19,7 @@ from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,SaccadeLine,CalcSim,
 
 
 
-def AOIFix(self,p,FixTrialX,FixTrialY,nDivH,nDivV,InferS=1):
+def AOIFix(self,p,FixTrialX,FixTrialY,nDivH,nDivV):
     '''
     given a sequence of X,Y fixation data and AOI divisions, calculate static N and p matrix)
 
@@ -33,9 +33,8 @@ def AOIFix(self,p,FixTrialX,FixTrialY,nDivH,nDivV,InferS=1):
      
      Optional arguments
      ----------
-    InferS : infer size of compared area from eye movement location distribution The default is 1.
-            if zero, comparisons is for the whole screen,
-            if 2, and images have been loaded, uses the size of each image (if images not found, falls back to 0)
+    Imsize : use specific size of each image (from loaded stimulus, or inferred boundaries, as set in DataInfo) The default is True.
+            if False, comparisons is for the full screen resolution (ideally for full screen images)
 
     Returns
     -------
@@ -49,20 +48,11 @@ def AOIFix(self,p,FixTrialX,FixTrialY,nDivH,nDivV,InferS=1):
     NFix=len(FixTrialX)  # num of data points
     # set AOI bounds
    # print(p,SizeGendX)
-    if InferS==0:
-        AOIboundsH=AOIbounds(0, self.x_size,nDivH)       
-        AOIboundsV=AOIbounds(0, self.y_size,nDivV)  
-    elif InferS==1:
-        AOIboundsH=AOIbounds(self.boundsX[p,0], self.boundsX[p,1],nDivH)       
-        AOIboundsV=AOIbounds(self.boundsY[p,0], self.boundsY[p,1],nDivV)   
-    elif InferS==2:
-        if hasattr(self,'images'):
-            ims=np.shape(self.images[self.stimuli[p]])
-        else:
-            ims=np.array([self.y_size,self.x_size])
-        AOIboundsH=AOIbounds(0, ims[1],nDivH)       
-        AOIboundsV=AOIbounds(0,ims[0],nDivV)  
 
+    AOIboundsH=AOIbounds(self.boundsX[p,0], self.boundsX[p,1],nDivH)       
+    AOIboundsV=AOIbounds(self.boundsY[p,0], self.boundsY[p,1],nDivV)  
+     
+   
     # set parameters & arrays to store data
     StatPtrial=np.zeros(nAOI) # static probabilities.
     StatNtrial=np.zeros(nAOI) # static counts.
@@ -85,7 +75,7 @@ def AOIFix(self,p,FixTrialX,FixTrialY,nDivH,nDivV,InferS=1):
     return NFix,StatPtrial,StatNtrial
 
     
-def SaccadeSel(self,SaccadeObj,nHor,nVer=0,InferS=False): 
+def SaccadeSel(self,SaccadeObj,nHor,nVer=0): 
     '''
     select saccades for angle comparison method, return array of saccade angles for each participant, stimulus and cell for a given hor by ver division
     
@@ -98,7 +88,7 @@ def SaccadeSel(self,SaccadeObj,nHor,nVer=0,InferS=False):
      Optional arguments
      ----------
     nVer : num vertical divisions (if zero, equals to horizontal)
-    InferS : infer size of stimulus from eye movement location distribution, default is False.
+    Imsize : infer size of stimulus from eye movement location distribution, default is False.
 
     Returns
     -------
@@ -109,14 +99,8 @@ def SaccadeSel(self,SaccadeObj,nHor,nVer=0,InferS=False):
         nVer=nHor  # if number of vertical divisions not provided -- use same as the number of horizontal
     SaccadeAOIAngles=[]
     SaccadeAOIAnglesCross=[]
-    if InferS:
-        if hasattr(self,'boundsX')==False:
-            print('runnnig descriptives to get bounds')
-            self.RunDescriptiveFix()  
-        AOIRects=CreatAoiRects(nHor,nVer,self.boundsX,self.boundsY)
-    else:
-        AOIRects=CreatAoiRects(nHor,nVer,self.x_size,self.y_size,allsame=self.np)
     
+    AOIRects=CreatAoiRects(nHor,nVer,self.boundsX,self.boundsY)
     
 
     Saccades=np.zeros((((self.ns,self.np,nVer,nHor))),dtype=np.ndarray)  # store an array of saccades that cross the cell, for each AOI rectangle of each trial for each partiicpant
@@ -264,7 +248,7 @@ def SacSim2GroupAll2All(self,Saccades1,Saccades2,Thr=5,p='all',normalize='add',p
     return SimSacP
 
 
-def SacSimPipeline(self,divs=[4,5,7,9],Thr=5,InferS=True,normalize='add',power=1):
+def SacSimPipeline(self,divs=[4,5,7,9],Thr=5,normalize='add',power=1):
     ''' if Thr>0, threshold based similarity ratio,
     if Thr=0, average saccadic angle difference 
     if Thr=0 and power>1, average saccadic angle difference on the value defined by power
@@ -277,7 +261,7 @@ def SacSimPipeline(self,divs=[4,5,7,9],Thr=5,InferS=True,normalize='add',power=1
     for cd,ndiv in enumerate(divs):
         start_time = time.time()
         print(cd,ndiv)
-        sacDivSel=self.SaccadeSel(SaccadeObj,ndiv,InferS=InferS)
+        sacDivSel=self.SaccadeSel(SaccadeObj,ndiv)
         SimSacP=self.SacSim1Group(sacDivSel,Thr=Thr,normalize=normalize,power=power)
         StimSimsInd[cd,:,:]=np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0)
         StimSims[cd,:]=np.nanmean(np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0),0)
@@ -287,7 +271,7 @@ def SacSimPipeline(self,divs=[4,5,7,9],Thr=5,InferS=True,normalize='add',power=1
 
     return StimSims,np.nanmean(StimSimsInd,0),SimsAll
 
-def SacSimPipelineAll2All(self,divs=[4,5,7,9],Thr=5,InferS=True,normalize='add',power=1):
+def SacSimPipelineAll2All(self,divs=[4,5,7,9],Thr=5,normalize='add',power=1):
     ''' if Thr>0, threshold based similarity ratio,
     if Thr=0, average saccadic angle difference 
     if Thr=0 and power>1, average saccadic angle difference on the value defined by power
@@ -301,7 +285,7 @@ def SacSimPipelineAll2All(self,divs=[4,5,7,9],Thr=5,InferS=True,normalize='add',
     for cd,ndiv in enumerate(divs):
         start_time = time.time()
         print(cd,ndiv)
-        sacDivSel=self.SaccadeSel(SaccadeObj,ndiv,InferS=InferS)
+        sacDivSel=self.SaccadeSel(SaccadeObj,ndiv)
         SimSacP=self.SacSim1GroupAll2All(sacDivSel,Thr=Thr,normalize=normalize,power=power)
         StimSimsInd[cd,:,:]=np.nanmean(np.nanmean(np.nanmean(SimSacP,5),4),0)
         StimSims[cd,:,:]=np.nanmean(np.nanmean(np.nanmean(np.nanmean(SimSacP,5),4),0),0)
@@ -313,7 +297,7 @@ def SacSimPipelineAll2All(self,divs=[4,5,7,9],Thr=5,InferS=True,normalize='add',
 
 
 
-def ScanpathSim2Groups(self,stim,betwcond,nHor=5,nVer=0,inferS=False,Thr=5,normalize='add'):
+def ScanpathSim2Groups(self,stim,betwcond,nHor=5,nVer=0,Thr=5,normalize='add'):
     if hasattr(self,'subjects')==0:
         self.GetParams()  
     SaccadeObj=self.GetSaccades()
@@ -328,7 +312,7 @@ def ScanpathSim2Groups(self,stim,betwcond,nHor=5,nVer=0,inferS=False,Thr=5,norma
     if nVer==0:
         nVer=nHor  #
     
-    SaccadeDiv=self.SaccadeSel(SaccadeObj,nHor=nHor,nVer=nVer,InferS=inferS)    
+    SaccadeDiv=self.SaccadeSel(SaccadeObj,nHor=nHor,nVer=nVer)    
     SimSacP=self.SacSim1Group(SaccadeDiv,Thr=Thr,normalize=normalize)
     WhichC,WhichCN=self.GetGroups(betwcond)
     Idxs=[]
@@ -346,7 +330,7 @@ def ScanpathSim2Groups(self,stim,betwcond,nHor=5,nVer=0,inferS=False,Thr=5,norma
             Vals=np.nanmean(np.nanmean(SimSacP[Idxs[cgr1],:,stimn,:,:][:,Idxs[cgr2],:,:],0),0)  
             SimVals[cgr1,cgr2]=np.nanmean(Vals)
             SimValsSD[cgr1,cgr2]=np.nanstd(Vals)
-            self.VisGrid(Vals,stim,ax=ax[cgr1,cgr2],cbar=True,inferS=inferS,alpha=.8)
+            self.VisGrid(Vals,stim,ax=ax[cgr1,cgr2],cbar=True,alpha=.8)
             ax[cgr1,cgr2].set_title(str(gr1)+' '+str(gr2)+' mean= '+str(np.round(SimVals[cgr1,cgr2],3)))
     
     return SimVals,SimValsSD

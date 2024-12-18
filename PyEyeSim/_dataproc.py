@@ -25,27 +25,53 @@ def GetParams(self):
     self.ns,self.np=len(self.subjects),len(self.stimuli)
     return  self.subjects,self.stimuli
 
-def InferSize(self,Interval=99):
-    ''' Infer stimulus size as central Interval % fixations data'''
+def GetSize(self,infersize=False,Interval=99):
+    '''
+    get stimulus specific resolution.
+    
+    if infersize==False, and images are loaded, use the resolution of each image
+    if infersize==True size inferred as central Interval percentile of fixations data, 
+    if infersize==False and image is not found, use full screen resolution for each image
+
+    Parameters
+    ----------
+    infersize : type bool, optional
+        DESCRIPTION. The default is False.
+    Interval: type percentile to use to infer image area from eye movement data, only relevant in infersize=True The default is 99.
+
+    Returns
+    -------
+    BoundsX: x pixel bounds for each stimulus (num stimuli, for start and end X coordinate)
+    BoundsY : y pixel bounds for each stimulus (num stimuli, for start and end Y coordinate)
+
+    '''
     BoundsX=np.zeros((len(self.stimuli),2))
     BoundsY=np.zeros((len(self.stimuli),2))
-    for cp,p in enumerate(self.stimuli):
-        Idx=np.nonzero(self.data['Stimulus'].to_numpy()==p)[0]
-        BoundsX[cp,:]=np.percentile(self.data['mean_x'].to_numpy()[Idx],[(100-Interval)/2,Interval+(100-Interval)/2])
-        BoundsY[cp,:]=np.percentile(self.data['mean_y'].to_numpy()[Idx],[(100-Interval)/2,Interval+(100-Interval)/2])
-        
-        if BoundsX[cp,0]<0:  
-            BoundsX[cp,0]=0. ## out of area bounds are replaced with screen size
-        if BoundsY[cp,0]<0:
-            BoundsY[cp,0]=0  ## out of area bounds are replaced with screen size
-        if BoundsX[cp,1]>self.x_size:
-            BoundsX[cp,1]=self.x_size  ## out of area bounds are replaced with screen size
-        if BoundsY[cp,1]>self.y_size:
-            BoundsY[cp,1]=self.y_size  ## out of area bounds are replaced with screen size
+    
+    if hasattr(self,'images') and infersize==False:
+        for cim,im in enumerate(self.images):
+            BoundsX[cim,1]=np.shape(self.images[im])[1]
+            BoundsY[cim,1]=np.shape(self.images[im])[0]     
+    elif infersize==True:    
+        for cp,p in enumerate(self.stimuli):
+            Idx=np.nonzero(self.data['Stimulus'].to_numpy()==p)[0]
+            BoundsX[cp,:]=np.percentile(self.data['mean_x'].to_numpy()[Idx],[(100-Interval)/2,Interval+(100-Interval)/2])
+            BoundsY[cp,:]=np.percentile(self.data['mean_y'].to_numpy()[Idx],[(100-Interval)/2,Interval+(100-Interval)/2])
+            
+            if BoundsX[cp,0]<0:  
+                BoundsX[cp,0]=0. ## out of area bounds are replaced with screen size
+            if BoundsY[cp,0]<0:
+                BoundsY[cp,0]=0  ## out of area bounds are replaced with screen size
+            if BoundsX[cp,1]>self.x_size:
+                BoundsX[cp,1]=self.x_size  ## out of area bounds are replaced with screen size
+            if BoundsY[cp,1]>self.y_size:
+                BoundsY[cp,1]=self.y_size  ## out of area bounds are replaced with screen size
+    else:
+        BoundsX[:,1]=self.x_size
+        BoundsY[:,1]=self.y_size
+
     BoundsX=np.intp(np.round(BoundsX))
     BoundsY=np.intp(np.round(BoundsY))
-    #self.boundsX=BoundsX
-    #self.boundsY=BoundsY
     return BoundsX,BoundsY
 
 def GetStimuli(self,extension,path=0,infersubpath=False,sizecorrect=True):
@@ -95,6 +121,7 @@ def GetStimuli(self,extension,path=0,infersubpath=False,sizecorrect=True):
         self.images[s]=Stim
 
         Res=np.shape(Stim)
+        
         ## implement correction for difference between screen and stimulus/image resolution!
         # and and y values are shifted, so that stimuli start at 0
         if sizecorrect:
@@ -369,14 +396,8 @@ def Heatmap(self,Stim,SD=25,Ind=0,Vis=0,FixCounts=0,cutoff='median',CutArea=0,ax
         
     yimsize,ximsize=idims[0],idims[1]
 
-    if hasattr(self,'boundsX')==False:
-        print('run RunDescriptiveFix first- without visuals')
-        self.RunDescriptiveFix()
     if type(FixCounts)==int:
-        if CutArea:
-            FixCounts=self.FixCountCalc(Stim,CutAct=1) 
-        else:
-            FixCounts=self.FixCountCalc(Stim,CutAct=0) 
+        FixCounts=self.FixCountCalc(Stim,CutAct=CutArea) 
     if np.sum(FixCounts) <= 0:
         raise ValueError('No fixations found')
 
