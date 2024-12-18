@@ -100,7 +100,7 @@ def GetStimuli(self,extension,path=0,infersubpath=False,sizecorrect=True):
         if sizecorrect:
 
             if Res[0] != self.y_size:   
-                print("!y size incosistency warning expected",self.y_size,'vs actual', Res[0])
+                print("!y size incosistency warning, expected:",self.y_size,'vs actual:', Res[0])
                 ys1=(self.y_size-np.shape(self.images[s])[0])/2        
     #            ys2=self.y_size-ys1
                 if self.saccadedat:

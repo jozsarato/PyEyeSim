@@ -116,6 +116,8 @@ def SaccadeSel(self,SaccadeObj,nHor,nVer=0,InferS=False):
         AOIRects=CreatAoiRects(nHor,nVer,self.boundsX,self.boundsY)
     else:
         AOIRects=CreatAoiRects(nHor,nVer,self.x_size,self.y_size,allsame=self.np)
+    
+    
 
     Saccades=np.zeros((((self.ns,self.np,nVer,nHor))),dtype=np.ndarray)  # store an array of saccades that cross the cell, for each AOI rectangle of each trial for each partiicpant
     for s in np.arange(self.ns):
@@ -273,12 +275,16 @@ def SacSimPipeline(self,divs=[4,5,7,9],Thr=5,InferS=True,normalize='add',power=1
     StimSimsInd=np.zeros((len(divs),self.ns,self.np))
     SimsAll=[]
     for cd,ndiv in enumerate(divs):
+        start_time = time.time()
         print(cd,ndiv)
         sacDivSel=self.SaccadeSel(SaccadeObj,ndiv,InferS=InferS)
         SimSacP=self.SacSim1Group(sacDivSel,Thr=Thr,normalize=normalize,power=power)
         StimSimsInd[cd,:,:]=np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0)
         StimSims[cd,:]=np.nanmean(np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0),0)
         SimsAll.append(SimSacP)
+        end_time=time.time()
+        print(f"calculating similarity with div {ndiv}*{ndiv} took {end_time - start_time:.3f} sec")
+
     return StimSims,np.nanmean(StimSimsInd,0),SimsAll
 
 def SacSimPipelineAll2All(self,divs=[4,5,7,9],Thr=5,InferS=True,normalize='add',power=1):
