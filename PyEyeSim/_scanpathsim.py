@@ -164,7 +164,7 @@ def SacSim1Group(self,Saccades,Thr=5,p='all',normalize='add',power=1,bothnot=Fal
                                             SimSacP[s1,s2,p1,v,h]=simsacn/(len(Saccades[s1,p1,v,h])*len(Saccades[s2,p1,v,h]))
                                 elif len(Saccades[s1,p1,v,h])>0 or len(Saccades[s2,p1,v,h])>0:
                                     SimSacP[s1,s2,p1,v,h]=0
-                                elif len(Saccades[s1,p1,v,h])==0 or len(Saccades[s2,p1,v,h])==0:
+                                elif len(Saccades[s1,p1,v,h])==0 and len(Saccades[s2,p1,v,h])==0:
                                     if bothnot:
                                         SimSacP[s1,s2,p1,v,h]=1
     
