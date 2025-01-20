@@ -143,6 +143,20 @@ def CalcSimAlt(saccades1,saccades2,Thr=5):
     simsacn=np.sum(np.abs(A-B)<Thr)
     return simsacn
 
+
+def KuiperStat(saccades1,saccades2):
+    sample1 = np.sort(saccades1)
+    sample2 = np.sort(saccades2)
+    all_data = np.sort(np.concatenate((sample1, sample2)))
+    ecdf1 = np.searchsorted(sample1, all_data, side='right') / len(sample1)
+    ecdf2 = np.searchsorted(sample2, all_data, side='right') / len(sample2)
+    d_plus = np.max(ecdf1 - ecdf2)
+    d_minus = np.max(ecdf2 - ecdf1)
+    v = d_plus + d_minus
+    return 1 - v
+    
+    
+
 # def CompPower(saccades1,saccades2):
 #     #saccades1[saccades1>180]-=180
 #     #saccades2[saccades2>180]-=180
