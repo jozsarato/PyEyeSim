@@ -136,7 +136,8 @@ def SacSim1Group(self,Saccades,Thr=5,p='all',normalize='add',power=1,bothnot=Fal
     !! if Thr is 0, use power function for difference in angle, for now this is a difference score, not a similarity
     normalize, if provided must be add or mult 
     simcalc: True all angles transformed to below 180 before calculating similarity
-    bothnot: cells where neither particpants have fixations, are calculated as similar -1 '''
+    bothnot: if True cells where neither particpants have fixations, are calculated as similar : 1 
+    cells where only 1 person has saccades, calculated as zero'''
     
     nVer=np.shape(Saccades)[2]
     nHor=np.shape(Saccades)[3]
@@ -163,9 +164,11 @@ def SacSim1Group(self,Saccades,Thr=5,p='all',normalize='add',power=1,bothnot=Fal
                                         elif normalize=='mult':
                                             SimSacP[s1,s2,p1,v,h]=simsacn/(len(Saccades[s1,p1,v,h])*len(Saccades[s2,p1,v,h]))
                                 elif len(Saccades[s1,p1,v,h])==0 and len(Saccades[s2,p1,v,h])>0:
-                                    SimSacP[s1,s2,p1,v,h]=0
+                                    if bothnot:
+                                        SimSacP[s1,s2,p1,v,h]=0
                                 elif len(Saccades[s1,p1,v,h])>0 and len(Saccades[s2,p1,v,h])==0:
-                                    SimSacP[s1,s2,p1,v,h]=0
+                                    if bothnot:
+                                        SimSacP[s1,s2,p1,v,h]=0
                                 elif len(Saccades[s1,p1,v,h])==0 and len(Saccades[s2,p1,v,h])==0:
                                     if bothnot:
                                         SimSacP[s1,s2,p1,v,h]=1
