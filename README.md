@@ -6,7 +6,7 @@ The ultimate goal of the library is to make advanced fixation map statistics (eg
 
 The library also provides general descripitve statistics about eye-movements. It is intended to work with ordered fixation data. (a row for each fixation), that is loaded into a pandas dataframe.   
 
-Additionaly, easy visualizations about the statistics (overall stats, stimulus based stats, within trial progrression) and heatmaps are also provided. 
+Additionaly, easy visualizations about the statistics (overall stats, stimulus based stats, within trial progression) and heatmaps are also provided. 
 
 three main scanpath similarity functionalities:
 
