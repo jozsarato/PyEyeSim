@@ -115,7 +115,7 @@ def SaccadeSel(self,SaccadeObj,nHor,nVer=0):
                           #  print(h,v,SaccadeObj[s][p][sac].Angle())
                             SaccadeAOIAngles[s][p][sac,v,h]=SaccadeObj[s][p][sac].Angle()  # get the angle of the sacccade
 
-                if np.sum(SaccadeAOIAngles[s][p][sac,:,:]>0)>1:  # select saccaded that use multiple cells
+                if np.sum(SaccadeAOIAngles[s][p][sac,:,:]>0)>1:  # select saccades that use multiple cells
                     #print('CrossSel',SaccadeAOIAngles[s][p][sac,:,:])
                     SaccadeAOIAnglesCross[s][p][sac,:,:]=SaccadeAOIAngles[s][p][sac,:,:]
 

@@ -310,12 +310,14 @@ def GetSaccades(self):
     SaccadeObj=[]
     
     self.nsac=np.zeros((self.ns,self.np))
-    self.saccadelenghts=np.zeros((self.ns,self.np))
+    self.saccadelenghts=np.zeros((self.ns,self.np),dtype=object)
     self.saccadeangles=np.zeros((self.ns,self.np),dtype=object) 
-    
+
     for cs,s in enumerate(self.subjects):
             SaccadeObj.append([])        
             for cp,p in enumerate(self.stimuli):
+                
+                    
                 SaccadeObj[cs].append([])
                 if self.saccadedat==True: ##  if already in saccade format
                     StartTrialX,StartTrialY,EndTrialX,EndTrialY=self.GetSaccadeData(s,p)
@@ -324,19 +326,16 @@ def GetSaccades(self):
                     StartTrialX,StartTrialY,EndTrialX,EndTrialY=SaccadesTrial(FixTrialX,FixTrialY)
                 SaccadesSubj=np.column_stack((StartTrialX,StartTrialY,EndTrialX,EndTrialY)) 
                 csac=0
-                
                 self.saccadeangles[cs,cp]=calculate_angle(StartTrialX,StartTrialY,EndTrialX,EndTrialY)
+                saccadelens_list=[]
                 for sac in range(len(StartTrialX)):
                     if np.isfinite(SaccadesSubj[sac,0])==True:
                         SaccadeObj[cs][cp].append(SaccadeLine(SaccadesSubj[sac,:]))  # store saccades as list of  objects 
-                        self.saccadelenghts[cs,cp]+=SaccadeObj[cs][cp][-1].length()   
+                        saccadelens_list.append(SaccadeObj[cs][cp][-1].length())
                         csac+=1
                 self.nsac[cs,cp]=csac  # num of saccades for each participant and painting
-                if csac>0:
-                    self.saccadelenghts[cs,cp]/=csac
-            
-                else:
-                    self.saccadelenghts[cs,cp]=np.nan
+                self.saccadelenghts[cs,cp]=np.array([saccadelens_list])
+              
     return SaccadeObj
 
 
