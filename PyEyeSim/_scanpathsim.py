@@ -11,7 +11,7 @@ from scipy import stats,ndimage
 import pandas as pd
 import matplotlib.pyplot as plt
 import time
-from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,SaccadeLine,CalcSim, CheckCoor,CalcSimAlt,angle_difference_power,KuiperStat
+from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,SaccadeLine,CalcSim, CheckCoor,CalcSimAlt,angle_difference_power,KuiperStat,CosineSim
 
 
 
@@ -134,9 +134,9 @@ def SacSim1Group(self,Saccades,p='all',method='ThrAdd',power=1,bothnot=False,Thr
     vertical and horizontal dimensions are inferred from the input saccade matrix dimensions
     
     
-    method: 'ThrAdd','ThrMult','Kuiper','MeanDiff'
+    method: 'ThrAdd','ThrMult','Kuiper','MeanDiff','Cosine'
     power=1: only used if method== 'MeanDiff'
-    Thr=5: threshold for similarity   , only used if method=='ThrAdd' or 'ThrMult'
+    Thr=5: threshold for similarity   , only used if method=='ThrAdd' ,'ThrMult' or 'Cosine'
     ThrAdd and ThrMult differ in normalization
     
     simcalc: True all angles transformed to below 180 before calculating similarity
@@ -169,6 +169,8 @@ def SacSim1Group(self,Saccades,p='all',method='ThrAdd',power=1,bothnot=False,Thr
                                             SimSacP[s1,s2,p1,v,h]=simsacn/(len(Saccades[s1,p1,v,h])*len(Saccades[s2,p1,v,h]))
                                     elif method=='Kuiper':
                                         SimSacP[s1,s2,p1,v,h]=KuiperStat(Saccades[s1,p1,v,h],Saccades[s2,p1,v,h])
+                                    elif method=='Cosine':
+                                        SimSacP[s1,s2,p1,v,h]=CosineSim(Saccades[s1,p1,v,h],Saccades[s2,p1,v,h],Thr=Thr)
                                         
                                 elif len(Saccades[s1,p1,v,h])==0 and len(Saccades[s2,p1,v,h])>0:
                                     if bothnot:
@@ -188,10 +190,10 @@ def SacSim1GroupAll2All(self,Saccades,p='all',method='ThrAdd',power=1,bothnot=Fa
     ''' calculate saccade similarity for each stimulus, and across all stimuli, between each pair of participants ,
     needs saccades stored as PyEyeSim saccade objects stored in AOIs as input,
     vertical and horizontal dimensions are inferred from the input
-    method: 'ThrAdd','ThrMult','Kuiper','MeanDiff'
+    method: 'ThrAdd','ThrMult','Kuiper','MeanDiff','Cosine'
     power=1: only used if method== 'MeanDiff'
-    Thr=5: threshold for similarity   , only used if method=='ThrAdd' or 'ThrMult'
-
+    Thr=5: threshold for similarity   , only used if method=='ThrAdd' ,'ThrMult' or 'Cosine'
+    bothnot: if True cells where neither particpants have fixations, are calculated as similar : 1 
 
     normalize, if provided must be add or mult '''
     
@@ -221,6 +223,8 @@ def SacSim1GroupAll2All(self,Saccades,p='all',method='ThrAdd',power=1,bothnot=Fa
                                                 SimSacP[s1,s2,p1,p2,v,h]=simsacn/(len(Saccades[s1,p1,v,h])*len(Saccades[s2,p2,v,h]))
                                             elif method=='Kuiper':
                                                 SimSacP[s1,s2,p1,p2,v,h]=KuiperStat(Saccades[s1,p1,v,h],Saccades[s2,p2,v,h])
+                                            elif method=='Cosine':
+                                                SimSacP[s1,s2,p1,p2,v,h]=CosineSim(Saccades[s1,p1,v,h],Saccades[s2,p2,v,h],Thr=Thr)
                                     elif len(Saccades[s1,p1,v,h])==0 and len(Saccades[s2,p2,v,h])>0:
                                         if bothnot:
                                             SimSacP[s1,s2,p1,p2,v,h]=0

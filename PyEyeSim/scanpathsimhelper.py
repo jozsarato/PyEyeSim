@@ -4,6 +4,7 @@ from numpy import matlib
 #from scipy import stats,ndimage
 #import pandas as pd
 import matplotlib.pyplot as plt
+from scipy.spatial.distance import cosine
 
 
 
@@ -163,16 +164,20 @@ def KuiperStat(saccades1,saccades2):
     d_minus = np.max(ecdf2 - ecdf1)
     v = d_plus + d_minus
     return 1 - v
-    
-    
 
-# def CompPower(saccades1,saccades2):
-#     #saccades1[saccades1>180]-=180
-#     #saccades2[saccades2>180]-=180
-#     A=saccades1[:,np.newaxis]
-#     B=saccades2[np.newaxis,:]
-#     return  np.mean(((A-B)/180)**2)
 
+
+def CosineSim(saccades1,saccades2,Thr):
+   
+    bin_edges = np.linspace(0, 360, int(360/Thr)+1)  # 36 bins of 10° each + endpoint
+    
+    # Compute histograms (normalize to get probability distributions)
+    hist1, _ = np.histogram(saccades1, bins=bin_edges, density=True)
+    hist2, _ = np.histogram(saccades2, bins=bin_edges, density=True)
+        
+    # Compute cosine similarity
+    return  1 - cosine(hist1, hist2)
+    
 
 
 def angle_difference_power(saccades1,saccades2,power=1):
