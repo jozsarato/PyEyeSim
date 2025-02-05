@@ -182,3 +182,4 @@ def angle_difference_power(saccades1,saccades2,power=1):
     mask = diffs > 180
     diffs[mask] = 360 - diffs[mask]
     return np.mean(np.abs((np.minimum(diffs, 180 - diffs)/90))**power)
+
