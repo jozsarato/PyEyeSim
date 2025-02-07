@@ -186,15 +186,20 @@ def SacSim1Group(self,Saccades,p='all',method='ThrAdd',power=1,bothnot=False,Thr
     return SimSacP
 
   
-def SacSim1GroupAll2All(self,Saccades,p='all',method='ThrAdd',power=1,bothnot=False,Thr=5):
+def SacSim1GroupAll2All(self,Saccades,p='all',method='ThrAdd',Thr=5,power=1,bothnot=False):
     ''' calculate saccade similarity for each stimulus, and across all stimuli, between each pair of participants ,
     needs saccades stored as PyEyeSim saccade objects stored in AOIs as input,
     vertical and horizontal dimensions are inferred from the input
-    method: 'ThrAdd','ThrMult','Kuiper','MeanDiff','Cosine'
+    method: 
+        similarity ratio with additive normalization: 'ThrAdd',
+        similarity ratio multiplicative normalization: 'ThrMult',
+        Kuiper statistic: 'Kuiper',
+        mean difference of saccades angles (can be absolute or power) : 'MeanDiff'
+        Cosine similarity (binned): 'Cosine'
     power=1: only used if method== 'MeanDiff'
-    Thr=5: threshold for similarity   , only used if method=='ThrAdd' ,'ThrMult' or 'Cosine'
+    Thr=5: threshold for similarity   , only used if method=='ThrAdd' ,'ThrMult' or 'Cosine'--
+    
     bothnot: if True cells where neither particpants have fixations, are calculated as similar : 1 
-
     normalize, if provided must be add or mult '''
     
     nVer=np.shape(Saccades)[2]
