@@ -429,8 +429,10 @@ def Vis_Saccade_Angles(self,stim,subj='all',color='darkgreen',width= np.pi / 25,
         self.GetSaccades()
     stimn=int(np.nonzero(self.stimuli==stim)[0])
     binss=np.arange(0,360+binsize,binsize)
-    
-    saccarray=np.concatenate((self.saccadeangles[:,stimn]))  #self.stimuli==stim]
+    sacarray=np.array([])
+    for cs in range(self.ns):
+        if np.isnan(self.nsac[cs,stimn])==False:
+            saccarray=np.concatenate((sacarray,self.saccadeangles[cs,stimn]))  #self.stimuli==stim]
 
     bincounts, edges=np.histogram(saccarray,bins=binss)
 
