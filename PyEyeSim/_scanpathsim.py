@@ -67,7 +67,57 @@ def AOIFix(self,p,FixTrialX,FixTrialY,nDivH,nDivV):
     return NFix,StatPtrial,StatNtrial
 
     
-def SaccadeSel(self,SaccadeObj,nHor,nVer=0): 
+# def SaccadeSel(self,SaccadeObj,nHor,nVer=0,minL=0): 
+#     '''
+#     select saccades for angle comparison method, return array of saccade angles for each participant, stimulus and cell for a given hor by ver division
+    
+
+#     Positional arguments
+#    ----------
+#     SaccadeObj : saccade object as input (as defined in scanpathsimhelper.py)
+#     nHor : num horizontal divisons
+     
+#      Optional arguments
+#      ----------
+#     nVer: num vertical divisions (if zero, equals to horizontal)
+#     minL: minimum saccade length in pixels, sacccades shorter than this are discarded
+#     Returns
+#     -------
+#     Saccades :  num observers * num stimuli * num vertical * num horizontal matrix, each entry is an array of saccade angles for that cell
+
+#     '''
+#     if nVer==0:
+#         nVer=nHor  # if number of vertical divisions not provided -- use same as the number of horizontal
+#     SaccadeAOIAngles=[]
+    
+#     AOIRects=CreatAoiRects(nHor,nVer,self.boundsX,self.boundsY)
+    
+
+#     Saccades=np.zeros((((self.ns,self.np,nVer,nHor))),dtype=np.ndarray)  # store an array of saccades that cross the cell, for each AOI rectangle of each trial for each partiicpant
+#     for s in np.arange(self.ns):
+#         SaccadeAOIAngles.append([])
+#         for p in range(self.np):
+#             SaccadeAOIAngles[s].append(np.zeros(((int(self.nsac[s,p]),nVer,nHor))))
+#             SaccadeAOIAngles[s][p][:]=np.nan
+          
+#             for sac in range(len(SaccadeObj[s][p])):
+#                 SaccadeDots=SaccadeObj[s][p][sac].LinePoints()
+#                 for h in range(nHor):
+#                     for v in range(nVer):
+#                        # print(h,v)
+#                         if AOIRects[p][h][v].Cross(SaccadeDots)==True:
+#                            SaccadeAOIAngles[s][p][sac,v,h]=SaccadeObj[s][p][sac].Angle()  # get the angle of the sacccade
+             
+#             for h in range(nHor):
+#                 for v in range(nVer):
+#                     if np.sum(np.isfinite(SaccadeAOIAngles[s][p][:,v,h]))>0:
+#                         Saccades[s,p,v,h]=np.array(SaccadeAOIAngles[s][p][SaccadeAOIAngles[s][p][:,v,h]>minL,v,h])
+#                     else:
+#                         Saccades[s,p,v,h]=np.array([])
+#     return Saccades
+
+
+def SaccadeSel(self,nHor,nVer=0,minL=0): 
     '''
     select saccades for angle comparison method, return array of saccade angles for each participant, stimulus and cell for a given hor by ver division
     
@@ -79,8 +129,8 @@ def SaccadeSel(self,SaccadeObj,nHor,nVer=0):
      
      Optional arguments
      ----------
-    nVer : num vertical divisions (if zero, equals to horizontal)
-
+    nVer: num vertical divisions (if zero, equals to horizontal)
+    minL: minimum saccade length in pixels, sacccades shorter than this are discarded
     Returns
     -------
     Saccades :  num observers * num stimuli * num vertical * num horizontal matrix, each entry is an array of saccade angles for that cell
@@ -89,43 +139,34 @@ def SaccadeSel(self,SaccadeObj,nHor,nVer=0):
     if nVer==0:
         nVer=nHor  # if number of vertical divisions not provided -- use same as the number of horizontal
     SaccadeAOIAngles=[]
-    SaccadeAOIAnglesCross=[]
     
     AOIRects=CreatAoiRects(nHor,nVer,self.boundsX,self.boundsY)
-    
 
     Saccades=np.zeros((((self.ns,self.np,nVer,nHor))),dtype=np.ndarray)  # store an array of saccades that cross the cell, for each AOI rectangle of each trial for each partiicpant
-    for s in np.arange(self.ns):
+    for cs in range(self.ns):
         SaccadeAOIAngles.append([])
-        SaccadeAOIAnglesCross.append([])
-        for p in range(self.np):
-            SaccadeAOIAngles[s].append(np.zeros(((int(self.nsac[s,p]),nVer,nHor))))
-           # print(s,p,NSac[s,p])
-            SaccadeAOIAngles[s][p][:]=np.nan
-            SaccadeAOIAnglesCross[s].append(np.zeros(((int(self.nsac[s,p]),nVer,nHor))))
-            SaccadeAOIAnglesCross[s][p][:]=np.nan
-            for sac in range(len(SaccadeObj[s][p])):
-                SaccadeDots=SaccadeObj[s][p][sac].LinePoints()
-                
-                
+
+        for cp in range(self.np):
+            SaccadeAOIAngles[cs].append(np.zeros(((len(self.saccadeangles[cs,cp]),nVer,nHor))))
+            SaccadeAOIAngles[cs][cp][:]=np.nan
+          
+            for sac in range(len(self.saccadeangles[cs,cp])):
+                LineX=np.linspace(self.startX[cs,cp][sac],self.endX[cs,cp][sac],int(self.saccadelengths[cs,cp][sac]*5))
+                LineY=np.linspace(self.startY[cs,cp][sac],self.endY[cs,cp][sac],int(self.saccadelengths[cs,cp][sac]*5))
                 for h in range(nHor):
                     for v in range(nVer):
                        # print(h,v)
-                        if AOIRects[p][h][v].Cross(SaccadeDots)==True:
-                          #  print(h,v,SaccadeObj[s][p][sac].Angle())
-                            SaccadeAOIAngles[s][p][sac,v,h]=SaccadeObj[s][p][sac].Angle()  # get the angle of the sacccade
-
-                if np.sum(SaccadeAOIAngles[s][p][sac,:,:]>0)>1:  # select saccaded that use multiple cells
-                    #print('CrossSel',SaccadeAOIAngles[s][p][sac,:,:])
-                    SaccadeAOIAnglesCross[s][p][sac,:,:]=SaccadeAOIAngles[s][p][sac,:,:]
-
+                        if AOIRects[cp][h][v].Cross([LineX,LineY])==True:
+                           SaccadeAOIAngles[cs][cp][sac,v,h]=self.saccadeangles[cs,cp][sac]  # get the angle of the sacccade
+             
             for h in range(nHor):
                 for v in range(nVer):
-                    if np.sum(np.isfinite(SaccadeAOIAnglesCross[s][p][:,v,h]))>0:
-                        Saccades[s,p,v,h]=np.array(SaccadeAOIAnglesCross[s][p][~np.isnan(SaccadeAOIAnglesCross[s][p][:,v,h]),v,h])
+                    if np.sum(np.isfinite(SaccadeAOIAngles[cs][cp][:,v,h]))>0:
+                        Saccades[cs,cp,v,h]=np.array(SaccadeAOIAngles[cs][cp][SaccadeAOIAngles[cs][cp][:,v,h]>minL,v,h])
                     else:
-                        Saccades[s,p,v,h]=np.array([])
+                        Saccades[cs,cp,v,h]=np.array([])
     return Saccades
+
 
 
 def SacSim1Group(self,Saccades,p='all',method='ThrAdd',power=1,bothnot=False,Thr=5):
@@ -287,14 +328,14 @@ def SacSimPipeline(self,divs=[4,5,7,9],method='ThrAdd',power=1,bothnot=False,Thr
     if Thr=0 and power>1, average saccadic angle difference on the value defined by power
     this pipeline compares observers within each stimulus
     '''
-    SaccadeObj=self.GetSaccades()
+    self.GetSaccades()
     StimSims=np.zeros((len(divs),self.np))
     StimSimsInd=np.zeros((len(divs),self.ns,self.np))
     SimsAll=[]
     for cd,ndiv in enumerate(divs):
         start_time = time.time()
         print(cd,ndiv)
-        sacDivSel=self.SaccadeSel(SaccadeObj,ndiv)
+        sacDivSel=self.SaccadeSel(ndiv)
         SimSacP=self.SacSim1Group(sacDivSel,method=method,Thr=Thr,power=power,bothnot=bothnot)
         StimSimsInd[cd,:,:]=np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0)
         StimSims[cd,:]=np.nanmean(np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0),0)
@@ -311,14 +352,14 @@ def SacSimPipelineAll2All(self,divs=[4,5,7,9],method='ThrAdd',power=1,Thr=5):
     the all to all pipeline compares observers both within and also between stimuli, therefore has a longer runtime
     
     '''
-    SaccadeObj=self.GetSaccades()
+    self.GetSaccades()
     StimSims=np.zeros((len(divs),self.np,self.np))
     StimSimsInd=np.zeros((len(divs),self.ns,self.np,self.np))
     SimsAll=[]
     for cd,ndiv in enumerate(divs):
         start_time = time.time()
         print(cd,ndiv)
-        sacDivSel=self.SaccadeSel(SaccadeObj,ndiv)
+        sacDivSel=self.SaccadeSel(ndiv)
         SimSacP=self.SacSim1GroupAll2All(sacDivSel,method=method,Thr=Thr,power=power)
         StimSimsInd[cd,:,:]=np.nanmean(np.nanmean(np.nanmean(SimSacP,5),4),0)
         StimSims[cd,:,:]=np.nanmean(np.nanmean(np.nanmean(np.nanmean(SimSacP,5),4),0),0)
@@ -333,7 +374,7 @@ def SacSimPipelineAll2All(self,divs=[4,5,7,9],method='ThrAdd',power=1,Thr=5):
 def ScanpathSim2Groups(self,stim,betwcond,nHor=5,nVer=0,Thr=5,normalize='add'):
     if hasattr(self,'subjects')==0:
         self.GetParams()  
-    SaccadeObj=self.GetSaccades()
+    self.GetSaccades()
     if type(stim)==str:
         if stim=='all':
             stimn=np.arange(self.ns)  # all stimuli
@@ -345,7 +386,7 @@ def ScanpathSim2Groups(self,stim,betwcond,nHor=5,nVer=0,Thr=5,normalize='add'):
     if nVer==0:
         nVer=nHor  #
     
-    SaccadeDiv=self.SaccadeSel(SaccadeObj,nHor=nHor,nVer=nVer)    
+    SaccadeDiv=self.SaccadeSel(nHor=nHor,nVer=nVer)    
     SimSacP=self.SacSim1Group(SaccadeDiv,Thr=Thr,normalize=normalize)
     WhichC,WhichCN=self.GetGroups(betwcond)
     Idxs=[]

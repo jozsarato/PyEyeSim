@@ -83,7 +83,8 @@ class EyeData:
         ScanpathSim2Groups,
         SacSimPipelineAll2All,
         SacSim1GroupAll2All,
-        SacSim2GroupAll2All
+        SacSim2GroupAll2All,
+        SaccadeSel_debug
         
     )
     

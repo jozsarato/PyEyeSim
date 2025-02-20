@@ -108,17 +108,13 @@ class SaccadeLine:
         return  np.abs(self.y2-self.y1)
     
     def Angle(self):   # angle of saccade (0-360 deg)
-      #  Ang=np.degrees(np.arccos((self.x2-self.x1)/self.length()))  #calculate angel of saccades
-       # if self.y2 < self.y1:  # if downward saccade
-         #   Ang=360-Ang  
-            
+     
         delta_x = self.x2 - self.x1
         delta_y = self.y2 - self.y1
          
          # Compute the angle in radians
         angle_radians = np.arctan2(delta_y, delta_x)
          # Convert to degrees
-      
             
         return np.rad2deg(angle_radians)% 360  
     def Vis(self,alp=.2,Col='k'):  # plot saccade
@@ -126,8 +122,8 @@ class SaccadeLine:
         return
     
     def LinePoints(self):  # use dots with density of 1dot/1pixel to approximate line.
-        LineX=np.linspace(self.x1,self.x2,int(self.length()))
-        LineY=np.linspace(self.y1,self.y2,int(self.length()))
+        LineX=np.linspace(self.x1,self.x2,int(self.length())*10)
+        LineY=np.linspace(self.y1,self.y2,int(self.length())*10)
         return LineX,LineY
     
 
