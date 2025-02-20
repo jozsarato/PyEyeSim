@@ -11,7 +11,7 @@ from scipy import stats,ndimage
 import pandas as pd
 import matplotlib.pyplot as plt
 import time
-from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,SaccadeLine,CalcSim, CheckCoor,CalcSimAlt,angle_difference_power,KuiperStat,CosineSim
+from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,CalcSim, CheckCoor,CalcSimAlt,angle_difference_power,KuiperStat,CosineSim
 
 
 
@@ -138,33 +138,33 @@ def SaccadeSel(self,nHor,nVer=0,minL=0):
     '''
     if nVer==0:
         nVer=nHor  # if number of vertical divisions not provided -- use same as the number of horizontal
-    SaccadeAOIAngles=[]
     
     AOIRects=CreatAoiRects(nHor,nVer,self.boundsX,self.boundsY)
 
     Saccades=np.zeros((((self.ns,self.np,nVer,nHor))),dtype=np.ndarray)  # store an array of saccades that cross the cell, for each AOI rectangle of each trial for each partiicpant
     for cs in range(self.ns):
-        SaccadeAOIAngles.append([])
 
         for cp in range(self.np):
-            SaccadeAOIAngles[cs].append(np.zeros(((len(self.saccadeangles[cs,cp]),nVer,nHor))))
-            SaccadeAOIAngles[cs][cp][:]=np.nan
-          
-            for sac in range(len(self.saccadeangles[cs,cp])):
-                LineX=np.linspace(self.startX[cs,cp][sac],self.endX[cs,cp][sac],int(self.saccadelengths[cs,cp][sac]*5))
-                LineY=np.linspace(self.startY[cs,cp][sac],self.endY[cs,cp][sac],int(self.saccadelengths[cs,cp][sac]*5))
+            if self.nsac[cs,cp]>0:
+                SaccadeAOIAngles=np.zeros((len(self.saccadeangles[cs,cp]),nVer,nHor))
+                SaccadeAOIAngles[:]=np.NAN
+              
+                for sac in range(len(self.saccadeangles[cs,cp])):
+                    LineX=np.linspace(self.startX[cs,cp][sac],self.endX[cs,cp][sac],int(self.saccadelengths[cs,cp][sac]*5))
+                    LineY=np.linspace(self.startY[cs,cp][sac],self.endY[cs,cp][sac],int(self.saccadelengths[cs,cp][sac]*5))
+                    for h in range(nHor):
+                        for v in range(nVer):
+                           # print(h,v)
+                            if AOIRects[cp][h][v].Cross([LineX,LineY])==True:
+                               SaccadeAOIAngles[sac,v,h]=self.saccadeangles[cs,cp][sac]  # get the angle of the sacccade
+                 
                 for h in range(nHor):
                     for v in range(nVer):
-                       # print(h,v)
-                        if AOIRects[cp][h][v].Cross([LineX,LineY])==True:
-                           SaccadeAOIAngles[cs][cp][sac,v,h]=self.saccadeangles[cs,cp][sac]  # get the angle of the sacccade
-             
-            for h in range(nHor):
-                for v in range(nVer):
-                    if np.sum(np.isfinite(SaccadeAOIAngles[cs][cp][:,v,h]))>0:
-                        Saccades[cs,cp,v,h]=np.array(SaccadeAOIAngles[cs][cp][SaccadeAOIAngles[cs][cp][:,v,h]>minL,v,h])
-                    else:
-                        Saccades[cs,cp,v,h]=np.array([])
+                        if np.sum(np.isfinite(SaccadeAOIAngles[:,v,h]))>0:
+                            Saccades[cs,cp,v,h]=np.array(SaccadeAOIAngles[SaccadeAOIAngles[:,v,h]>minL,v,h])
+                        else:
+                            Saccades[cs,cp,v,h]=np.array([])
+                            
     return Saccades
 
 

@@ -13,7 +13,7 @@ import copy
 
 # import  library helper functions. 
 from .statshelper import SaliencyMapFilt,SaccadesTrial,ScanpathL,StatEntropy,BonfHolm,ReduceCounts
-from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,SaccadeLine,CalcSim ,CheckCoor
+from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,CalcSim ,CheckCoor
 from .visualhelper import VisBinnedProg,PlotDurProg,JointBinnedPlot,MeanPlot,draw_ellipse,HistPlot
 
 

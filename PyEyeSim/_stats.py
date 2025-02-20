@@ -4,7 +4,7 @@ from numpy import matlib
 from scipy import stats,ndimage
 import pandas as pd
 import matplotlib.pyplot as plt
-from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,SaccadeLine,CalcSim ,CheckCoor
+from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,CalcSim ,CheckCoor
 from .statshelper import SaliencyMapFilt,SaccadesTrial,ScanpathL,StatEntropy,DiffMat
 from .visualhelper import PlotDurProg,VisBinnedProg,JointBinnedPlot
 

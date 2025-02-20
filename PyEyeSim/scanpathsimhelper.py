@@ -90,41 +90,41 @@ class Rect:
      
         
 
-class SaccadeLine:
-    def __init__(self, coordvect):  # create a saccade object with start and end pixels
-        self.x1=coordvect[0]
-        self.y1=coordvect[1]
-        self.x2=coordvect[2]
-        self.y2=coordvect[3]
-    def Coords(self):   
-        return self.x1,self.y1,self.x2,self.y2
-    def length(self):   # length of saccade
-        return np.sqrt((self.x2-self.x1)**2+(self.y2-self.y1)**2)
+# class SaccadeLine:
+#     def __init__(self, coordvect):  # create a saccade object with start and end pixels
+#         self.x1=coordvect[0]
+#         self.y1=coordvect[1]
+#         self.x2=coordvect[2]
+#         self.y2=coordvect[3]
+#     def Coords(self):   
+#         return self.x1,self.y1,self.x2,self.y2
+#     def length(self):   # length of saccade
+#         return np.sqrt((self.x2-self.x1)**2+(self.y2-self.y1)**2)
     
-    def lengthHor(self):  # horizontal length of saccade
-        return  np.abs(self.x2-self.x1)
+#     def lengthHor(self):  # horizontal length of saccade
+#         return  np.abs(self.x2-self.x1)
     
-    def lengthVer(self):  # vertical length of saccade
-        return  np.abs(self.y2-self.y1)
+#     def lengthVer(self):  # vertical length of saccade
+#         return  np.abs(self.y2-self.y1)
     
-    def Angle(self):   # angle of saccade (0-360 deg)
+#     def Angle(self):   # angle of saccade (0-360 deg)
      
-        delta_x = self.x2 - self.x1
-        delta_y = self.y2 - self.y1
+#         delta_x = self.x2 - self.x1
+#         delta_y = self.y2 - self.y1
          
-         # Compute the angle in radians
-        angle_radians = np.arctan2(delta_y, delta_x)
-         # Convert to degrees
+#          # Compute the angle in radians
+#         angle_radians = np.arctan2(delta_y, delta_x)
+#          # Convert to degrees
             
-        return np.rad2deg(angle_radians)% 360  
-    def Vis(self,alp=.2,Col='k'):  # plot saccade
-        plt.plot([self.x1,self.x2],[self.y1,self.y2],alpha=alp,color=Col)
-        return
+#         return np.rad2deg(angle_radians)% 360  
+#     def Vis(self,alp=.2,Col='k'):  # plot saccade
+#         plt.plot([self.x1,self.x2],[self.y1,self.y2],alpha=alp,color=Col)
+#         return
     
-    def LinePoints(self):  # use dots with density of 1dot/1pixel to approximate line.
-        LineX=np.linspace(self.x1,self.x2,int(self.length())*10)
-        LineY=np.linspace(self.y1,self.y2,int(self.length())*10)
-        return LineX,LineY
+#     def LinePoints(self):  # use dots with density of 1dot/1pixel to approximate line.
+#         LineX=np.linspace(self.x1,self.x2,int(self.length())*10)
+#         LineY=np.linspace(self.y1,self.y2,int(self.length())*10)
+#         return LineX,LineY
     
 
 def CalcSim(saccades1,saccades2,Thr=5):
