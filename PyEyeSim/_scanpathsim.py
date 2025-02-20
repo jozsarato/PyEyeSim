@@ -322,7 +322,7 @@ def SacSim2GroupAll2All(self,Saccades1,Saccades2,Thr=5,p='all',normalize='add',p
     return SimSacP
 
 
-def SacSimPipeline(self,divs=[4,5,7,9],method='ThrAdd',power=1,bothnot=False,Thr=5):
+def SacSimPipeline(self,divs=[4,5,7,9],method='ThrAdd',power=1,bothnot=False,Thr=5,minL=10):
     ''' if Thr>0, threshold based similarity ratio,
     if Thr=0, average saccadic angle difference 
     if Thr=0 and power>1, average saccadic angle difference on the value defined by power
@@ -335,7 +335,7 @@ def SacSimPipeline(self,divs=[4,5,7,9],method='ThrAdd',power=1,bothnot=False,Thr
     for cd,ndiv in enumerate(divs):
         start_time = time.time()
         print(cd,ndiv)
-        sacDivSel=self.SaccadeSel(ndiv)
+        sacDivSel=self.SaccadeSel(ndiv,minL=minL)
         SimSacP=self.SacSim1Group(sacDivSel,method=method,Thr=Thr,power=power,bothnot=bothnot)
         StimSimsInd[cd,:,:]=np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0)
         StimSims[cd,:]=np.nanmean(np.nanmean(np.nanmean(np.nanmean(SimSacP,4),3),0),0)
@@ -345,7 +345,7 @@ def SacSimPipeline(self,divs=[4,5,7,9],method='ThrAdd',power=1,bothnot=False,Thr
 
     return StimSims,np.nanmean(StimSimsInd,0),SimsAll
 
-def SacSimPipelineAll2All(self,divs=[4,5,7,9],method='ThrAdd',power=1,Thr=5):
+def SacSimPipelineAll2All(self,divs=[4,5,7,9],method='ThrAdd',power=1,Thr=5,minL=10):
     ''' if Thr>0, threshold based similarity ratio,
     if Thr=0, average saccadic angle difference 
     if Thr=0 and power>1, average saccadic angle difference on the value defined by power
@@ -359,7 +359,7 @@ def SacSimPipelineAll2All(self,divs=[4,5,7,9],method='ThrAdd',power=1,Thr=5):
     for cd,ndiv in enumerate(divs):
         start_time = time.time()
         print(cd,ndiv)
-        sacDivSel=self.SaccadeSel(ndiv)
+        sacDivSel=self.SaccadeSel(ndiv,minL=minL)
         SimSacP=self.SacSim1GroupAll2All(sacDivSel,method=method,Thr=Thr,power=power)
         StimSimsInd[cd,:,:]=np.nanmean(np.nanmean(np.nanmean(SimSacP,5),4),0)
         StimSims[cd,:,:]=np.nanmean(np.nanmean(np.nanmean(np.nanmean(SimSacP,5),4),0),0)
@@ -371,7 +371,7 @@ def SacSimPipelineAll2All(self,divs=[4,5,7,9],method='ThrAdd',power=1,Thr=5):
 
 
 
-def ScanpathSim2Groups(self,stim,betwcond,nHor=5,nVer=0,Thr=5,normalize='add'):
+def ScanpathSim2Groups(self,stim,betwcond,nHor=5,nVer=0,Thr=5,normalize='add',minL=10):
     if hasattr(self,'subjects')==0:
         self.GetParams()  
     self.GetSaccades()
@@ -386,7 +386,7 @@ def ScanpathSim2Groups(self,stim,betwcond,nHor=5,nVer=0,Thr=5,normalize='add'):
     if nVer==0:
         nVer=nHor  #
     
-    SaccadeDiv=self.SaccadeSel(nHor=nHor,nVer=nVer)    
+    SaccadeDiv=self.SaccadeSel(nHor=nHor,nVer=nVer,minL=minL)    
     SimSacP=self.SacSim1Group(SaccadeDiv,Thr=Thr,normalize=normalize)
     WhichC,WhichCN=self.GetGroups(betwcond)
     Idxs=[]
