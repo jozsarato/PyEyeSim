@@ -267,10 +267,10 @@ def SacSim1GroupAll2All(self,Saccades,p='all',method='ThrAdd',Thr=5,power=1,both
                                                 SimSacP[s1,s2,p1,p2,v,h]=simsacn/(len(Saccades[s1,p1,v,h])+len(Saccades[s2,p2,v,h]))
                                             elif method=='ThrMult':
                                                 SimSacP[s1,s2,p1,p2,v,h]=simsacn/(len(Saccades[s1,p1,v,h])*len(Saccades[s2,p2,v,h]))
-                                            elif method=='Kuiper':
-                                                SimSacP[s1,s2,p1,p2,v,h]=KuiperStat(Saccades[s1,p1,v,h],Saccades[s2,p2,v,h])
-                                            elif method=='Cosine':
-                                                SimSacP[s1,s2,p1,p2,v,h]=CosineSim(Saccades[s1,p1,v,h],Saccades[s2,p2,v,h],Thr=Thr)
+                                        elif method=='Kuiper':
+                                            SimSacP[s1,s2,p1,p2,v,h]=KuiperStat(Saccades[s1,p1,v,h],Saccades[s2,p2,v,h])
+                                        elif method=='Cosine':
+                                            SimSacP[s1,s2,p1,p2,v,h]=CosineSim(Saccades[s1,p1,v,h],Saccades[s2,p2,v,h],Thr=Thr)
                                     elif len(Saccades[s1,p1,v,h])==0 and len(Saccades[s2,p2,v,h])>0:
                                         if bothnot:
                                             SimSacP[s1,s2,p1,p2,v,h]=0
@@ -392,7 +392,7 @@ def ScanpathSim2Groups(self,stim,betwcond,nHor=5,nVer=0,Thr=5,normalize='add',mi
     Idxs=[]
    
     #Cols=['darkred','cornflowerblue']
-    fig,ax=plt.subplots(ncols=2,nrows=2,figsize=(10,8))
+
                         
     for cc,cond in enumerate(self.Conds):
         Idxs.append(np.nonzero(WhichCN==cond)[0])
