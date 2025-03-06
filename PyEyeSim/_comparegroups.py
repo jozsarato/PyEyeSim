@@ -543,7 +543,7 @@ def CompareGroupsMat(self,group,indsimmat):
         
 
 
-def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,cmap_ind='plasma',cmap_diff='RdYlBu',alpha=.5,t_abs=False,timemin=0, timemax=np.inf, timecol=0,useT=True,cutoff=-1,InferS=2): 
+def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,cmap_ind='plasma',cmap_diff='RdYlBu',alpha=.5,t_abs=False,timemin=0, timemax=np.inf, timecol=0,useT=True,cutoff=-1): 
     ''' 
     
     grid based fixation distribution comparison for stimulus in two between subject groups
@@ -584,7 +584,7 @@ def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,cmap_ind='plas
         Conditions=np.copy(Conds)
       
    
-    statPMat,statEntropyMat=self.CalcStatPs(nhor,nver,MinFix=5,InferS=InferS,timemin=timemin, timemax=timemax, timecol=timecol)
+    statPMat,statEntropyMat=self.CalcStatPs(nhor,nver,MinFix=5,timemin=timemin, timemax=timemax, timecol=timecol)
 
    # if substring and len(stimn)==2:
 
@@ -690,7 +690,7 @@ def CompareStimGridFix(self,Stim,Conds=0,nhor=5,nver=5,cmap_ind='plasma',cmap_di
     stimShow=Stims[0]
     print('stimns found:',stimn,Stims)
    
-    statPMat,statEntropyMat=self.CalcStatPs(nhor,nver,MinFix=5,InferS=2,timemin=timemin, timemax=timemax, timecol=timecol)
+    statPMat,statEntropyMat=self.CalcStatPs(nhor,nver,MinFix=5,timemin=timemin, timemax=timemax, timecol=timecol)
 
    # if substring and len(stimn)==2:
 
