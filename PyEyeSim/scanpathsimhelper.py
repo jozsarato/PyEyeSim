@@ -4,6 +4,7 @@ from numpy import matlib
 #from scipy import stats,ndimage
 #import pandas as pd
 import matplotlib.pyplot as plt
+from scipy.spatial.distance import cosine
 
 
 
@@ -89,36 +90,41 @@ class Rect:
      
         
 
-class SaccadeLine:
-    def __init__(self, coordvect):  # create a saccade object with start and end pixels
-        self.x1=coordvect[0]
-        self.y1=coordvect[1]
-        self.x2=coordvect[2]
-        self.y2=coordvect[3]
-    def Coords(self):   
-        return self.x1,self.y1,self.x2,self.y2
-    def length(self):   # length of saccade
-        return int(np.sqrt((self.x2-self.x1)**2+(self.y2-self.y1)**2))
+# class SaccadeLine:
+#     def __init__(self, coordvect):  # create a saccade object with start and end pixels
+#         self.x1=coordvect[0]
+#         self.y1=coordvect[1]
+#         self.x2=coordvect[2]
+#         self.y2=coordvect[3]
+#     def Coords(self):   
+#         return self.x1,self.y1,self.x2,self.y2
+#     def length(self):   # length of saccade
+#         return np.sqrt((self.x2-self.x1)**2+(self.y2-self.y1)**2)
     
-    def lengthHor(self):  # horizontal length of saccade
-        return  np.abs(self.x2-self.x1)
+#     def lengthHor(self):  # horizontal length of saccade
+#         return  np.abs(self.x2-self.x1)
     
-    def lengthVer(self):  # vertical length of saccade
-        return  np.abs(self.y2-self.y1)
+#     def lengthVer(self):  # vertical length of saccade
+#         return  np.abs(self.y2-self.y1)
     
-    def Angle(self):   # angle of saccade (0-360 deg)
-        Ang=np.degrees(np.arccos((self.x2-self.x1)/self.length()))  #calculate angel of saccades
-        if self.y2 < self.y1:  # if downward saccade
-            Ang=360-Ang  
-        return Ang
-    def Vis(self,alp=.2,Col='k'):  # plot saccade
-        plt.plot([self.x1,self.x2],[self.y1,self.y2],alpha=alp,color=Col)
-        return
+#     def Angle(self):   # angle of saccade (0-360 deg)
+     
+#         delta_x = self.x2 - self.x1
+#         delta_y = self.y2 - self.y1
+         
+#          # Compute the angle in radians
+#         angle_radians = np.arctan2(delta_y, delta_x)
+#          # Convert to degrees
+            
+#         return np.rad2deg(angle_radians)% 360  
+#     def Vis(self,alp=.2,Col='k'):  # plot saccade
+#         plt.plot([self.x1,self.x2],[self.y1,self.y2],alpha=alp,color=Col)
+#         return
     
-    def LinePoints(self):  # use dots with density of 1dot/1pixel to approximate line.
-        LineX=np.linspace(self.x1,self.x2,self.length())
-        LineY=np.linspace(self.y1,self.y2,self.length())
-        return LineX,LineY
+#     def LinePoints(self):  # use dots with density of 1dot/1pixel to approximate line.
+#         LineX=np.linspace(self.x1,self.x2,int(self.length())*10)
+#         LineY=np.linspace(self.y1,self.y2,int(self.length())*10)
+#         return LineX,LineY
     
 
 def CalcSim(saccades1,saccades2,Thr=5):
@@ -143,13 +149,31 @@ def CalcSimAlt(saccades1,saccades2,Thr=5):
     simsacn=np.sum(np.abs(A-B)<Thr)
     return simsacn
 
-# def CompPower(saccades1,saccades2):
-#     #saccades1[saccades1>180]-=180
-#     #saccades2[saccades2>180]-=180
-#     A=saccades1[:,np.newaxis]
-#     B=saccades2[np.newaxis,:]
-#     return  np.mean(((A-B)/180)**2)
 
+def KuiperStat(saccades1,saccades2):
+    sample1 = np.sort(saccades1)
+    sample2 = np.sort(saccades2)
+    all_data = np.sort(np.concatenate((sample1, sample2)))
+    ecdf1 = np.searchsorted(sample1, all_data, side='right') / len(sample1)
+    ecdf2 = np.searchsorted(sample2, all_data, side='right') / len(sample2)
+    d_plus = np.max(ecdf1 - ecdf2)
+    d_minus = np.max(ecdf2 - ecdf1)
+    v = d_plus + d_minus
+    return 1 - v
+
+
+
+def CosineSim(saccades1,saccades2,Thr):
+   
+    bin_edges = np.linspace(0, 360, int(360/Thr)+1)  # 36 bins of 10° each + endpoint
+    
+    # Compute histograms (normalize to get probability distributions)
+    hist1, _ = np.histogram(saccades1, bins=bin_edges, density=True)
+    hist2, _ = np.histogram(saccades2, bins=bin_edges, density=True)
+        
+    # Compute cosine similarity
+    return  1 - cosine(hist1, hist2)
+    
 
 
 def angle_difference_power(saccades1,saccades2,power=1):
@@ -159,3 +183,4 @@ def angle_difference_power(saccades1,saccades2,power=1):
     mask = diffs > 180
     diffs[mask] = 360 - diffs[mask]
     return np.mean(np.abs((np.minimum(diffs, 180 - diffs)/90))**power)
+

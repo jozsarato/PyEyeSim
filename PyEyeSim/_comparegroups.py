@@ -13,7 +13,7 @@ import copy
 
 # import  library helper functions. 
 from .statshelper import SaliencyMapFilt,SaccadesTrial,ScanpathL,StatEntropy,BonfHolm,ReduceCounts
-from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,SaccadeLine,CalcSim ,CheckCoor
+from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,CalcSim ,CheckCoor
 from .visualhelper import VisBinnedProg,PlotDurProg,JointBinnedPlot,MeanPlot,draw_ellipse,HistPlot
 
 
@@ -443,7 +443,24 @@ def FixDurProgGroups(self,colName,nfixmax=10,between=0):
 
 
 def BinnedDescriptivesGroups(self,colName,between=0, MeasureNames=['fixation duration (ms)','saccade ampl (pixel)','scanpath length (pixel)'],Colors=['navy','salmon','olive','orange','gray'],ylims=[False,False,False]):
-    ''' time-binned within trial descriptive progression, groups of stimuli or between groups of participants'''
+    '''
+    time-binned within trial descriptive progression, groups of stimuli or between groups of participants
+
+    Parameters
+    ----------
+    colName : column name for condition
+    between : The default is 0, which is within group comparion, set it to True for between group comparisons
+    
+    MeasureNames : list of measures to run the comparison for. The default is ['fixation duration (ms)','saccade ampl (pixel)','scanpath length (pixel)'].
+    Colors : list of colors for the plots The default is ['navy','salmon','olive','orange','gray'].
+    ylims : speficy list of y axis limits for the plots for each measure, The default is [False,False,False].
+
+    Returns
+    -------
+    tvals : dictionary of t values
+    pvals : dictionary of p values
+
+    '''
     if hasattr(self,'binFixL')==False: 
         
         warnings.warn('run BinnedDescriptives first to specify time columns and bins, than call this function for group wise visualization')
@@ -501,9 +518,6 @@ def BinnedDescriptivesGroups(self,colName,between=0, MeasureNames=['fixation dur
                 ax[cm].scatter(xpos,ypos,marker='*', s=17,color='k')
 
 
-   #     print(cm,MeasureNames[cm],t,p)
-            
-
     for a in range(3):
         ax[a].legend()
     plt.tight_layout()      
@@ -529,13 +543,25 @@ def CompareGroupsMat(self,group,indsimmat):
         
 
 
-def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,cmap_ind='plasma',cmap_diff='RdYlBu',alpha=.5,t_abs=False,timemin=0, timemax=np.inf, timecol=0,useT=True,cutoff=-1,InferS=2): 
+def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,cmap_ind='plasma',cmap_diff='RdYlBu',alpha=.5,t_abs=False,timemin=0, timemax=np.inf, timecol=0,useT=True,cutoff=-1): 
     ''' 
+    
+    grid based fixation distribution comparison for stimulus in two between subject groups
+    makes a figure with four subplots: 
+        1. fixatiom map group 1
+        2. fixation map group 2
+        3. difference
+        4. statistical significance of difference
 
+
+    Positional arguments
+    ----------
     Stim: stimulus name
     betwcond: between subject condition (if substring=True, this is not used)
     
-    Conds: explicitly provide conditions (if there are more than 2, this is necessary)
+     Optional arguments
+     ----------    
+    Conds: explicitly provide conditions (if there are more than 2, this is necessary to spefic which two to compare)
     t_abs: default=False,  absolute t value vs raw t-values grid
     nhor: number of horizonal cells for the grid
     nver: number of vertical cells for the grid
@@ -558,7 +584,7 @@ def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,cmap_ind='plas
         Conditions=np.copy(Conds)
       
    
-    statPMat,statEntropyMat=self.CalcStatPs(nhor,nver,MinFix=5,InferS=InferS,timemin=timemin, timemax=timemax, timecol=timecol)
+    statPMat,statEntropyMat=self.CalcStatPs(nhor,nver,MinFix=5,timemin=timemin, timemax=timemax, timecol=timecol)
 
    # if substring and len(stimn)==2:
 
@@ -613,9 +639,23 @@ def CompareGroupsGridFix(self,Stim,betwcond,Conds=0,nhor=5,nver=5,cmap_ind='plas
 
 def CompareStimGridFix(self,Stim,Conds=0,nhor=5,nver=5,cmap_ind='plasma',cmap_diff='RdYlBu',alpha=.5,t_abs=False,timemin=0, timemax=np.inf, timecol=0,useT=True,cutoff=-1): 
     ''' 
-
-    Stim: slist of two stimulus names to compare, or common substring to find pairs of stimuli (for the latter two options)
     
+    grid based fixation distribution comparison for two stimuli
+    
+    makes a figure with four subplots: 
+        1. fixatiom map group 1
+        2. fixation map group 2
+        3. difference
+        4. statistical significance of difference
+
+    
+    Positional arguments
+    ----------
+
+    Stim: list of two stimulus names to compare, or common substring to find pairs of stimuli (for the latter two options)
+    
+    Optional arguments
+    ----------    
     Conds: explicitly provide conditions (if there are more than 2, this is necessary)
     t_abs: default=False,  absolute t value vs raw t-values grid
     nhor: number of horizonal cells for the grid
@@ -650,7 +690,7 @@ def CompareStimGridFix(self,Stim,Conds=0,nhor=5,nver=5,cmap_ind='plasma',cmap_di
     stimShow=Stims[0]
     print('stimns found:',stimn,Stims)
    
-    statPMat,statEntropyMat=self.CalcStatPs(nhor,nver,MinFix=5,InferS=2,timemin=timemin, timemax=timemax, timecol=timecol)
+    statPMat,statEntropyMat=self.CalcStatPs(nhor,nver,MinFix=5,timemin=timemin, timemax=timemax, timecol=timecol)
 
    # if substring and len(stimn)==2:
 

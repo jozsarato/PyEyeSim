@@ -4,7 +4,7 @@ from numpy import matlib
 from scipy import stats,ndimage
 import pandas as pd
 import matplotlib.pyplot as plt
-from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,SaccadeLine,CalcSim ,CheckCoor
+from .scanpathsimhelper import AOIbounds,CreatAoiRects,Rect,CalcSim ,CheckCoor
 from .statshelper import SaliencyMapFilt,SaccadesTrial,ScanpathL,StatEntropy,DiffMat
 from .visualhelper import PlotDurProg,VisBinnedProg,JointBinnedPlot
 
@@ -105,7 +105,7 @@ def BinnedCount(self,Fixcounts,Stim,fixs=1,binsize_h=50,binsize_v=None):
     return BinnedCount
 
 
-def CalcStatPs(self,nHor,nVer,MinFix=10,InferS=1,timemin=0, timemax=np.inf, timecol=0):
+def CalcStatPs(self,nHor,nVer,MinFix=10,timemin=0, timemax=np.inf, timecol=0):
     ''' for a dataset, return number of fixation probability matrix for each subject and stimulus, for given divisions
     returns StatPMat: nsubject*nstimulus*nvertical*nhorizontal 
 
@@ -117,10 +117,7 @@ def CalcStatPs(self,nHor,nVer,MinFix=10,InferS=1,timemin=0, timemax=np.inf, time
     optional:
     MinFix: minimum number of fixations for a given participant
 
-    InferS: 0 calcualte for full screen (if images are presented full screen for example)
-            1 calculate for inferred bounds -- based 99% of locations
-            2 calculate based on centered image (that is smaller than full screen)-- needed when image sizes differ and not full screen, but can be only calculated if images have been loaded
-
+  
 
 
     '''
@@ -132,7 +129,7 @@ def CalcStatPs(self,nHor,nVer,MinFix=10,InferS=1,timemin=0, timemax=np.inf, time
         for cp,p in enumerate(self.stimuli):      
             FixTrialX,FixTrialY=self.GetFixationData(s,p,timemin=timemin, timemax=timemax, timecol=timecol)  
             if self.nfixations[cs,cp]>MinFix:
-                NFixy,StatPtrial,StatNtrial=self.AOIFix(cp,FixTrialX,FixTrialY,nHor,nVer,InferS=InferS)
+                NFixy,StatPtrial,StatNtrial=self.AOIFix(cp,FixTrialX,FixTrialY,nHor,nVer)
                 statPMat[cs,cp,:,:]=StatPtrial.reshape(nVer,nHor)
                 statEntropyMat[cs,cp]=StatEntropy(statPMat[cs,cp,:,:].reshape(-1,1))
             else:
@@ -141,7 +138,7 @@ def CalcStatPs(self,nHor,nVer,MinFix=10,InferS=1,timemin=0, timemax=np.inf, time
             
     return statPMat,statEntropyMat
 
-    
+  
 def StatPDiffInd1(self,statPMat):
     StatIndDiff=np.zeros(((self.np,self.ns,self.ns)))
     for cp,p in enumerate(self.stimuli):   
