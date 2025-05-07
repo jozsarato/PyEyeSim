@@ -237,7 +237,7 @@ def RunDiffDivs(self,mindiv,maxdiv,Vis=1):
 def CalcRets(self,fixx,fixy,threshold,Vis=0,ax=0):
     ''' this function calcualates return eye movements, immediate or later to a previously visited location, with a criterion, 
     that distance from fix current to return location should be smaller, that distance of fix  1 back  and retun location..
-    it is only a return it is close, and closer than previous. (only relevant for late returns)'''
+    it is only a return if it is close, and closer than previous. (only relevant for late returns)'''
     nr=0
     xdiff=DiffMat(fixx)
     ydiff=DiffMat(fixy)

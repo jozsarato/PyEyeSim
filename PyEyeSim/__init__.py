@@ -361,8 +361,16 @@ class EyeData:
     
         pass
     
+    def RunDescriptiveSaccades(self,infersize=False,Interval=99):
+        Subjects, Stimuli = self.GetParams()
 
+        self.boundsX, self.boundsY = self.GetSize(infersize=infersize,Interval=Interval)
+        self.actsize = (self.boundsX[:, 1] - self.boundsX[:, 0]) * (
+            self.boundsY[:, 1] - self.boundsY[:, 0]
+        )
+        return Stimuli, Subjects
 
+      
     def RunDescriptiveFix(self, Visual=0, duration=0,infersize=False,Interval=99):
         """
         Description:  Calculate descriptive statistics for fixation data in dataset.

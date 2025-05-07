@@ -37,6 +37,7 @@ def CreatAoiRects(nHorD,nVerD,BoundsX,BoundsY,allsame=0):
                     AOIRects[a][h].append(Rect(AOIboundsH[h],AOIboundsV[v],AOIboundsH[h+1],AOIboundsV[v+1]))  # store AOIs as objects
     else:
         for p in range(np.shape(BoundsX)[0]):
+#            print(p,nHorD,BoundsX)
             AOIboundsH=AOIbounds(BoundsX[p,0],BoundsX[p,1],nHorD)
             AOIboundsV=AOIbounds(BoundsY[p,0],BoundsY[p,1],nVerD)
           #  print(AOIboundsH)
@@ -127,7 +128,7 @@ class Rect:
 #         return LineX,LineY
     
 
-def CalcSim(saccades1,saccades2,Thr=5):
+def CalcSim(saccades1,saccades2,Thr=5,power=None):
     ''' calculcate angle based similarity for two arrays of saccade objects (for each cell)'''
     A=matlib.repmat(saccades1,len(saccades2),1)   # matrix of s1 saccades in cell
     B=matlib.repmat(saccades2,len(saccades1),1).T  # matrix of s2 saccades in cell
@@ -139,7 +140,7 @@ def CalcSim(saccades1,saccades2,Thr=5):
 
 
 
-def CalcSimAlt(saccades1,saccades2,Thr=5):
+def threshold(saccades1,saccades2,Thr=5,power=None):
     ''' calculcate angle based similarity for two arrays of saccade objects (for each cell)
     all angles are transformed to below 180 degrees before comparison'''
     saccades1[saccades1>180]-=180
@@ -150,7 +151,7 @@ def CalcSimAlt(saccades1,saccades2,Thr=5):
     return simsacn
 
 
-def KuiperStat(saccades1,saccades2):
+def kuiper(saccades1,saccades2,Thr=None,power=None):
     sample1 = np.sort(saccades1)
     sample2 = np.sort(saccades2)
     all_data = np.sort(np.concatenate((sample1, sample2)))
@@ -163,7 +164,7 @@ def KuiperStat(saccades1,saccades2):
 
 
 
-def CosineSim(saccades1,saccades2,Thr):
+def cosine_sim(saccades1,saccades2,Thr=5,power=None):
    
     bin_edges = np.linspace(0, 360, int(360/Thr)+1)  # 36 bins of 10° each + endpoint
     
@@ -176,11 +177,21 @@ def CosineSim(saccades1,saccades2,Thr):
     
 
 
-def angle_difference_power(saccades1,saccades2,power=1):
+def diff_mean(saccades1,saccades2,power=1,Thr=None):
     ''' this methods calculates differences between 0 and 90 degrees, between all pairs of saccades, than normalizes to the range 0-1, than averages
     by default it is just the mean absolute difference, but can be used for different exponentials by changing power from the default of 1'''
     diffs = np.abs(saccades1[:, np.newaxis] - saccades2) % 360
     mask = diffs > 180
     diffs[mask] = 360 - diffs[mask]
     return 1-np.mean(np.abs((np.minimum(diffs, 180 - diffs)/90))**power)
+
+
+
+def diff_min(saccades1,saccades2,Thr=None,power=None):
+    ''' this methods calculates differences between 0 and 90 degrees, between all pairs of saccades, than normalizes to the range 0-1, than averages
+    by default it is just the mean absolute difference, but can be used for different exponentials by changing power from the default of 1'''
+    diffs = np.abs(saccades1[:, np.newaxis] - saccades2) % 360
+    mask = diffs > 180
+    diffs[mask] = 360 - diffs[mask]
+    return 1-np.mean(np.min(np.abs((np.minimum(diffs, 180 - diffs)/90)),0))
 
