@@ -37,10 +37,11 @@ def DataArrayHmm(self,stim,group=-1,tolerance=20,verb=True):
                 YY=np.append(YY,fixY)
                 Lengths=np.append(Lengths,len(fixX))
                 self.suseHMM=np.append(self.suseHMM,s)
-            elif verb:
-                print('not enough fixations for subj', s)
+            else:
                 MissingSubj.append(cs)
-
+                if verb==True:
+                    print('not enough fixations for subj', s)
+            
     return XX,YY,Lengths,MissingSubj
 
 

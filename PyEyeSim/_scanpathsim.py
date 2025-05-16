@@ -229,10 +229,6 @@ def SacSim1Group(self,Saccades,p='all',method='Thr',power=1,bothnot=False,Thr=5)
                                     else:
                                         SimSacP[s1,s2,p1,v,h]=MethodDict[method](Saccades[s1,p1,v,h],Saccades[s2,p1,v,h],power=power,Thr=Thr)
 
-                                    # elif method=='Kuiper':
-                               
-
-                                        
                                 elif len(Saccades[s1,p1,v,h])==0 and len(Saccades[s2,p1,v,h])>0:
                                     if bothnot:
                                         SimSacP[s1,s2,p1,v,h]=0
