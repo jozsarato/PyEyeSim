@@ -268,8 +268,8 @@ def HMMSimPipelineAll2All(self,ncomp=4,verb=False,covar='full',ntest=3):
             StimSimsHMMTrain[cp2,cp1]=HMMfitted.score(DatsTrain[stim2],DatsTrainL[stim2])/np.sum(DatsTrainL[stim2])
             StimSimsHMMTest[cp2,cp1]=HMMfitted.score(DatsTest[stim2],DatsTestL[stim2])/np.sum(DatsTestL[stim2])
 
-    self.VisSimmat(StimSimsHMMTrain,'Train')
-    self.VisSimmat(StimSimsHMMTest,'Test')
+    self.VisSimmat(StimSimsHMMTrain,title='Train')
+    self.VisSimmat(StimSimsHMMTest,title='Test')
     
     return StimSimsHMMTrain,StimSimsHMMTest
 
