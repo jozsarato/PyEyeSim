@@ -155,7 +155,7 @@ def SaccadeSel(self,nHor,nVer=0,minL=0):
         for cp in range(self.np):
             if self.nsac[cs,cp]>0:
                 SaccadeAOIAngles=np.zeros((len(self.saccadeangles[cs,cp]),nVer,nHor))
-                SaccadeAOIAngles[:]=np.NAN
+                SaccadeAOIAngles[:]=np.nan
               
                 for sac in range(len(self.saccadeangles[cs,cp])):
                     LineX=np.linspace(self.startX[cs,cp][sac],self.endX[cs,cp][sac],int(self.saccadelengths[cs,cp][sac]*5))
@@ -416,7 +416,7 @@ def ScanpathSim2Groups(self,stim,betwcond,nHor=5,nVer=0,Thr=5,normalize='add',mi
    
     #Cols=['darkred','cornflowerblue']
 
-                        
+    fig,ax=plt.subplots(ncols=2,nrows=2)
     for cc,cond in enumerate(self.Conds):
         Idxs.append(np.nonzero(WhichCN==cond)[0])
     SimVals=np.zeros((2,2))

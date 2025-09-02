@@ -166,7 +166,7 @@ def kuiper(saccades1,saccades2,Thr=None,power=None):
 
 def cosine_sim(saccades1,saccades2,Thr=5,power=None):
    
-    bin_edges = np.linspace(0, 360, int(360/Thr)+1)  # 36 bins of 10° each + endpoint
+    bin_edges = np.arange(0, 360+Thr,Thr)  # Thr should be the bin size
     
     # Compute histograms (normalize to get probability distributions)
     hist1, _ = np.histogram(saccades1, bins=bin_edges, density=True)
